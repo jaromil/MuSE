@@ -417,10 +417,10 @@ void Basic_scheduler::start_mixer_channel( Url *rec )
 	p = strstr(rec->path,MUSE_URL); 
 	if (!p) return;
 	p += strlen(MUSE_URL);
-	chan = atoi(p) -1 ;
+	chan = atoi(p) - 1 ;
 	notice("Basic_scheduler::start_mixer_channel %d", chan);
 	
-	if (chan>0 &&chan<MAX_CHANNELS) {
+	if (chan>=0 && chan<MAX_CHANNELS) {
         mixer->set_channel(chan, 1/*pos*/);
         mixer->play_channel(chan);
     }
