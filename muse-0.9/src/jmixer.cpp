@@ -304,6 +304,10 @@ void Stream_mixer::cafudda()
     
   } else {
     
+     if(dspout) {
+	  snddev->flush_output();
+	  snddev->flush_input();
+     }
     unlock();
     
     if(have_gui) {

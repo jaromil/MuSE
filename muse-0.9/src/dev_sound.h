@@ -53,6 +53,8 @@ class SoundDevice {
   int read(void *buf, int len); ///< reads audio data from the device in a buffer, len is samples
   
   int write(void *buf, int len); ///< writes audio data from a buffer to the device, len is samples
+  void flush_input();
+  void flush_output();
 
   bool jack;
   bool jack_in;

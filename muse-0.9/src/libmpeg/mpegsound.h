@@ -23,8 +23,14 @@
 #endif
 #endif
 
+#include <config.h>
+
 #ifndef _L__SOUND__
 #define _L__SOUND__
+
+#ifdef HAVE_DARWIN
+#define WORDS_BIGENDIAN 1
+#endif
 
 /****************/
 /* Sound Errors */

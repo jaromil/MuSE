@@ -329,3 +329,10 @@ int SoundDevice::write(void *buf, int len) {
   }
   return res;
 }
+
+void SoundDevice::flush_output() {
+   output_device.pipe->flush();
+}
+void SoundDevice::flush_input() {
+   input_device.pipe->flush();
+}
