@@ -832,7 +832,6 @@ int main(int argc, char **argv) {
 
 /* signal handling */
 void quitproc (int Sig) {
-printf("quitproc\r\n");
   func("received signal %u on process %u",Sig,getpid());
   if(thegui!=CLI) gui->quit = true;
   mix->quit = true;  
