@@ -58,13 +58,15 @@ bool OutVorbis::init() {
 
   initialized = true;
 
-  vorbis_encode_setup_init(&vi);
+
   
   if(!apply_profile()) {
     error("problems in setting up codec parameters");
     //    vorbis_info_clear(&vi);
     return false;
   }
+
+  vorbis_encode_setup_init(&vi);
 
   /* Now, set up the analysis engine, stream encoder, and other
      preparation before the encoding begins. */
