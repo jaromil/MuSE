@@ -460,9 +460,11 @@ void gcb_set_talk(GtkWidget *w)
 	}
 	
 }
-	
+
 void gcb_exit(GtkWidget *w, GdkEvent *s)
 {
 	state=false;
+	//leave time for threads to stop, otherwise SIGSEGV might sometimes
+	jsleep(1,0); 
 }
 
