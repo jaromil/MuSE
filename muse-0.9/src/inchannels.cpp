@@ -257,21 +257,21 @@ int Channel::load(char *file) {
   // TODO: vedere come si chiamano le altre estensioni
   // ed aggiungerle.
   if(strncasecmp(file+strlen(file)-4,".wav",4)==0
-     || strncasecmp(temp+strlen(temp)-4,".aif",4)==0
-     || strncasecmp(temp+strlen(temp)-5,".aiff",4)==0
-     || strncasecmp(temp+strlen(temp)-4,".snd",4)==0
-     || strncasecmp(temp+strlen(temp)-3,".au",4)==0
-     || strncasecmp(temp+strlen(temp)-4,".raw",4)==0
-     || strncasecmp(temp+strlen(temp)-4,".paf",4)==0
-     || strncasecmp(temp+strlen(temp)-4,".iff",4)==0
-     || strncasecmp(temp+strlen(temp)-4,".svx",4)==0
-     || strncasecmp(temp+strlen(temp)-3,".sf",4)==0
-     || strncasecmp(temp+strlen(temp)-4,".voc",4)==0
-     || strncasecmp(temp+strlen(temp)-4,".w64",4)==0
-     || strncasecmp(temp+strlen(temp)-4,".pvf",4)==0
-     || strncasecmp(temp+strlen(temp)-3,".xi",4)==0
-     || strncasecmp(temp+strlen(temp)-4,".htk",4)==0
-     || strncasecmp(temp+strlen(temp)-4,".mat",4)==0
+     || strncasecmp(file+strlen(file)-4,".aif",4)==0
+     || strncasecmp(file+strlen(file)-5,".aiff",4)==0
+     || strncasecmp(file+strlen(file)-4,".snd",4)==0
+     || strncasecmp(file+strlen(file)-3,".au",4)==0
+     || strncasecmp(file+strlen(file)-4,".raw",4)==0
+     || strncasecmp(file+strlen(file)-4,".paf",4)==0
+     || strncasecmp(file+strlen(file)-4,".iff",4)==0
+     || strncasecmp(file+strlen(file)-4,".svx",4)==0
+     || strncasecmp(file+strlen(file)-3,".sf",4)==0
+     || strncasecmp(file+strlen(file)-4,".voc",4)==0
+     || strncasecmp(file+strlen(file)-4,".w64",4)==0
+     || strncasecmp(file+strlen(file)-4,".pvf",4)==0
+     || strncasecmp(file+strlen(file)-3,".xi",4)==0
+     || strncasecmp(file+strlen(file)-4,".htk",4)==0
+     || strncasecmp(file+strlen(file)-4,".mat",4)==0
      ) {
 #ifdef HAVE_SNDFILE
     func("creating LibSndFile decoder");
