@@ -1,4 +1,4 @@
-SUBDIRS = resample shout libmpeg portaudio @GUI_DIRS@
+SUBDIRS = resample shout portaudio @GUI_DIRS@
 
 INCLUDES = -Ishout -Iportaudio -I/usr/X11R6/include -Incursesgui @GLIB2_CFLAGS@
 
@@ -31,13 +31,11 @@ muse_SOURCES =  \
 muse_DEPENDENCIES = \
 	@GUI_DEPS@ \
 	resample/libresample.a \
-	libmpeg/libmpeg.a \
 	shout/libshout.a \
 	portaudio/libportaudio.a
 
 muse_LDADD = \
 	$(top_srcdir)/src/resample/libresample.a \
-	$(top_srcdir)/src/libmpeg/libmpeg.a \
 	$(top_srcdir)/src/shout/libshout.a \
 	$(top_srcdir)/src/portaudio/libportaudio.a \
 	-lpthread \

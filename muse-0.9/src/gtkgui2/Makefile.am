@@ -1,7 +1,7 @@
 localedir = $(datadir)/locale
 DEFS = -DLOCALEDIR=\"$(localedir)\" @DEFS@
 
-INCLUDES = -I. -I../.. -I$(top_srcdir)/src @GTK2_CFLAGS@
+INCLUDES = -I. -I../.. -I$(top_srcdir)/src @GTK2_CFLAGS@ -I/sw/include
 
 noinst_LIBRARIES = libnightolo2.a
 

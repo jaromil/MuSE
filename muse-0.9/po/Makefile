@@ -1,9 +1,9 @@
 prefix = /usr/local
-INSTALL= /bin/install -c
-GMSGFMT = /usr/bin/msgfmt
-MSGFMT = /usr/bin/msgfmt
-MSGMERGE = /usr/bin/msgmerge
-XGETTEXT = /usr/bin/xgettext
+INSTALL= /usr/bin/install -c
+GMSGFMT = /sw/bin/msgfmt
+MSGFMT = /sw/bin/msgfmt
+MSGMERGE = @MSGMERGE@
+XGETTEXT = /sw/bin/xgettext
 
 INSTALLNLSDIR=$(DESTDIR)${prefix}/share/locale
 
