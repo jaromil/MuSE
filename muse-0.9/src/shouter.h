@@ -30,7 +30,7 @@ extern "C" {
 #include <jutils.h>
 
 #define ERRORMSG 128
-#define RETRY_DELAY 600 /* time to retry connect on broken icecasts, in seconds */
+#define RETRY_DELAY 60 /* time to retry connect on broken icecasts, in seconds */
 #define MAX_VALUE_SIZE 512
 
 class Shouter : public Entry {
