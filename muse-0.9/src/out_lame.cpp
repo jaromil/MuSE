@@ -146,7 +146,6 @@ bool OutLame::apply_profile() {
     snprintf(tmp,256,"%u",bps());       ice->bps( tmp );
     snprintf(tmp,256,"%u",freq());      ice->freq( tmp );
     snprintf(tmp,256,"%u",channels());  ice->channels( tmp );
-    snprintf(tmp,256,"%.2f",quality()); ice->quality( tmp );
     
     ice = (Shouter*)ice->next;
   }

@@ -15,6 +15,7 @@
 #undef UI_XMLRPC
 #undef WITH_DMALLOC
 #undef HAVE_SNDFILE
+#undef HAVE_JACK
 /* Schedule in radio shows from other radio stations, MuSE channels, files, etc.  */
 #undef HAVE_SCHEDULER
 #undef HAVE_LINUX

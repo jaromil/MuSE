@@ -171,27 +171,22 @@ class OutChannel: public Entry {
 
   INT_SET(channels,_channels); ///< channels (1 is mono, 2 is stereo)
 
-  FLOAT_SET(quality,_quality); ///< VALUE from 0.1 to 9.0
-
   INT_SET(lowpass,_lowpass); ///< lowpass in Hz
 
   INT_SET(highpass,_highpass); ///< highpass in Hz
 
   /**
-     This method is used internally by the apply_profile()
-
-     It guesses the bps and samplerate parameters of the encoder from
-     quality value, then it renders the quality_desc string with a
-     human readable description of the setting.
+     This method guesses the bps and samplerate parameters of the
+     encoder from quality value, then it renders the quality_desc
+     string with a human readable description of the setting.
      
      You can internally tweak this function to modify the mapping
      of quality values to bps and samplerate.
 
      @brief setup the bps encoder value
-     @return pointer to quality desc
-  */     
-  char *guess_bps();
-  
+     @return pointer to quality desc  */     
+  char *quality(float in); ///< setup quality (wraps most useful modes)
+  float _quality;
   char quality_desc[256]; ///< string rendered to describe the quality of encoding
 
   /**

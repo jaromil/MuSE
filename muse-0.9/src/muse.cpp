@@ -132,7 +132,7 @@ char *help =
 " -g --gui          specify GUI to use (-g list)\n"
 ":: input channels options\n"
 " -i --live         mic/line soundcard input    - default off\n"
-" -I --liveamp      mic/line volume (1 - 32)    - default 16\n"
+" -I --liveamp      mic/line volume (1 - 32)    - default 1\n"
 " -N --number       channel number              - default 1\n"
 " -V --volume       channel volume              - default 1.0\n"
 " -S --position     channel starting position   - default 0.0\n"
@@ -141,7 +141,7 @@ char *help =
 " -e --encoder      codec to use [ogg|mp3]      - default ogg\n"
 " -b --bitrate      codec bitrate in Kbit/s     - default 24\n"
 " -r --frequency    encoding frequency          - default auto\n"
-" -q --quality      encoding quality (0.1-9.0)  - default 4.0\n"
+" -q --quality      encoding quality (1-9)      - default 4\n"
 " -c --channels     number of audio channels    - default 1\n"
 " -f --filedump     dump stream to file\n"
 ":: broadcast stream options:\n"
@@ -374,8 +374,8 @@ bool take_args(int argc, char **argv) {
 	  if(quality<0.1f) quality = 0.1f;
 	  if(quality>9.0f) quality = 9.0f;
 	*/
-	outch->quality(quality);
-	act("CLI: quality set to %.1f",outch->quality());
+	//	outch->quality(quality);
+	act("CLI: quality set to %s",outch->quality(quality));
       } else error("invalid quality value");
       break;
 	

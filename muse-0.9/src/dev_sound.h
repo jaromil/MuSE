@@ -38,18 +38,10 @@ class SoundDevice {
   
   int write(void *buf, int len); ///< writes audio data from a buffer to the device, len is samples
 
-  jack_client_t *jack_client;
-  jack_port_t *jack_in_port;
-  jack_port_t *jack_out_port;
-  jack_default_audio_sample_t *jack_in_buf;
-  jack_default_audio_sample_t *jack_out_buf;
-  size_t jack_sample_size;
-  int jack_samplerate;
   bool jack;
   bool jack_in;
   bool jack_out;
-  Pipe *jack_in_pipe;
-  Pipe *jack_out_pipe;
+
 
  private:
   PABLIO_Stream *aInStream; ///< Portaudio input stream 
@@ -62,6 +54,18 @@ class SoundDevice {
   bool pablio_output(bool state);
   
   PaError err;
+
+  Pipe *jack_in_pipe;
+  Pipe *jack_out_pipe;
+#ifdef HAVE_JACK
+  jack_client_t *jack_client;
+  jack_port_t *jack_in_port;
+  jack_port_t *jack_out_port;
+  jack_default_audio_sample_t *jack_in_buf;
+  jack_default_audio_sample_t *jack_out_buf;
+  size_t jack_sample_size;
+  int jack_samplerate;
+#endif
 
 };
 

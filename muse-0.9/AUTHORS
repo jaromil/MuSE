@@ -6,7 +6,7 @@
    MuSE author and mantainer ( /* )
 
  = Antonino "nightolo" Radici
-   GTK+ GUI, xml profiles and scheduler ( /gtkgui/* )
+   GTK+ GUI, xml profiles and scheduler ( /gtkgui* )
 
  = Luca "rubik" Profico
    NCURSES console user interface ( /ncurses/* )

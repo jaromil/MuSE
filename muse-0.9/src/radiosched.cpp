@@ -19,6 +19,9 @@
  
  */
 
+#include <config.h>
+#ifdef HAVE_SCHEDULER
+
 #include <iostream>
 #include <math.h>
 #include <stdio.h>
@@ -37,7 +40,7 @@
 #include <termios.h>
 #include <stdarg.h>
 
-#include <config.h>
+
 
 #include <jutils.h>
 #include <audioproc.h>
@@ -848,3 +851,5 @@ int Scheduler_xml::addentry( void *instance, sched_rec *sr )
 	}
     return 1; /// anything else?
 }
+
+#endif

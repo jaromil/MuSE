@@ -139,6 +139,28 @@ PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.0 , [
     HAVE_SNDFILE="no")
 
 dnl ====================
+dnl CHECK FOR LIBJACK
+dnl ====================
+AC_ARG_ENABLE(jack,
+[  --enable-jack            compile with Jack-it support from http://jackit.sf.net (no)],
+[ if test ! x$enableval = xyes; then
+    use_jack=no
+  else
+    use_jack=yes;
+  fi ],[ use_jack=no ])
+JACK_LIBS=""
+JACK_CFLAGS=""
+if test x$use_jack = xyes; then
+  PKG_CHECK_MODULES(JACK, jack >= 0.34, [
+      HAVE_JACK="yes"
+      AC_DEFINE(HAVE_JACK, 1, have working jack audio daemon and libjack)
+  ], HAVE_JACK="no")
+fi
+AC_SUBST(JACK_LIBS)
+AC_SUBST(JACK_CFLAGS)
+
+
+dnl ====================
 dnl switch for rubik GUI
 dnl ====================
 #AC_MSG_CHECKING(to build ncurses GUI by rubik)
@@ -236,7 +258,7 @@ dnl ==================
 #fi], [AC_MSG_RESULT(no)])
 
 AC_ARG_ENABLE(gtk2,
-[  --enable-gtk2           compile gtk2 gui (work in progress)],
+[  --enable-gtk2           compile with GTK2 gui (auto)],
 [  want_gtk2=$enableval])
 
 if test "${HAVE_X11}" = "yes"; then
@@ -369,6 +391,13 @@ if test "${HAVE_GTK2}" = "yes"; then
    GUI_DIRS="$GUI_DIRS gtkgui2"
    GUI_FLAGS="$GUI_FLAGS $GTK2_CFLAGS"
    GUI_DEPS="$GUI_DEPS gtkgui2/libnightolo2.a"
+
+   dnl =========
+   dnl Scheduler 
+   dnl =========
+   AC_DEFINE(HAVE_SCHEDULER)
+   PKG_CHECK_MODULES(GLIB2, glib-2.0 >= 2.0.0,,
+    AC_MSG_ERROR(glib-2.0 not found))
 fi
 
 dnl ==============================================================
@@ -485,11 +514,6 @@ else
 fi
 
 
-dnl =========
-dnl Scheduler 
-dnl =========
-AC_DEFINE(HAVE_SCHEDULER)
-PKG_CHECK_MODULES(GLIB2, glib-2.0 >= 2.0.0,, AC_MSG_ERROR(glib-2.0 not found))
 
 
 dnl ===============================
@@ -543,6 +567,10 @@ fi
 
 if test "${HAVE_SNDFILE}" = "yes"; then
 	echo ":: Linking SndFile libraries for WAV/AIFF/VOC/etc encoding"
+fi
+
+if test "${HAVE_JACK}" = "yes"; then
+	echo ":: Linking libJack for connecting to the Jack audio daemon"
 fi
 
 if test "$have_lame" = "yes"; then

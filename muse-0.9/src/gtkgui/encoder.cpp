@@ -452,7 +452,7 @@ void gcb_enc_set_quality(GtkWidget *w, struct encdata *enc)
 	val = GTK_ADJUSTMENT(enc->adj1)->value;
 
 	enc->outchan->quality(val);
-	snprintf(text,256,"%.1f ( %s )",val,enc->outchan->guess_bps());
+	snprintf(text,256,"%.1f ( %s )",val,enc->outchan->quality_desc);
 	
 	gtk_label_set_text(GTK_LABEL(enc->adj_lab), text);
 }

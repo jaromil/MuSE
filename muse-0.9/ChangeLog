@@ -1,21 +1,33 @@
-MuSE 0.9.1 "RASTAPASTA" - 23 07 04
-        New xml scheduler with GTK-2 interface (nightolo, Eugen)
-        Ogg http streams can be played as input (Eugen)        
-
-
-
+MuSE 0.9.1 "STREAMTIME" - 15 12 04
+/* this is a major bugfix release: the ncurses GUI now can stream,
+   there is more stability for Ogg/Vorbis encoding and streaming,
+   a major cleanup of pipes and audio device code.
+   we have also new *experimenta* features: scheduler and jack support.
+   every user is encouraged to upgrade. */
+        new xml scheduler with GTK-2 interface (Nightolo, Eugen)
+        ogg http streams can be played as input (Eugen)        
+ 	ncurses console interface fix to stream (Rubik)
+	rewrite of audio device handler using Portaudio 
+	major cleanup of threadsafe FIFO pipes
+	fixes to playlist, commandline and more
+	correct CBR encoding of vorbis at various samplerates
+	jack input channels and audio device support
+	preliminar OSX smoothing
+	
 MuSE 0.9 "COTURNIX" - 17 04 04
 /* This is a new milestone release adding many new functionalities
    developed in more than a year of silent coding activity.
    Spotlights on the revamped GTK-2 interface now featuring drag&drop,
-   language translations and better playlist handling, the new libsnd
-   (wav player) input channel coded by Pallotron during the hackmeeting,
+   language translations and better playlist handling, a new input channel
+   for uncompressed sound files wild coded during the hackmeeting,
    full support of icecast2 both with OGG and MP3, more CLI flexibility
    and lots of speed and efficience improvements in the engine.
    So as spring is coming is time to throw the peach and say COTURNIX! */
 	important engine optimization and speed improvements 
 	new GTK-2 graphical interface with improved usability (nightolo)
         new resampling for ogg/vorbis encoding (the secret rabbit code)
+	new libsnd input channel for wav and more (Pallotron)
+	fix to profiles now in xml for the GTK-2 GUI (nightolo)
 	full range of login types for different servers
 	revamped commandline interface with more switches
 	some relevant bugfixes improving overall stability
@@ -178,14 +190,14 @@ MuSE 0.4.1 - 24 01 01
 
 MuSE 0.4.0 "mausi" - 02 12 00
 	now using 3rd party xaudio library for mp3 stream decoding
-	brand new fltk graphic user interface :: by august black
+	brand new fltk graphic user interface (August)
 	implemented mp3 encoding to file
 	MuSE engine bugfixes and optimizations
 	icy/x_audiocast login support (shoutcast compatibility)
 	libsync's usleep() substituted with a select() call
 
 MuSE 0.3.1 - 26 10 00
-        amuse bugfix contributed :: by voyager
+        Amuse bugfix (Voyager)
         other bugfixes and docu update
         queue mode is now shown on the commandline (ops!)
 
@@ -196,23 +208,29 @@ MuSE 0.3.0 "not now, i got an headache" - 10 10 00
 	bitrate can now be changed dinamicly
 	speed setting has been deprecated (will come back on the next release)
 	updated libshout
+
 MuSE 0.2.0 "be gentle" - 10 08 00
 	first really usable release
 	implemented line-in/mic input from soundcard as an extra channel
 	implemented speed & vol dinamic setting
-	added the tcp/ip daemon for communicating w/ the interface
+	new tcp/ip daemon for communicating w/ the interface
 	libsync is fully implemented - running on threads now	
-	A-MuSE tcl/tk interface has been contributed and included in MuSE
+	A-MuSE tcl/tk graphical interface (August)
+
 MuSE 0.1.2 - 09 07 00
 	first public release, altough still in early development stage
 	bug fixes to the mixing engine
 	libshout and lame work nice toghether now
+
 MuSE 0.1.1 - ?
 	mmm
+
 MuSE 0.1.0 - 09 05 00
 	implemented fully functional streaming to icecast
 	included libmp3lame from lame-3.81beta as the encoding engine
+
 MuSE 0.0.2 - 02 05 00
 	heavy optimization on the mixing code (jmixer.cpp), now much faster
+
 MuSE 0.0.1 - 01 05 00
 	completed the basic c++ class for stream mixing

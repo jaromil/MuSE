@@ -9,6 +9,7 @@
           | |\/| | | | \___ \|  _|   | | | | (_) || |
           | |  | | |_| |___) | |___  | |_| |\__, || |
           |_|  |_|\__,_|____/|_____|  \___(_) /_(_)_|
+                                  codename STREAMTIME
 
  this is RASTA SOFTWARE, Jah Rastafari Livity bless your freedom!
 
@@ -47,6 +48,7 @@ of such technology! the ones supported by MuSE are:
 - Litestream - http://litestream.org - can stream MP3
 - Darwin - http://developer.apple.com/darwin/projects/streaming
 - Shoutcast - http://shoutcast.com - non free, runs on win32
+- Freedomnet/Proton - ftp://ftp.dyne.org/freedomnet/proton - P2P
 
 
 ***** Supported players:
@@ -61,6 +63,7 @@ computer and operating system, using one or more of the following:
 - itunes - http://www.apple.com/itunes - on MacOSX
 - zinf - http://www.zinf.org - on GNU/Linux and Win32
 - winamp - http://www.winamp.com - on all Win platforms
+- MuSE itself! ;)
 
 and even more players: something should be also allready available for
 handeld devices and embedded systems as well.
@@ -106,7 +109,7 @@ http://lists.dyne.org/muse or peek into irc.freenode.net channel #dyne
   before compiling MuSE; the configure script will recognize them and
   include support for decoding and mixing of .ogg files.
 
-- GTK+ (optional)
+- GTK+ (optional) + libxml and glib
   if libgtk and all the related libraries are present, MuSE will
   compile the GTK+ graphic user interface for interactive use and
   additional fun.
@@ -118,7 +121,6 @@ http://lists.dyne.org/muse or peek into irc.freenode.net channel #dyne
 - SNDFILE (optional)
   if libsndfile is present then you'll be able to play uncompressed
   sound files like wav, aiff, snd, voc, pvf, mat, au, sf etc.
-
 
 
 ***** Compile and install:
@@ -137,9 +139,11 @@ if you don't install any of the above, MuSE will be a simple player.
 - compile: cd MuSE-x.x.x ; ./configure (or try ./configure --help to
   have listed some compile options) ; make ; make install
 
-you can also make a debian package and debian aided compilation with:
-fakeroot debian/rules binary
-this command will build debian packages for you!
+*** for Debian users is much simplier:
+make a debian package and debian aided compilation from this source
+with a simple command:
+$ fakeroot debian/rules binary
+this command will build debian packages for you, ready to install!
 
 to KNOW MORE go to the website on http://muse.dyne.org
 
@@ -172,14 +176,14 @@ part of the redistributed code is copyright by the respective authors,
 please refer to the AUTHORS file and to the supplied sourcecode for
 further information and to COPYING for the full license.
 
-for MuSE's development, the author and mantainer has been supported by
+the following organizations gave great help and support to developers:
 PUBLIC VOICE Lab ........ [ http://www.pvl.at ]
 SERVUS.AT ............... [ http://www.servus.at ]
 
 
 
 
-***** PLEASE DONATE!
+***** PLEASE SUPPORT US!
 
 This whole software was built by autonomous efforts and occasionally
 supported by non-profit organizations, while the development currently
@@ -191,9 +195,9 @@ If you can afford to donate us some money let us know, we also need
 new and old working hardware.
 
 The main coder is a nomad and has no fixed job, you can help him
-survive with a small donation via paypal.com to jaromil \@\ dyne.org
-this would be allready much if most users do! and you can be sure this
-way MuSE will keep on existing.
+survive with a small donation also via paypal.com jaromil@dyne.org
+or by sometimes visiting the google ads on his software pages...
+(see how's hard to put a dime in the hat from far!)
 
 The MuSE development team is also avaliable to run formation courses
 about usage, customization and reuse/abuse of free and open source
@@ -201,7 +205,7 @@ software - it offers as well support and warranty, development of
 software solutions and consulting.
 
 There were a number of workshops allready done around Europe on free
-and opensource network radio streaming, by the hackers @ dyne.org
+and opensource network radio streaming by the hackers @ dyne.org
 if you want to organize one you're very welcome to contact us!
 this way you can also help us develop more free software.
 

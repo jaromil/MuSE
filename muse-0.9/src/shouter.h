@@ -58,7 +58,6 @@ class Shouter : public Entry {
   CHAR_SET(bps,_bps);
   CHAR_SET(freq,_freq);
   CHAR_SET(channels,_channels);
-  CHAR_SET(quality,_quality);
 
   INT_SET(login,_login);
   CHAR_SET(name,_name);

@@ -1,3 +1,140 @@
 
-see the MuSE Tutorial in the online documentation on http://muse.dyne.org
+Michel (radio Lora) Xtreme streaming crash course
 
+( more MuSE documentation on http://muse.dyne.org )
+
+0. Preparation
+
+0.0 a few days before the chat give 2 irc servers you will be in chat
+(if one swerver is down it is late und difficult to contact the poeple)
+ant tell to the poeple in chat, that we start testing 1 hour before the real stream.
+
+0.1. Take your time to prepare things and to be sure they work
+
+0.2. prepare all the tech material beforehand and keep it clear, in
+order.  Keep at hand some redundancies for cables plugs and microphones.
+Tape cables if you can an anyhow be sure there are no cable in places
+people can step over them. 
+
+0.2.1. Keep things essential!
+
+0.3. NO DRINKS IN PLACES HIGHER THAN YOUR TECH OR ON THEIR LEVEL. 
+Driks spill, they do!
+
+0.4. KEEP THINGS CLEAN (sand, ash, debris are no good for equipment)
+
+0.5. Divide tasks between people doing the stream if you can, is hard to
+concentrate on technicalities if you also have to social engeneer your
+guests or the internet shop owner AND prepare your text/head for live
+radio. If you have nobody to help you then take time alone for
+technicalities, half an hour before other people arrives.
+Do technicalities with concentrations (see also 0.2.1.)
+
+0.6. Help your listeners and treasure their feedback. The tested way 
+to have connection with restreamers is irc. Get in irc as soon as you 
+have finished setting up the techies. Tell them if you have problems, check 
+that they ear the stream, ask for help if you need.
+
+
+
+1. Stream test
+
+1.1 Start or restart the computer with dynebolic cd in the tray (one
+hour before the real stream)
+
+T1.1: Trouble: computer does not start
+
+
+1.2.  Just wait until the first Dynebolic Windows appaers
+
+T1.2 : Trouble : CD does not boot
+
+
+1.5.
+Open Muse
+right mousse click
+audio
+stream
+muse
+
+1.6.
+Control audio
+
+a) Audio output
+
+Music in the computer
+add Music
+right click in the channel
+add file
+browse to find mp3 music
+
+choose an audio file
+(.mp3 or .ogg) and play it
+
+open the Vumeters
+click on VUmeter
+
+
+Vumeter audio must have signal
+
+set music on loop to prevent the stop of signal
+(important for the stream, if no signal, the poeple outside cannot hear if it works)
+
+
+b) audio Input
+Microphone
+click Microphone button
+speak something the VU meter must have signal
+
+T1.6 : Trouble: with microphone no signal in VU meter
+
+
+
+1.7.
+click let's stream button
+
+1.8.
+a new window appears
+
+put the name of the host, for example
+
+berkman.indymedia.org
+
+port
+8003
+
+mount point
+/wet.mp3
+
+password
+*******
+
+and connect
+
+1.9.
+in muse comes
+started stream ....
+
+
+T1.9 : Trouble: no connection
+
+so that all... it is still the preparation part now we can test
+
+1.10.
+chat (if youdont know how to chat see T10 : howto chat)
+
+T1.10 : chat server is down second, use the second mailed chat server (see 0.0)
+
+
+please choice a name which is clear (example: /nick baghdad)
+first we must tell to the poeple in the chat is the adress of your icecast server
+so for example
+http://berkman.indymedia.org:8003/wet.mp3
+
+the first question must be example :
+do you hear us? now we stream music
+
+
+
+
+Baghdad, august 2004

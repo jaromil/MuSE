@@ -213,16 +213,16 @@ void OutVorbis::flush() {
 
 bool OutVorbis::apply_profile() {
   func("OutVorbis::apply_profile() q%.4f r%i b%i c%i",
-       quality(),freq(),bps(),channels());
+       _quality,freq(),bps(),channels());
   bool res = true;
   int rsmp_err = 0;
 
   if(rsmp_state) src_delete(rsmp_state);
   // SRC_SINC_(BEST|MEDIUM)_QUALITY or SRC_SINC_FASTEST
-  rsmp_state = src_new(SRC_SINC_BEST_QUALITY, channels() ,&rsmp_err);
+  rsmp_state = src_new(SRC_SINC_FASTEST, channels() ,&rsmp_err);
   if(!rsmp_state)
     error("Ogg/Vorbis can't initialize resampler: %s",src_strerror(rsmp_err));
-  else func("ogg resampler %s initialized",src_get_name(SRC_SINC_BEST_QUALITY));
+  else func("ogg resampler %s initialized",src_get_name(SRC_SINC_FASTEST));
   
   /* set ratio for resampling with ogg vorbis */
   {
@@ -299,7 +299,7 @@ bool OutVorbis::apply_profile() {
     snprintf(tmp,256,"%u",bps());       ice->bps( tmp );
     snprintf(tmp,256,"%u",freq());      ice->freq( tmp );
     snprintf(tmp,256,"%u",channels());  ice->channels( tmp );
-    snprintf(tmp,256,"%.2f",quality()); ice->quality( tmp );
+    //    snprintf(tmp,256,"%.2f",_quality);  ice->quality( tmp );
     
     ice = (Shouter*)ice->next;
   }

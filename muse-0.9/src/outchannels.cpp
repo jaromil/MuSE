@@ -79,16 +79,15 @@ OutChannel::OutChannel(char *myname)
   erbapipa->set_block_timeout(500,500);
 
   /* setup defaults */
+  quality(4.0);
   bps(24);
   freq(22050);
   channels(1);
-  quality(4.0);
   lowpass(0);
   highpass(0);
     
   //  profile_changed = true;
 
-  guess_bps();
 }
 
 OutChannel::~OutChannel() {
@@ -398,8 +397,14 @@ bool OutChannel::calc_bitrate(int enc) {
   return false;
 }
 
-char *OutChannel::guess_bps() {
-  int q = (int)fabs(quality());
+char *OutChannel::quality(float in) {
+  int q = (int)fabs(in);
+  _quality = in;
+
+  if(!in) {
+    snprintf(quality_desc,256,"%uKbit/s %uHz",bps(),freq());
+    return quality_desc;
+  }
 
   //  if(channels()<1) channels(1);
   //  if(channels()>2) channels(2);

@@ -30,6 +30,7 @@
 #define PA_MAX_FRAMES 4096
 #define PA_NUM_SECONDS 5
 
+#ifdef HAVE_JACK
 int dev_jack_process(jack_nframes_t nframes, void *arg) {
   jack_nframes_t opframes;
   SoundDevice *dev = (SoundDevice*)arg;
@@ -60,6 +61,7 @@ void dev_jack_shutdown(void *arg) {
   delete dev->jack_in_pipe;
   delete dev->jack_out_pipe;
 }
+#endif
 
 SoundDevice::SoundDevice() {
   aInStream = NULL;

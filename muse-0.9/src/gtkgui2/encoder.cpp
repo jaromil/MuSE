@@ -342,7 +342,7 @@ void enc_put(struct encdata *enc)
 	gtk_entry_set_text(GTK_ENTRY(enc->highps), tmp);
 	
 	gtk_adjustment_set_value(GTK_ADJUSTMENT(enc->adj1),
-				 enc->outchan->quality());
+				 enc->outchan->_quality);
 }
 
 void enc_get(struct encdata *enc)
@@ -419,7 +419,7 @@ void gcb_set_enc(GtkWidget *w, struct encdata *enc) {
   enc_get(enc);
   
   /* debug */
-  func("gcb_set_enc: outchan->quality(%.1f)", enc->outchan->quality());
+  func("gcb_set_enc: outchan->quality(%.1f)", enc->outchan->_quality);
   func("gcb_set_enc: outchan->bps(%d)", enc->outchan->bps());
   func("gcb_set_enc: outchan->channels(%i)", enc->outchan->channels());
   func("gcb_set_enc: outchan->freq(%d)", enc->outchan->freq());
@@ -475,7 +475,7 @@ void gcb_enc_set_quality(GtkWidget *w, struct encdata *enc)
 	val = GTK_ADJUSTMENT(enc->adj1)->value;
 
 	enc->outchan->quality(val);
-	snprintf(text,256,"%.1f ( %s )",val,enc->outchan->guess_bps());
+	snprintf(text,256,"%.1f ( %s )",val,enc->outchan->quality_desc);
 	
 	gtk_label_set_text(GTK_LABEL(enc->adj_lab), text);
 }

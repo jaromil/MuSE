@@ -929,7 +929,7 @@ bool Stream_mixer::apply_enc(int id) {
 
   //  if(!outch->profile_changed) return true;
 
-  char *qstr = outch->guess_bps();
+  char *qstr = outch->quality_desc;
 
   lock();
   outch->lock();
@@ -940,12 +940,12 @@ bool Stream_mixer::apply_enc(int id) {
   unlock();
 
   if(outch->initialized)
-    notice("%s SET Q%u %s%s", outch->name, (int)fabs(outch->quality()),
-	qstr, (outch->channels()==1)?" mono ":" stereo ");
+    notice("%s quality %uKbps/s %uHz %s", outch->name, outch->bps(), outch->freq(),
+	   (outch->channels()==1)?" mono ":" stereo ");
   else
-    error("ERROR %s SET Q%u %s%s",outch->name, (int)fabs(outch->quality()),
-	  qstr, (outch->channels()==1)?" mono ":" stereo ");  
-
+    error("ERROR setting %s to quality %uKbps/s %uHz %s", outch->name, outch->bps(), outch->freq(),
+	   (outch->channels()==1)?" mono ":" stereo ");
+  
   return outch->initialized;
 }
 

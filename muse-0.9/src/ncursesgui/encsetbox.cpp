@@ -247,7 +247,7 @@ void EncSetBox::showcurrval (int id)
 	snprintf (temp, 32, "%d", enc->outchan->highpass());
 	highpasshz.setvalue(temp);
 	channels.setitem(enc->outchan->channels());
-	quality.setitem((int)(enc->outchan->quality())-1);
+	quality.setitem((int)(enc->outchan->_quality)-1);
 
 	/*
 	//lame settings

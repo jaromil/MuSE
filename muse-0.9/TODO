@@ -1,6 +1,8 @@
 
+- fix scheduler
+- xmlrpc api (see Eugen proposal)
 - more input channels
-- volume digital gain on microphone input
+- better gain on microphone input
 - pre-listening over multiple soundcards
 - speed setting over single channels
 
