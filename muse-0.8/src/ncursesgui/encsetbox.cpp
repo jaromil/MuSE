@@ -219,15 +219,17 @@ int EncSetBox::tabentry (int k)
 void EncSetBox::setval (int id)
 {
 
-  enc->outchan = mixer->get_enc (id);
-  
-  enc->outchan->bps(bitrate.getcurritem());
-  //filtering; ??
-  enc->outchan->freq(frequency.getcurritem());;
-  enc->outchan->lowpass(atoi(lowpasshz.getvalue()));
-  enc->outchan->highpass(atoi(highpasshz.getvalue()));
-  enc->outchan->channels(channels.getcurritem());
-  enc->outchan->quality(quality.getcurritem()+1);
+ 
+	func ("enc->outchan = %d", mixer->get_enc(id));
+	enc->outchan = mixer->get_enc (id);
+
+	enc->outchan->bps(bitrate.getcurritem());
+	//filtering; ??
+	enc->outchan->freq(frequency.getcurritem());;
+	enc->outchan->lowpass(atoi(lowpasshz.getvalue()));
+	enc->outchan->highpass(atoi(highpasshz.getvalue()));
+	enc->outchan->channels(channels.getcurritem());
+	enc->outchan->quality(quality.getcurritem()+1);
 }
 
 void EncSetBox::showcurrval (int id)

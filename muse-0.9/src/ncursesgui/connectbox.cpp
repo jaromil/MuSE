@@ -199,6 +199,7 @@ void ConnectBox::activate (void)
 													enc->coreice=enc->outchan->get_ice(enc->iceid[enc->numchan]);
 													streamsetbox.setval(enc->numchan);
 													ice = enc->outchan->get_ice(enc->iceid[enc->numchan]);
+													enc->outchan->apply_ice(enc->iceid[enc->numchan]);
 													enc->outchan->connect_ice(enc->iceid[enc->numchan], true);
 													enc->numchan++;
 													k=999;
