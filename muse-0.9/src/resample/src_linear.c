@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2002,2003 Erik de Castro Lopo <erikd@mega-nerd.com>
+** Copyright (C) 2002-2004 Erik de Castro Lopo <erikd@mega-nerd.com>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <config.h>
+#include "config.h"
 #include "float_cast.h"
 #include "common.h"
 
@@ -29,13 +29,15 @@ static void linear_reset (SRC_PRIVATE *psrc) ;
 /*========================================================================================
 */
 
-#define	LINEAR_MAGIC_MARKER	MAKE_MAGIC('l','i','n','e','a','r')
+#define	LINEAR_MAGIC_MARKER	MAKE_MAGIC ('l', 'i', 'n', 'e', 'a', 'r')
+
+#define	SRC_DEBUG	0
 
 typedef struct
 {	int		linear_magic_marker ;
 	int		channels ;
 	long	in_count, in_used ;
-	long    out_count, out_gen ;
+	long	out_count, out_gen ;
 	float	last_value [1] ;
 } LINEAR_DATA ;
 
@@ -60,9 +62,9 @@ linear_process (SRC_PRIVATE *psrc, SRC_DATA *data)
 	input_index = psrc->last_position ;
 
 	/* Calculate samples before first sample in input array. */
-	while (input_index > 0.0 && input_index < 1.0 && linear->out_gen < linear->out_count)
+	while (input_index < 1.0 && linear->out_gen < linear->out_count)
 	{
-		if (linear->in_used + input_index > linear->in_count)
+		if (linear->in_used + linear->channels * input_index > linear->in_count)
 			break ;
 
 		if (fabs (psrc->last_ratio - data->src_ratio) > SRC_MIN_RATIO_DIFF)
@@ -78,43 +80,43 @@ linear_process (SRC_PRIVATE *psrc, SRC_DATA *data)
 		input_index += 1.0 / src_ratio ;
 		} ;
 
+	linear->in_used += linear->channels * lrint (floor (input_index)) ;
+	input_index -= floor (input_index) ;
+
 	/* Main processing loop. */
-	while (linear->out_gen < linear->out_count)
+	while (linear->out_gen < linear->out_count && linear->in_used + linear->channels * input_index <= linear->in_count)
 	{
-		linear->in_used += linear->channels * lrint (floor (input_index)) ;
-		input_index -= floor (input_index) ;
-
-		if (linear->in_used + input_index > linear->in_count)
-			break ;
-
 		if (fabs (psrc->last_ratio - data->src_ratio) > SRC_MIN_RATIO_DIFF)
 			src_ratio = psrc->last_ratio + linear->out_gen * (data->src_ratio - psrc->last_ratio) / (linear->out_count - 1) ;
 
+		if (SRC_DEBUG && linear->in_used < linear->channels && input_index < 1.0)
+		{	printf ("Whoops!!!!   in_used : %ld     channels : %d     input_index : %f\n", linear->in_used, linear->channels, input_index) ;
+			exit (1) ;
+			} ;
+
 		for (ch = 0 ; ch < linear->channels ; ch++)
-		{	data->data_out [linear->out_gen] = data->data_in [linear->in_used + ch] + input_index *
-						(data->data_in [linear->in_used + linear->channels + ch] - data->data_in [linear->in_used + ch]) ;
+		{	data->data_out [linear->out_gen] = data->data_in [linear->in_used - linear->channels + ch] + input_index *
+						(data->data_in [linear->in_used + ch] - data->data_in [linear->in_used - linear->channels + ch]) ;
 			linear->out_gen ++ ;
 			} ;
 
 		/* Figure out the next index. */
 		input_index += 1.0 / src_ratio ;
+
+		linear->in_used += linear->channels * lrint (floor (input_index)) ;
+		input_index -= floor (input_index) ;
 		} ;
 
-/*-	if (input_index > linear->in_count - linear->in_used)
-	{	input_index -= linear->in_count - linear->in_used ;
+	if (linear->in_used > linear->in_count)
+	{	input_index += linear->in_used - linear->in_count ;
 		linear->in_used = linear->in_count ;
-		puts ("XXXXXXXXXX") ; /+*-exit (1) ;-*+/
-		} ;	
--*/
+		} ;
 
 	psrc->last_position = input_index ;
 
-	for (ch = 0 ; ch < linear->channels ; ch++)
-	{	linear->last_value [ch] = data->data_in [linear->in_used - linear->channels + ch] ;
-
-/*-		data->data_out [0 + ch] = -0.9 ;
-		data->data_out [linear->out_gen - linear->channels + ch] = 0.9 ; -*/
-		} ;
+	if (linear->in_used > 0)
+		for (ch = 0 ; ch < linear->channels ; ch++)
+			linear->last_value [ch] = data->data_in [linear->in_used - linear->channels + ch] ;
 
 	/* Save current ratio rather then target ratio. */
 	psrc->last_ratio = src_ratio ;
@@ -148,7 +150,7 @@ linear_get_description (int src_enum)
 
 int
 linear_set_converter (SRC_PRIVATE *psrc, int src_enum)
-{	LINEAR_DATA *linear ;
+{	LINEAR_DATA *linear = NULL ;
 
 	if (src_enum != SRC_LINEAR)
 		return SRC_ERR_BAD_CONVERTER ;
@@ -184,7 +186,7 @@ linear_set_converter (SRC_PRIVATE *psrc, int src_enum)
 
 static void
 linear_reset (SRC_PRIVATE *psrc)
-{	LINEAR_DATA *linear ;
+{	LINEAR_DATA *linear = NULL ;
 
 	linear = (LINEAR_DATA*) psrc->private_data ;
 	if (linear == NULL)
@@ -192,3 +194,11 @@ linear_reset (SRC_PRIVATE *psrc)
 
 	memset (linear->last_value, 0, sizeof (linear->last_value [0]) * linear->channels) ;
 } /* linear_reset */
+/*
+** Do not edit or modify anything in this comment block.
+** The arch-tag line is a file identity tag for the GNU Arch 
+** revision control system.
+**
+** arch-tag: 7eac3103-3d84-45d3-8bbd-f409c2b2d1a9
+*/
+

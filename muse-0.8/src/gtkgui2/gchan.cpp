@@ -146,6 +146,7 @@ bool createch(void)
 	adj = gtk_adjustment_new(0.0, 0.0, 1.0, 0.1, 0.1, 0.0);
 	object->adjprog = adj;
 	progress = gtk_hscale_new(GTK_ADJUSTMENT(adj));
+	gtk_range_set_update_policy(GTK_RANGE(progress),GTK_UPDATE_DELAYED);
 	gtk_scale_set_digits(GTK_SCALE(progress), 6);
 	object->progress = progress;
 
@@ -156,7 +157,10 @@ bool createch(void)
 	g_signal_connect(G_OBJECT(progress), "button_release_event",
 			G_CALLBACK(gcb_event_set_position), object);
 	*/
-	g_signal_connect(G_OBJECT(progress), "button_press_event",
+
+	/* here there is a problem: the position sticks to the mouse
+	   maybe there is a way to say to unfocus the widget after moving it? */
+	g_signal_connect(G_OBJECT(progress), "button_release_event",
 			G_CALLBACK(gcb_event_set_position), object);
 	gtk_box_pack_start(GTK_BOX(vbox), progress, FALSE, FALSE, 0);
 

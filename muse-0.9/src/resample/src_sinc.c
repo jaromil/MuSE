@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2002,2003 Erik de Castro Lopo <erikd@mega-nerd.com>
+** Copyright (C) 2002-2004 Erik de Castro Lopo <erikd@mega-nerd.com>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -20,13 +20,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <config.h>
+#include "config.h"
 #include "float_cast.h"
 #include "common.h"
 
-#define	SINC_MAGIC_MARKER	MAKE_MAGIC(' ','s','i','n','c',' ')
+#define	SINC_MAGIC_MARKER	MAKE_MAGIC (' ', 's', 'i', 'n', 'c', ' ')
 
-#define	ARRAY_LEN(x)    	((int) (sizeof (x) / sizeof ((x) [0])))
+#define	ARRAY_LEN(x)		((int) (sizeof (x) / sizeof ((x) [0])))
 
 /*========================================================================================
 **	Macros for handling the index into the array for the filter.
@@ -71,7 +71,7 @@ typedef struct
 
 	int		channels ;
 	long	in_count, in_used ;
-	long    out_count, out_gen ;
+	long	out_count, out_gen ;
 
 	int		coeff_half_len, index_inc ;
 	int		has_diffs ;
@@ -390,7 +390,7 @@ prepare_data (SINC_FILTER *filter, SRC_DATA *data, int half_filter_chan_len)
 	filter->b_end += len ;
 	filter->in_used += len ;
 
-	if (filter->in_used == filter->in_count && 
+	if (filter->in_used == filter->in_count &&
 			filter->b_end - filter->b_current < 2 * half_filter_chan_len && data->end_of_input)
 	{	/* Handle the case where all data in the current buffer has been
 		** consumed and this is the last buffer.
@@ -468,4 +468,12 @@ calc_output (SINC_FILTER *filter, increment_t increment, increment_t start_filte
 
 	return (left + right) ;
 } /* calc_output */
+
+/*
+** Do not edit or modify anything in this comment block.
+** The arch-tag line is a file identity tag for the GNU Arch 
+** revision control system.
+**
+** arch-tag: db8efe06-2fbd-487e-be8f-bfc01e68c19f
+*/
 

@@ -536,7 +536,7 @@ bool Stream_mixer::set_position(int ch, float pos) {
 
   if(chan[ch]->seekable && chan[ch]->running) {
     lock();
-    chan[ch]->erbapipa->flush();
+    //    chan[ch]->erbapipa->flush();
     chan[ch]->lock();
     res = chan[ch]->pos(pos);
     chan[ch]->unlock();

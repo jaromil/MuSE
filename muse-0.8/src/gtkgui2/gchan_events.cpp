@@ -46,7 +46,7 @@ void gcb_event_set_position(GtkWidget *w, GdkEventButton *s, struct gchan *o)
 		gtk_adjustment_set_value(GTK_ADJUSTMENT(o->adjprog), 0.0);
 		return;
 	}
-
+	// gtk_adjustment_changed(GTK_ADJUSTMENT(o->adjprog)); just a try..
 	position=GTK_ADJUSTMENT(o->adjprog)->value;
 	mixer->set_position(o->idx-1, position);
 	/* muse-core will play channel with set_position */	

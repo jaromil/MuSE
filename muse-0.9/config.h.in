@@ -123,6 +123,9 @@
 
 #undef HAVE_LRINT
 #undef HAVE_LRINTF
+#undef CPU_CLIPS_POSITIVE
+#undef CPU_CLIPS_NEGATIVE
+
 
 /* Version number of package */
 #undef VERSION

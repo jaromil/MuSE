@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2002,2003 Erik de Castro Lopo <erikd@mega-nerd.com>
+** Copyright (C) 2002-2004 Erik de Castro Lopo <erikd@mega-nerd.com>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <config.h>
+#include "config.h"
 #include "float_cast.h"
 #include "common.h"
 
@@ -29,13 +29,13 @@ static void zoh_reset (SRC_PRIVATE *psrc) ;
 /*========================================================================================
 */
 
-#define	ZOH_MAGIC_MARKER	MAKE_MAGIC('s','r','c','z','o','h')
+#define	ZOH_MAGIC_MARKER	MAKE_MAGIC ('s', 'r', 'c', 'z', 'o', 'h')
 
 typedef struct
 {	int		zoh_magic_marker ;
 	int		channels ;
 	long	in_count, in_used ;
-	long    out_count, out_gen ;
+	long	out_count, out_gen ;
 	float	last_value [1] ;
 } ZOH_DATA ;
 
@@ -61,9 +61,9 @@ zoh_process (SRC_PRIVATE *psrc, SRC_DATA *data)
 	input_index = psrc->last_position ;
 
 	/* Calculate samples before first sample in input array. */
-	while (input_index > 0.0 && input_index < 1.0 && zoh->out_gen < zoh->out_count)
+	while (input_index < 1.0 && zoh->out_gen < zoh->out_count)
 	{
-		if (zoh->in_used + input_index >= zoh->in_count)
+		if (zoh->in_used + zoh->channels * input_index >= zoh->in_count)
 			break ;
 
 		if (fabs (psrc->last_ratio - data->src_ratio) > SRC_MIN_RATIO_DIFF)
@@ -78,17 +78,17 @@ zoh_process (SRC_PRIVATE *psrc, SRC_DATA *data)
 		input_index += 1.0 / src_ratio ;
 		} ;
 
-		zoh->in_used += zoh->channels * lrint (floor (input_index)) ;
-		input_index -= floor (input_index) ;
+	zoh->in_used += zoh->channels * lrint (floor (input_index)) ;
+	input_index -= floor (input_index) ;
 
 	/* Main processing loop. */
-	while (zoh->out_gen < zoh->out_count && zoh->in_used + input_index < zoh->in_count)
+	while (zoh->out_gen < zoh->out_count && zoh->in_used + zoh->channels * input_index <= zoh->in_count)
 	{
 		if (fabs (psrc->last_ratio - data->src_ratio) > SRC_MIN_RATIO_DIFF)
 			src_ratio = psrc->last_ratio + zoh->out_gen * (data->src_ratio - psrc->last_ratio) / (zoh->out_count - 1) ;
 
 		for (ch = 0 ; ch < zoh->channels ; ch++)
-		{	data->data_out [zoh->out_gen] = data->data_in [zoh->in_used + ch] ;
+		{	data->data_out [zoh->out_gen] = data->data_in [zoh->in_used - zoh->channels + ch] ;
 			zoh->out_gen ++ ;
 			} ;
 
@@ -97,7 +97,12 @@ zoh_process (SRC_PRIVATE *psrc, SRC_DATA *data)
 
 		zoh->in_used += zoh->channels * lrint (floor (input_index)) ;
 		input_index -= floor (input_index) ;
-		} ;	
+		} ;
+
+	if (zoh->in_used > zoh->in_count)
+	{	input_index += zoh->in_used - zoh->in_count ;
+		zoh->in_used = zoh->in_count ;
+		} ;
 
 	psrc->last_position = input_index ;
 
@@ -137,7 +142,7 @@ zoh_get_description (int src_enum)
 
 int
 zoh_set_converter (SRC_PRIVATE *psrc, int src_enum)
-{	ZOH_DATA *zoh = NULL;
+{	ZOH_DATA *zoh = NULL ;
 
 	if (src_enum != SRC_ZERO_ORDER_HOLD)
 		return SRC_ERR_BAD_CONVERTER ;
@@ -184,3 +189,11 @@ zoh_reset (SRC_PRIVATE *psrc)
 
 	return ;
 } /* zoh_reset */
+/*
+** Do not edit or modify anything in this comment block.
+** The arch-tag line is a file identity tag for the GNU Arch 
+** revision control system.
+**
+** arch-tag: 808e62f8-2e4a-44a6-840f-180a3e41af01
+*/
+
