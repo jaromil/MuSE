@@ -207,7 +207,8 @@ bool Stream_mixer::open_soundcard(bool in, bool out) {
   
   if(out) dspout = true;
   
-  if(in) livein.init(speed, tstereo+1, &dsp);
+  livein.init(speed, tstereo+1, &dsp);
+  linein = in;
   
   return(true);
 } /* open_soundcard */
@@ -702,8 +703,23 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
 
   /* IT's A MP3 OR OGG OR WAV */
   if( strncasecmp(temp+strlen(temp)-4,".ogg",4)==0
-   || strncasecmp(temp+strlen(temp)-4,".mp3",4)==0
-   || strncasecmp(temp+strlen(temp)-4,".wav",4)==0
+      || strncasecmp(temp+strlen(temp)-4,".mp3",4)==0
+      || strncasecmp(temp+strlen(temp)-4,".wav",4)==0
+      || strncasecmp(temp+strlen(temp)-4,".aif",4)==0
+      || strncasecmp(temp+strlen(temp)-5,".aiff",4)==0
+      || strncasecmp(temp+strlen(temp)-4,".snd",4)==0
+      || strncasecmp(temp+strlen(temp)-3,".au",4)==0
+      || strncasecmp(temp+strlen(temp)-4,".raw",4)==0
+      || strncasecmp(temp+strlen(temp)-4,".paf",4)==0
+      || strncasecmp(temp+strlen(temp)-4,".iff",4)==0
+      || strncasecmp(temp+strlen(temp)-4,".svx",4)==0
+      || strncasecmp(temp+strlen(temp)-3,".sf",4)==0
+      || strncasecmp(temp+strlen(temp)-4,".voc",4)==0
+      || strncasecmp(temp+strlen(temp)-4,".w64",4)==0
+      || strncasecmp(temp+strlen(temp)-4,".pvf",4)==0
+      || strncasecmp(temp+strlen(temp)-3,".xi",4)==0
+      || strncasecmp(temp+strlen(temp)-4,".htk",4)==0
+      || strncasecmp(temp+strlen(temp)-4,".mat",4)==0
       ) {
     func("it's a local file",temp);
     //    lock();

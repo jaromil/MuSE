@@ -191,7 +191,7 @@ void DND_data_delete(GtkWidget *w, GdkDragContext *dc, struct gchan *o)
 		path = gtk_tree_row_reference_get_path((GtkTreeRowReference *)reflist->data);
 		row = gtk_tree_path_get_indices(path)[0];
 		if(gtk_tree_model_get_iter(model, &iter, path)) {
-			notice("removed %d", row);
+		  //			notice("removed %d", row);
 			gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
 		}
 		gtk_tree_path_free(path);

@@ -628,7 +628,7 @@ void gcb_rem_from_playlist(GtkWidget *w, struct gchan *o)
 		row = gtk_tree_path_get_indices(path)[0];
 		mixer->rem_from_playlist(o->idx-1, row+1);
 		if(gtk_tree_model_get_iter(model, &iter, path)) {
-			notice("removed %d", row);
+		  //			notice("removed %d", row);
 			gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
 		}
 		

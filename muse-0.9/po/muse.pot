@@ -7,7 +7,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2004-03-29 13:52+0200\n"
+"POT-Creation-Date: 2004-04-09 18:51+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -376,30 +376,30 @@ msgstr ""
 msgid "Problem adding url"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:509
+#: ../src/gtkgui2/gchan.cpp:508
 #, c-format
 msgid "selected index = %d"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:532
+#: ../src/gtkgui2/gchan.cpp:530
 msgid "KO for playing :("
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:536
+#: ../src/gtkgui2/gchan.cpp:534
 msgid "ok for playing"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:657
+#: ../src/gtkgui2/gchan.cpp:655
 #, c-format
 msgid "GTK_GUI::gcb_add_file : idx %u"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:672
+#: ../src/gtkgui2/gchan.cpp:670
 #, c-format
 msgid "gcb_add_file:: mixer->add_to_playlist(%u, %s) failed"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:674
+#: ../src/gtkgui2/gchan.cpp:672
 msgid "Problem adding file :\\"
 msgstr ""
 
@@ -416,21 +416,21 @@ msgstr ""
 #. gtk_tree_path_free(path);
 #. }
 #.
-#: ../src/gtkgui2/gchan_events.cpp:224
+#: ../src/gtkgui2/gchan_events.cpp:229
 msgid "Add File..."
 msgstr ""
 
-#: ../src/gtkgui2/gchan_events.cpp:229
+#: ../src/gtkgui2/gchan_events.cpp:234
 msgid "Add Url..."
 msgstr ""
 
 #. 		if(row) {
-#: ../src/gtkgui2/gchan_events.cpp:235 ../src/gtkgui2/ice.cpp:321
+#: ../src/gtkgui2/gchan_events.cpp:240 ../src/gtkgui2/ice.cpp:321
 msgid "Delete"
 msgstr ""
 
 #. 		}
-#: ../src/gtkgui2/gchan_events.cpp:242
+#: ../src/gtkgui2/gchan_events.cpp:247
 msgid "Cancel"
 msgstr ""
 

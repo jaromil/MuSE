@@ -108,7 +108,7 @@ bool MuseDecSndFile::seek (float pos) {
 	} else	{
 
 		if((framepos = sf_seek(sf, (sf_count_t)(frametot * pos), SEEK_SET))==-1) {
-			func("MuseDecSndFile::seek error: %s",sf_strerror(sf));
+			func("MuseDecSndFile::seek error"); //,sf_strerror(sf));
 			return false;
 		}
 		func("MuseDecSndFile::seek at position %d/%d", framepos, frametot);

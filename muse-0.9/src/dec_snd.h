@@ -26,7 +26,7 @@
 #define __IN_SND_H__
 
 #include <config.h>
-//TODO: fare in modo che configure.in definisca qusta costante
+
 #ifdef HAVE_SNDFILE
 
 #include <decoder.h>
