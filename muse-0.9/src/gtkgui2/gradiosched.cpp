@@ -35,6 +35,7 @@
 
 
 void write_schedule_file(GtkWidget *w, gpointer data); 
+void run_scheduler(GtkWidget *w, gpointer data); 
 gboolean read_schedule_file(GtkListStore *list); 
 gboolean add_record_a(GtkListStore *list, 
     const char *src, const char *comment, const char *wkd, const char *stime,
@@ -54,8 +55,8 @@ enum {
 void rsched_new(GtkWidget *w)
 {
 	GtkWidget *winsched, *scroll, *tree;
-	GtkWidget *tmpvbox, *tmphbox, *button;
-	GtkWidget *tmpwid, *tmpwid1, *tmptable;
+	GtkWidget *tmpvbox, *tmphbox, *button, *starts, *stops;
+	GtkWidget *tmpwid, *tmpwid1, *tmptable, *startl, *stopl, *startl1, *stopl1;
 	GtkWidget *align;
 	GtkListStore *store;
 	GtkTreeViewColumn *column;
@@ -140,10 +141,41 @@ void rsched_new(GtkWidget *w)
 	/* Add Button */
 	//tmphbox = gtk_hbox_new(FALSE, 6);
 	//gtk_box_pack_start(GTK_BOX(tmpvbox), tmphbox, FALSE, FALSE, 6);
-	tmptable = gtk_table_new(1, 6, TRUE);
+	tmptable = gtk_table_new(1, 7, TRUE);
 	gtk_box_pack_start(GTK_BOX(tmpvbox), tmptable, FALSE, FALSE, 6);
 	gtk_table_set_col_spacings(GTK_TABLE(tmptable), 6);
 	
+//--
+	tmpwid = gtk_image_new_from_stock(GTK_STOCK_YES, GTK_ICON_SIZE_BUTTON);
+	startl1 = gtk_hbox_new(FALSE, 2);
+	gtk_box_pack_start(GTK_BOX(startl1), tmpwid, FALSE, FALSE, 0);
+	starts = gtk_button_new();
+	gtk_container_add(GTK_CONTAINER(starts), startl1);
+	startl = gtk_label_new("Start");
+	
+	tmpwid = gtk_image_new_from_stock(GTK_STOCK_NO, GTK_ICON_SIZE_BUTTON);
+	stopl1 = gtk_hbox_new(FALSE, 2);
+	gtk_box_pack_start(GTK_BOX(stopl1), tmpwid, FALSE, FALSE, 0);
+	stops = gtk_button_new();
+	gtk_container_add(GTK_CONTAINER(stops), stopl1);
+	stopl = gtk_label_new("Stop");
+	
+	g_signal_connect(G_OBJECT(starts), "clicked",
+			G_CALLBACK(run_scheduler), (gpointer) stops);
+	gtk_box_pack_start(GTK_BOX(startl1), startl, FALSE, FALSE, 0);
+	//gtk_box_pack_start(GTK_BOX(tmphbox), starts, FALSE, FALSE, 0);
+	gtk_table_attach_defaults(GTK_TABLE(tmptable), starts, 0, 1, 0, 1);
+
+	g_signal_connect(G_OBJECT(stops), "clicked",
+			G_CALLBACK(run_scheduler), (gpointer) starts);
+	gtk_box_pack_start(GTK_BOX(stopl1), stopl, FALSE, FALSE, 0);
+	//gtk_box_pack_start(GTK_BOX(tmphbox), stops, FALSE, FALSE, 0);
+	gtk_table_attach_defaults(GTK_TABLE(tmptable), stops, 1, 2, 0, 1);
+	
+	if (rscheduler->on) {gtk_widget_set_sensitive(starts,FALSE);}
+	else {gtk_widget_set_sensitive(stops,FALSE);}
+
+//--	
 	tmpwid = gtk_image_new_from_stock(GTK_STOCK_ADD, GTK_ICON_SIZE_BUTTON);
 	tmpwid1 = gtk_hbox_new(FALSE, 2);
 	gtk_box_pack_start(GTK_BOX(tmpwid1), tmpwid, FALSE, FALSE, 0);
@@ -156,8 +188,8 @@ void rsched_new(GtkWidget *w)
 			G_CALLBACK(rsched_add), (gpointer) store);
 	g_object_unref(store);
 	//gtk_box_pack_start(GTK_BOX(tmphbox), button, FALSE, FALSE, 0);
-	gtk_table_attach_defaults(GTK_TABLE(tmptable), button, 2, 3, 0, 1);
-	
+	gtk_table_attach_defaults(GTK_TABLE(tmptable), button, 3, 4, 0, 1);
+
 	tmpwid = gtk_image_new_from_stock(GTK_STOCK_REMOVE, GTK_ICON_SIZE_BUTTON);
 	tmpwid1 = gtk_hbox_new(FALSE, 2);
 	gtk_box_pack_start(GTK_BOX(tmpwid1), tmpwid, FALSE, FALSE, 0);
@@ -169,7 +201,7 @@ void rsched_new(GtkWidget *w)
 	gtk_box_pack_start(GTK_BOX(tmpwid1), tmpwid, FALSE, FALSE, 0);
 	
 	//gtk_box_pack_start(GTK_BOX(tmphbox), button, FALSE, FALSE, 0);
-	gtk_table_attach_defaults(GTK_TABLE(tmptable), button, 3, 4, 0, 1);
+	gtk_table_attach_defaults(GTK_TABLE(tmptable), button, 4, 5, 0, 1);
 	
 	tmpwid = gtk_image_new_from_stock(GTK_STOCK_EXECUTE, GTK_ICON_SIZE_BUTTON);
 	tmpwid1 = gtk_hbox_new(FALSE, 0);
@@ -182,7 +214,7 @@ void rsched_new(GtkWidget *w)
 	gtk_box_pack_start(GTK_BOX(tmpwid1), tmpwid, FALSE, FALSE, 0);
 
 	//gtk_box_pack_start(GTK_BOX(tmphbox), button, FALSE, FALSE, 0);
-	gtk_table_attach_defaults(GTK_TABLE(tmptable), button, 4, 5, 0, 1);
+	gtk_table_attach_defaults(GTK_TABLE(tmptable), button, 5, 6, 0, 1);
 
 	tmpwid = gtk_image_new_from_stock(GTK_STOCK_CANCEL, GTK_ICON_SIZE_BUTTON);
 	tmpwid1 = gtk_hbox_new(FALSE, 0);
@@ -195,10 +227,21 @@ void rsched_new(GtkWidget *w)
 	gtk_box_pack_start(GTK_BOX(tmpwid1), tmpwid, FALSE, FALSE, 0);
 
 	//gtk_box_pack_start(GTK_BOX(tmphbox), button, FALSE, FALSE, 0);
-	gtk_table_attach_defaults(GTK_TABLE(tmptable), button, 5, 6, 0, 1);
+	gtk_table_attach_defaults(GTK_TABLE(tmptable), button, 6, 7, 0, 1);
 
 	
 	gtk_widget_show_all(winsched);
+}
+
+void run_scheduler(GtkWidget *w, gpointer data)
+{
+    if (rscheduler->on) {
+	    rscheduler->stop();
+	} else {
+	    rscheduler->play();
+	}
+	gtk_widget_set_sensitive(w,FALSE);
+	gtk_widget_set_sensitive(GTK_WIDGET(data),TRUE);
 }
 
 void rsched_add(GtkWidget *w, gpointer data)
