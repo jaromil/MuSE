@@ -98,7 +98,7 @@ Stream_mixer::Stream_mixer() {
     error("error initializing POSIX thread mutex");
   if(pthread_cond_init (&_cond, NULL) == -1)
     error("error initializing POSIX thread condtition"); 
-  unlock();
+  //unlock();
 }
 
 Stream_mixer::~Stream_mixer() {

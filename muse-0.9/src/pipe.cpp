@@ -62,7 +62,7 @@ Pipe::Pipe(int size) {
   end=start=buffer;
   blocking = true;
   _thread_init();
-  unlock();
+  //unlock();
 }
 
 Pipe::~Pipe() {

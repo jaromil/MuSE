@@ -31,7 +31,7 @@
 #include <unistd.h>
 #endif
 
-#ifdef HAVE_SYS_UIO_H
+#if defined(HAVE_SYS_UIO_H) || defined(__NetBSD__)
 #include <sys/uio.h>
 #else
 #ifndef _SYS_UIO_H

@@ -47,6 +47,7 @@ void GTK2_GUI::run() {
       _mix->quit = true;
     } else {
       int i;
+      lock();
       wait();
 
       /* update channels */
