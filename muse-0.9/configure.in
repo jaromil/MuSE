@@ -407,14 +407,14 @@ dnl Choose external portaudio library
 dnl =========================================
 AC_MSG_CHECKING(if external portaudio library is requested)
 PORTAUDIO_LIBS="portaudio/libportaudio.a"
-PORTAUDIO_CFLAGS="-Iportaudio/pa_common -Iportaudio"
+PORTAUDIO_CFLAGS="-Iportaudio"
 PORTAUDIO_DIRS="portaudio"
 AC_ARG_WITH(portaudio,
 [  --with-portaudio=/sw portaudio lib prefix],
 [if test -r "$withval"; then
 	 external_portaudio=yes
-     PORTAUDIO_LIBS="$withval/lib/libportaudio.a -I$withval/pa_common"
-	 PORTAUDIO_CFLAGS="-I$withval/include -I$withval/pa_common"
+     PORTAUDIO_LIBS="$withval/lib/libportaudio.a -I$withval/pa_common "
+	 PORTAUDIO_CFLAGS="-I$withval/include -I$withval/pa_common "
 	 PORTAUDIO_DIRS=""
 	 AC_MSG_RESULT(yes)
  fi],[AC_MSG_RESULT(no)])

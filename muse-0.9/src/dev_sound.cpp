@@ -29,7 +29,7 @@
 #define PA_SAMPLES_PER_FRAME 2
 #define PA_NUM_SECONDS 5
 #define FRAMES_PER_BUFFER   (64)
-#define PA_PIPE_SIZE (IN_BUFFER*2)*8
+#define PA_PIPE_SIZE (IN_BUFFER*2)*4
 
 #define INPUT_DEVICE  Pa_GetDefaultInputDeviceID()
 #define OUTPUT_DEVICE Pa_GetDefaultOutputDeviceID()

@@ -60,14 +60,14 @@ bool Mpegfileplayer::openfile(char *filename,char *device)
     }
     close(fd);
   }
-  
-  if(device[0]=='/')player=new Rawplayer;
+ /* 
+  if(device[0]=='/') player=new Rawplayer;
   else 
   {
-    if(device[0]=='-')device=NULL;
+    if(device[0]=='-') device=NULL;
     player=new Rawtofile;
   }
-
+*/
   if(player==NULL)
     return seterrorcode(SOUND_ERROR_MEMORYNOTENOUGH);
   if(!player->initialize(device))
@@ -81,7 +81,7 @@ bool Mpegfileplayer::openfile(char *filename,char *device)
   }
 
 // Server
-  if((server=new Mpegtoraw(loader,player))==NULL)
+  if((server=new Mpegtoraw(loader))==NULL)
     return seterrorcode(SOUND_ERROR_MEMORYNOTENOUGH);
 
 // Initialize server

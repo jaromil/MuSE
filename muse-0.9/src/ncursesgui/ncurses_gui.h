@@ -22,8 +22,10 @@
 #ifndef __NCURSES_GUI_H__
 #define __NCURSES_GUI_H__
 
-#include <jmixer.h>
+#ifdef GUI_RUBIK
 #include <muse_tui.h>
+#endif
+#include <jmixer.h>
 
 
 class NCURSES_GUI : public GUI {

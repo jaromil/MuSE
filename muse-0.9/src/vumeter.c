@@ -78,9 +78,10 @@ volatile sig_atomic_t userbreak;
 /* ---------------------- */
 
 
+/*
 int main(int argc, char **argv) {
 
-  /* register signal traps */
+  // register signal traps 
   if (signal (SIGINT, quitproc) == SIG_ERR) {
     perror ("[!] Couldn't install SIGINT handler: "); exit (0); }
   if (signal (SIGQUIT, quitproc) == SIG_ERR) {
@@ -94,3 +95,4 @@ int main(int argc, char **argv) {
 
   exit(1);
 }
+*/

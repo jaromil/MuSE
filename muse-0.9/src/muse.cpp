@@ -106,7 +106,11 @@
 #ifdef GUI_RUBIK
 #include <ncursesgui/ncurses_gui.h>
 #endif
-
+#ifdef HAVE_DARWIN
+#ifdef GUI_CARBON
+#include <carbon_gui.h>
+#endif
+#endif
 #ifdef UI_XMLRPC
 #include <xmlrpc/xmlrpc_ui.h>
 #endif
@@ -197,7 +201,7 @@ float quality = 1.0f;
 int channels = 1;
 
 int thegui = -1; /* no gui */
-enum interface { CLI, GTK1, GTK2, NCURSES };
+enum interface { CLI, GTK1, GTK2, NCURSES, CARBON };
 
 // channel options
 int number = 0;
@@ -468,6 +472,11 @@ bool take_args(int argc, char **argv) {
 #ifdef GUI_RUBIK
       if(strcasecmp(optarg,"ncurses")==0) thegui=NCURSES;
 #endif
+#ifdef GUI_CARBON
+      if(strcasecmp(optarg,"carbon")==0) {
+	  thegui=CARBON;
+	  }
+#endif
       if(strcasecmp(optarg,"cli")==0) thegui=CLI;
 
       if(thegui>=0) break;
@@ -653,6 +662,12 @@ bool check_config() {
   return(true);
 }
 
+void *mainLoop() {
+  while(!mix->quit)
+    mix->cafudda();
+   /* simple isn't it? */
+}
+
 int main(int argc, char **argv) {
 
   notice(version,PACKAGE,VERSION);
@@ -709,12 +724,15 @@ int main(int argc, char **argv) {
   
   if(thegui<0) { /* select default gui */
     if(getenv("DISPLAY")) { /* we are in a graphical environment */
-#ifdef GUI_NIGHTOLO
-      thegui=GTK1;
-#elif GUI_NIGHTOLO2
+#ifdef GUI_NIGHTOLO2
       thegui=GTK2;
+#elif GUI_NIGHTOLO
+      thegui=GTK1;
 #endif
     }
+#ifdef GUI_CARBON
+      thegui=CARBON;
+#endif
     if(thegui<0) { /* if GUI is still not selected */
 #ifdef GUI_RUBIK
       thegui = NCURSES;
@@ -756,6 +774,15 @@ int main(int argc, char **argv) {
     error("the ncurses console interface is not compiled in");
 #endif
     break;
+  case CARBON:
+#ifdef GUI_CARBON
+    notice("spawning the CARBON user interface");
+	act("by Andrea \"xant\" Guzzo <xant@xant.net>");
+	gui = new CARBON_GUI(argc,argv,mix);
+#else
+	error("the carbon interface is not compiled in");
+#endif
+    break;
   default:
     notice("using commandline interface (non interactive)");
     thegui=CLI;
@@ -764,8 +791,9 @@ int main(int argc, char **argv) {
   if(thegui<0) error("no interface selected, this should never happen");
  
   if(thegui!=CLI) {
-    gui->start();
-    mix->register_gui(gui);
+
+	gui->start();
+	mix->register_gui(gui);
     set_guimsg(gui);
     notice("%s version %s",PACKAGE,VERSION);
   }
@@ -806,14 +834,22 @@ int main(int argc, char **argv) {
     act("see --help switch for more information");
     goto QUIT;
   }
-
-
+#ifndef GUI_CARBON
   /* MAIN LOOP */
-  while(!mix->quit)
-    mix->cafudda();
+  mainLoop();
+#else
+  /* XXX - this hack is needed because carbon event model,
+   * in a multithreaded environment, sends GUI events just to the main thread eventloop 
+   * and not to 'dispatched' ones. So we have to run the eventloop in the main thread
+   */
+  EventLoopRef eventLoop;
+  pthread_t mainThread;
+  pthread_create(&mainThread, NULL, &mainLoop, NULL);
+  RunApplicationEventLoop();
+  if(!mix->quit) quitproc(2); /* if user quitted through the mac menu */
+  pthread_join(mainThread,NULL);
+#endif
  
-  /* simple isn't it? */
-
   QUIT:
   notice("quitting MuSE");
 
@@ -849,7 +885,10 @@ int main(int argc, char **argv) {
 void quitproc (int Sig) {
   func("received signal %u on process %u",Sig,getpid());
   if(thegui!=CLI) gui->quit = true;
-  mix->quit = true;  
+  mix->quit = true; 
+#ifdef GUI_CARBON
+   QuitApplicationEventLoop();
+#endif
 }
 
 void fsigpipe (int Sig) {
