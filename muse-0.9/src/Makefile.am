@@ -14,6 +14,7 @@ muse_SOURCES =  \
     decoder.cpp		\
     dec_mp3.cpp		\
     dec_ogg.cpp		\
+    dec_snd.cpp		\
     outchannels.cpp     \
     out_vorbis.cpp	\
     out_lame.cpp	\
@@ -35,5 +36,6 @@ muse_LDADD = \
 	@LAME_LIBS@ \
 	@OGG_LIBS@ \
 	@VORBIS_LIBS@ \
-	@GUI_LIBS@
+	@GUI_LIBS@ \
+	@SNDFILE_LIBS@
 

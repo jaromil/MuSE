@@ -94,6 +94,14 @@ AM_GNU_GETTEXT
 ALL_LINGUAS="it"
 
 dnl ====================
+dnl CHECK FOR LIBSNDFILE
+dnl ====================
+PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.0 , [
+    HAVE_SNDFILE="yes"
+    AC_DEFINE(HAVE_SNDFILE, 1, have working SNDFILE)],
+    HAVE_SNDFILE="no")
+
+dnl ====================
 dnl switch for rubik GUI
 dnl ====================
 #AC_MSG_CHECKING(to build ncurses GUI by rubik)
@@ -201,10 +209,10 @@ dnl    HAVE_GTK="yes"
 dnl    AC_DEFINE(HAVE_GTK, 1, have working GTK)],
 dnl  HAVE_GTK="no")
 
-  PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0 gthread-2.0 >= 2.0.0, [
-    HAVE_GTK2="yes"
-    AC_DEFINE(HAVE_GTK2, 1, have working GTK2)],
-  HAVE_GTK2="no")
+PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0 gthread-2.0 >= 2.0.0, [
+  		  HAVE_GTK2="yes"
+    		  AC_DEFINE(HAVE_GTK2, 1, have working GTK2)],
+  		  HAVE_GTK2="no")
 
 # gtk2 interface is preferred now!
   if test x$want_gtk2 = xyes; then
@@ -485,6 +493,10 @@ if test "$have_oggvorbis" = "yes"; then
 	echo ":: Linking OggVorbis libraries for OGG encoding"
 else
 	echo "OGGVORBIS is needed, go and install it from xiph.org"
+fi
+
+if test "${HAVE_SNDFILE}" = "yes"; then
+	echo ":: Linking SndFile libraries for WAV/AIFF/VOC/etc encoding"
 fi
 
 if test "$have_lame" = "yes"; then

@@ -299,6 +299,8 @@ bool take_args(int argc, char **argv) {
       }
 #endif
 
+      //TODO: pallotron
+      
       if(encid>0) outch = mix->get_enc(encid);
       if(outch) break;
 

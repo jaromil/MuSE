@@ -42,6 +42,9 @@
 #ifdef HAVE_VORBIS
 #include <dec_ogg.h>
 #endif
+#ifdef HAVE_SNDFILE
+#include <dec_snd.h>
+#endif
 #include <dec_mp3.h>
 
 //#ifdef DEBUG
@@ -249,7 +252,15 @@ int Channel::load(char *file) {
     func("creating Mp3 decoder");
     ndec = new MuseDecMp3();
   }
-
+  // pallotron: aggiungo lo string compare per i formati
+  // sndfile, per ora metto solo voc e wav.
+  // TODO: vedere come si chiamano le altre estensioni
+  // ed aggiungerle.
+  if(strncasecmp(file+strlen(file)-4,".wav",4)==0) {
+    func("creating LibSndFile decoder");
+    ndec = new MuseDecSndFile();
+  }
+  
   if(!ndec) {
     error("can't open %s (unrecognized extension)",file);
     return(0);

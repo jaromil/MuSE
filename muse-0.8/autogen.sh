@@ -50,8 +50,8 @@ echo "Generating configuration files for $package, please wait...."
 
 echo "  aclocal -I $srcdir/m4"
 aclocal -I $srcdir/m4
-#echo "  autoheader"
-#autoheader
+echo "  autoheader"
+autoheader
 echo "  automake --add-missing"
 automake --add-missing -c 
 echo "  autoconf"

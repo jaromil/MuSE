@@ -700,9 +700,10 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
   /* check if the file has a correct extension which is supported 
      and handle it if it's a playlist */
 
-  /* IT's A MP3 OR OGG */
+  /* IT's A MP3 OR OGG OR WAV */
   if( strncasecmp(temp+strlen(temp)-4,".ogg",4)==0
    || strncasecmp(temp+strlen(temp)-4,".mp3",4)==0
+   || strncasecmp(temp+strlen(temp)-4,".wav",4)==0
       ) {
     func("it's a local file",temp);
     //    lock();
