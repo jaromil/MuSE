@@ -1,14 +1,30 @@
 #ifndef __DEV_SOUND_H__
 #define __DEV_SOUND_H__
 
-#include <portaudio.h>
-#include <pablio.h>
-
 #include <config.h>
+
 #ifdef HAVE_JACK
 #include <jack/jack.h>
 #endif
+
+//#ifdef HAVE_PORTAUDIO
+#include <portaudio.h>
+//#endif
+
 #include <pipe.h>
+
+typedef struct {
+  PaDeviceID id;
+  PortAudioStream *stream;
+  PaDeviceInfo *info;
+  Pipe *pipe;
+} PaDevInfo;
+
+typedef struct {
+   PaDevInfo *input;
+   PaDevInfo *output;
+} PaDevices;
+///< the PortAudio device descriptor , this struct just group some data used by PortAudio framework
 
 class SoundDevice {
  public:
@@ -42,18 +58,19 @@ class SoundDevice {
   bool jack_in;
   bool jack_out;
 
-
  private:
-  PABLIO_Stream *aInStream; ///< Portaudio input stream 
-  PABLIO_Stream *aOutStream; ///< Portaudio output stream 
-
-  const PaDeviceInfo *info_input;
-  const PaDeviceInfo *info_output;  
-
-  bool pablio_input(bool state);
-  bool pablio_output(bool state);
+  bool pa_open(bool state,int mode);
+  PaError pa_real_open(int mode);
   
   PaError err;
+
+  PaDevInfo input_device; ///< portaudio input device
+  PaDevInfo output_device; ///< portaudio output device 
+  PaDevices pa_dev;
+  int pa_mode; ///< a switch to represent portaudio mode currently using (for noaudio,input,output or both) 
+#define PaNull 0
+#define PaInput 1
+#define PaOutput 2
 
   Pipe *jack_in_pipe;
   Pipe *jack_out_pipe;

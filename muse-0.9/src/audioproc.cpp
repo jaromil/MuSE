@@ -61,7 +61,7 @@ int resample_mono_16(IN_DATATYPE *dest, IN_DATATYPE *src, IN_DATATYPE *prev,
 		     unsigned int num, float volume) {
   /* il .001 per garantire che una qualche approssimazione non faccia
      andare a leggere dati che non sono presenti */
-  int tnum = (int)((float)num * (441.0 / 160.001))<<1; 
+  int tnum = (int)((float)num * (441.0 / 160.001))*2; 
   int c, cc;
   int disp = 0, modul = 0, oldin = -1, curin;
   long lframe;
@@ -104,7 +104,7 @@ int resample_mono_16(IN_DATATYPE *dest, IN_DATATYPE *src, IN_DATATYPE *prev,
   dest[12] = dest[13] = (IN_DATATYPE)CLIP16BIT(lframe);
 
   for (c = 14 , modul = 0 ; c < tnum ; c+= 2) {
-    cc = (c>>1) - modul;
+    cc = (c/2) - modul;
     curin = disp+resarr160to441lc[cc];
     if (curin != oldin) {
       oldin = curin;
@@ -121,7 +121,7 @@ int resample_mono_16(IN_DATATYPE *dest, IN_DATATYPE *src, IN_DATATYPE *prev,
       disp += 160;
     }
   }
-  //  fprintf(stderr,"last %d\n",src[(num>>1)]);
+  //  fprintf(stderr,"last %d\n",src[(num/2)]);
 
   return (tnum);
 }
@@ -130,7 +130,7 @@ int resample_stereo_16(IN_DATATYPE *dest, IN_DATATYPE *src, IN_DATATYPE *prev,
 		     unsigned int num, float volume) {
   /* il .001 per garantire che una qualche approssimazione non faccia
      andare a leggere dati che non sono presenti */
-  int tnum = (int)((float)(num>>1) * (441.0 / 160.001))<<1; 
+  int tnum = (int)((float)(num/2) * (441.0 / 160.001))*2; 
   int c, cc;
   int disp = 0, modul = 0, oldin = -1, curin;
   long lframe;
@@ -212,8 +212,8 @@ int resample_stereo_16(IN_DATATYPE *dest, IN_DATATYPE *src, IN_DATATYPE *prev,
 
 
   for (c = 14 , modul = 0 ; c < tnum ; c+= 2) {
-    cc = (c>>1) - modul;
-    curin = disp+(resarr160to441lc[cc] << 1);
+    cc = (c/2) - modul;
+    curin = disp+(resarr160to441lc[cc]*2);
     if (curin != oldin) {
       oldin = curin;
       /*    y1 = src[curin]    y2 = src[curin+2]    y3 = src[curin+4]    */
@@ -257,21 +257,21 @@ int resample_mono_22(IN_DATATYPE *dest, IN_DATATYPE *src, IN_DATATYPE *prev,
   dest[2] = dest[3] = (IN_DATATYPE)((float)src[0] * volume);
   
   for (i = 1 ; i < num ; i++) {
-    ipu = i<<2;
+    ipu = i*2;
     dest[ipu] = dest[ipu+1] = (IN_DATATYPE)((float)((long)src[i-1] + 
                                                     (long)src[i]) * volmez);
     dest[ipu+2] = dest[ipu+3] = (IN_DATATYPE)((float)src[i] * volume);
   }
 
-  return((int)num<<2);
+  return((int)num*2);
 #else
   unsigned int c,cc;
   for(c=0,cc=0;c<num;c++) {
-    cc = c<<2;
+    cc = c*2;
     dest[cc] = dest[cc+1] = dest[cc+2] = dest[cc+3] =
       (IN_DATATYPE) (src[c]*volume);
   }
-  return((int)num<<2);
+  return((int)num*2);
 #endif
 }
 
@@ -288,7 +288,7 @@ int resample_stereo_22(IN_DATATYPE *dest, IN_DATATYPE *src, IN_DATATYPE *prev,
   dest[3] = (IN_DATATYPE)((float)src[1] * volume);
   
   for (i = 2 ; i < num ; i+=2) {
-    ipu = i<<1;
+    ipu = i*2;
     dest[ipu]   = (IN_DATATYPE)((float)((long)src[i-2] + 
                                                     (long)src[i]) * volmez);
     dest[ipu+1] = (IN_DATATYPE)((float)((long)src[i-1] + 
@@ -297,14 +297,14 @@ int resample_stereo_22(IN_DATATYPE *dest, IN_DATATYPE *src, IN_DATATYPE *prev,
     dest[ipu+3] = (IN_DATATYPE)((float)src[i+1] * volume);
   }
 
-  return((int)num<<1);
+  return((int)num*2);
 #else
   unsigned int c,cc;
   for(c=0,cc=0;c<num;c++) {
-    cc = c<<1;
+    cc = c*2;
     dest[cc] = dest[cc+1] = (IN_DATATYPE) (src[c]*volume);
   }
-  return((int)num<<1);
+  return((int)num*2);
 #endif
 }
 
@@ -314,7 +314,7 @@ int resample_mono_32(IN_DATATYPE *dest, IN_DATATYPE *src, IN_DATATYPE *prev,
 		     unsigned int num, float volume) {
   /* il .001 per garantire che una qualche approssimazione non faccia
      andare a leggere dati che non sono presenti */
-  int tnum = (int)((float)num * (441.0 / 320.001))<<1; 
+  int tnum = (int)((float)num * (441.0 / 320.001))*2; 
   int c, cc;
   int disp = 0, modul = 0, oldin = -1, curin;
   long lframe;
@@ -346,7 +346,7 @@ int resample_mono_32(IN_DATATYPE *dest, IN_DATATYPE *src, IN_DATATYPE *prev,
                    resarr320to441x[3]) * volume);
   dest[6] = dest[7] = (IN_DATATYPE)CLIP16BIT(lframe);
   for (c = 8 , modul = 0 ; c < tnum ; c+= 2) {
-    cc = (c>>1) - modul;
+    cc = (c/2) - modul;
     curin = disp+resarr320to441lc[cc];
     if (curin != oldin) {
       oldin = curin;
@@ -374,7 +374,7 @@ int resample_stereo_32(IN_DATATYPE *dest, IN_DATATYPE *src, IN_DATATYPE *prev,
 		     unsigned int num, float volume) {
   /* il .001 per garantire che una qualche approssimazione non faccia
      andare a leggere dati che non sono presenti */
-  int tnum = (int)((float)(num>>1) * (441.0 / 320.001))<<1; 
+  int tnum = (int)((float)(num/2) * (441.0 / 320.001))*2; 
   int c, cc;
   int disp = 0, modul = 0, oldin = -1, curin;
   long lframe;
@@ -438,8 +438,8 @@ int resample_stereo_32(IN_DATATYPE *dest, IN_DATATYPE *src, IN_DATATYPE *prev,
   dest[7] = (IN_DATATYPE)CLIP16BIT(lframe);
 
   for (c = 8 , modul = 0 ; c < tnum ; c+= 2) {
-    cc = (c>>1) - modul;
-    curin = disp+(resarr320to441lc[cc] << 1);
+    cc = (c/2) - modul;
+    curin = disp+(resarr320to441lc[cc] *2);
     if (curin != oldin) {
       oldin = curin;
       /*    y1 = src[curin]    y2 = src[curin+2]    y3 = src[curin+4]    */
@@ -473,12 +473,12 @@ int resample_mono_44(IN_DATATYPE *dest, IN_DATATYPE *src, IN_DATATYPE *prev,
   unsigned int c,cc;
   
   for(c=0;c<num;c++) {
-    cc = c<<1;    
+    cc = c*2;    
     dest[cc] = dest[cc+1] = (IN_DATATYPE) (src[c]*volume);
   }
   
   /* return numbero OF FRAMES */
-  return(num<<1);
+  return(num*2);
 
 }
 
@@ -492,7 +492,7 @@ int resample_stereo_44(IN_DATATYPE *dest, IN_DATATYPE *src, IN_DATATYPE *prev,
 }
 
 int mixxx_stereo_44_novol(int *dest, short *chan, int num) {
-  for(int c=0;c<num<<1;c++)
+  for(int c=0;c<num*2;c++)
     dest[c] = (int) dest[c] + chan[c];  
   return(num);
 }

@@ -76,7 +76,7 @@ static int blockingIOCallback( const void *inputBuffer, void *outputBuffer,
     /* This may get called with NULL inputBuffer during initial setup. */
     if( inputBuffer != NULL )
     {
-        RingBuffer_Write( &data->inFIFO, inputBuffer, numBytes );
+        RingBuffer_Write((RingBuffer*) &data->inFIFO, (void*)inputBuffer, numBytes );
     }
     if( outputBuffer != NULL )
     {
@@ -247,7 +247,7 @@ PaError OpenAudioStream( PABLIO_Stream **rwblPtr, double sampleRate,
     }
 
 	if(doRead) {
-		inputParams = malloc(sizeof(PaStreamParameters));
+		inputParams = (PaStreamParameters*)malloc(sizeof(PaStreamParameters));
 		memset(inputParams,0,sizeof(PaStreamParameters));
 		inputParams->device = (doRead ? Pa_GetDefaultInputDevice() : paNoDevice);
 		inputParams->channelCount = 2;

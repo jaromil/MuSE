@@ -40,9 +40,9 @@ host_triplet = @host@
 subdir = src/portaudio
 DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/./m4/cpu_clip_mode.m4 \
-	$(top_srcdir)/./m4/lrintf.m4 $(top_srcdir)/./m4/ogg.m4 \
-	$(top_srcdir)/./m4/pkg.m4 $(top_srcdir)/./m4/vorbis.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/cpu_clip_mode.m4 \
+	$(top_srcdir)/m4/lrintf.m4 $(top_srcdir)/m4/ogg.m4 \
+	$(top_srcdir)/m4/pkg.m4 $(top_srcdir)/m4/vorbis.m4 \
 	$(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -164,6 +164,9 @@ PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
 POFILES = @POFILES@
+PORTAUDIO_CFLAGS = @PORTAUDIO_CFLAGS@
+PORTAUDIO_DIRS = @PORTAUDIO_DIRS@
+PORTAUDIO_LIBS = @PORTAUDIO_LIBS@
 POSUB = @POSUB@
 RANLIB = @RANLIB@
 SET_MAKE = @SET_MAKE@

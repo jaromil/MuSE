@@ -447,7 +447,7 @@ src_float_to_short_array (const float *in, short *out, int len)
 			continue ;
 			} ;
 
-		out [len] = (lrintf (scaled_value) >> 16) ;
+		out [len] = (lrintf (scaled_value)/65536) ;
 		} ;
 
 } /* src_float_to_short_array */

@@ -146,7 +146,7 @@ void Channel::run() {
 
 	/* at last pushes it up into the pipe
 	   bytes are samples<<2 being the audio 16bit stereo */
-	erbapipa->write(frames<<1,buff);
+	erbapipa->write(frames*2,buff);
 
 	/* then calculates the position and time */
 	if(dec->seekable) state = upd_time();
@@ -521,7 +521,7 @@ void LiveIn::init(int smpr, int chans, int *thedsp) {
   opt = (num_samples*channels);
   */
 
-  gotin = (IN_DATATYPE*)malloc((MIX_CHUNK<<2) +128);
+  gotin = (IN_DATATYPE*)malloc((MIX_CHUNK*4) +128);
 }
 
 LiveIn::~LiveIn() {
@@ -541,8 +541,8 @@ int LiveIn::mix(int *mixpcm) {
 int LiveIn::get_audio() {
   int res;
 
-  do {res = read(*dsp,gotin,MIX_CHUNK<<2);} while (res==-1 && errno==EINTR);
-  return(res>>2);
+  do {res = read(*dsp,gotin,MIX_CHUNK*4);} while (res==-1 && errno==EINTR);
+  return(res/4);
 }
 
 

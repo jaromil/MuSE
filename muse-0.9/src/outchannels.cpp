@@ -389,7 +389,7 @@ bool OutChannel::calc_bitrate(int enc) {
   bytes_accu += enc;
   now = dtime();
   if((now-prev)>1) { /* if one second passed */
-    bitrate = (bytes_accu<<2);
+    bitrate = (bytes_accu*4);
     bytes_accu = 0;
     prev = now;
     return true;

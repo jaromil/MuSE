@@ -41,15 +41,15 @@
 #define MAKE_INCREMENT_T(x) 	((increment_t) (x))
 
 #define	SHIFT_BITS				16
-#define	FP_ONE					((double) (((increment_t) 1) << SHIFT_BITS))
+#define	FP_ONE					((double) (((increment_t) 1) * (2*SHIFT_BITS)))
 
 #define	DOUBLE_TO_FP(x)			(lrint ((x) * FP_ONE))
-#define	INT_TO_FP(x)			(((increment_t) (x)) << SHIFT_BITS)
+#define	INT_TO_FP(x)			(((increment_t) (x)) * (2*SHIFT_BITS))
 
-#define	FP_FRACTION_PART(x)		((x) & ((((increment_t) 1) << SHIFT_BITS) - 1))
-#define	FP_INTEGER_PART(x)		((x) & (((increment_t) -1) << SHIFT_BITS))
+#define	FP_FRACTION_PART(x)		((x) & ((((increment_t) 1) * (2*SHIFT_BITS)) - 1))
+#define	FP_INTEGER_PART(x)		((x) & (((increment_t) -1) * (2*SHIFT_BITS)))
 
-#define	FP_TO_INT(x)			(((x) >> SHIFT_BITS))
+#define	FP_TO_INT(x)			(((x) / (2*SHIFT_BITS)))
 #define	FP_TO_DOUBLE(x)			(FP_FRACTION_PART (x) / FP_ONE)
 
 /*========================================================================================

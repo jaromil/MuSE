@@ -21,14 +21,25 @@
  */
 
 #include <dev_sound.h>
-#include <pablio.h>
 #include <jutils.h>
 #include <generic.h>
+#include <config.h>
 
+#ifdef HAVE_DARWIN
+#define PA_SAMPLE_TYPE paFloat32
+#else
 #define PA_SAMPLE_TYPE paInt16
+#endif
+
 #define PA_SAMPLES_PER_FRAME 2
 #define PA_MAX_FRAMES 4096
 #define PA_NUM_SECONDS 5
+#define FRAMES_PER_BUFFER   (64)
+#define PA_PIPE_SIZE FRAMES_PER_BUFFER*(PA_SAMPLES_PER_FRAME*sizeof(PA_SAMPLE_TYPE))*128
+
+#define INPUT_DEVICE  Pa_GetDefaultInputDeviceID()
+#define OUTPUT_DEVICE Pa_GetDefaultOutputDeviceID()
+
 
 #ifdef HAVE_JACK
 int dev_jack_process(jack_nframes_t nframes, void *arg) {
@@ -63,9 +74,20 @@ void dev_jack_shutdown(void *arg) {
 }
 #endif
 
+
 SoundDevice::SoundDevice() {
-  aInStream = NULL;
-  aOutStream = NULL;
+  memset(&input_device,0,sizeof(input_device));
+  memset(&output_device,0,sizeof(output_device));
+  pa_dev.input = &input_device;
+  pa_dev.output = &output_device;
+  input_device.pipe = new Pipe(PA_PIPE_SIZE);
+  input_device.pipe->set_block(false,true);
+  output_device.pipe = new Pipe(PA_PIPE_SIZE);
+  output_device.pipe->set_block(true,false);
+#ifdef HAVE_DARWIN
+  input_device.pipe->set_output_type("copy_float_to_int16");
+  output_device.pipe->set_input_type("copy_int16_to_float");
+#endif
   jack = false;
   jack_in = false;
   jack_out = false;
@@ -75,52 +97,129 @@ SoundDevice::~SoundDevice() {
   close();
 }
 
-bool SoundDevice::pablio_input(bool state) {
-  if(state && !aInStream) {
-    err = OpenAudioStream( &aInStream, SAMPLE_RATE, PA_SAMPLE_TYPE,
-			   (PABLIO_READ | PABLIO_STEREO) );
-    if( err != paNoError) {
-      Pa_Terminate();
-      error("error opening input sound device: %s",Pa_GetErrorText( err ) );
-      return false;
-    } else
-      info_input = Pa_GetDeviceInfo( Pa_GetDefaultInputDevice() );
-
-  } else if(!state && aInStream) {
-
-    CloseAudioStream(aInStream);
-    aInStream = NULL;
-    info_input = NULL;
-
+static int pa_process( void *inputBuffer, void *outputBuffer, 
+			unsigned long framesPerBuffer, 
+			PaTimestamp outTime, void *userData )
+{
+  PaDevices *dev = (PaDevices *)userData;
+  long len = framesPerBuffer * sizeof(float) * 2 ;
+  if(inputBuffer != NULL) {
+    int numRead = dev->input->pipe->write(len,inputBuffer);
   }
-  return true;
+  if(outputBuffer != NULL) {
+    int i;
+    int numRead = dev->output->pipe->read(len,outputBuffer);
+    /* Zero out remainder of buffer if we run out of data. */
+    for( i=numRead;i<len;i++) {
+      ((char *)outputBuffer)[i] = 0;
+    }
+  }
+  return 0;
 }
 
 bool SoundDevice::input(bool state) {
   bool res = false;
   if(jack) return true;
-  if(!res) res = pablio_input(state);
+  if(!res) res = pa_open(state,PaInput);
   return res;
 }
 
+PaError SoundDevice::pa_real_open(int mode) {
+  return Pa_OpenStream( ((mode & PaInput) == PaInput)?&input_device.stream:&output_device.stream,
+    ((mode & PaInput) == PaInput)?input_device.id:paNoDevice,
+    ((mode & PaInput) == PaInput)?2:0,
+    PA_SAMPLE_TYPE,
+    NULL,
+    ((mode & PaOutput) == PaOutput)?output_device.id:paNoDevice,
+    ((mode & PaOutput) == PaOutput)?2:0,
+    PA_SAMPLE_TYPE,
+    NULL,
+    SAMPLE_RATE,
+    FRAMES_PER_BUFFER,
+    0,  /* number of buffers, if zero then use default minimum */
+    0, // paClipOff,     /* we won't output out of range samples so don't bother clipping them */
+    pa_process,
+    &pa_dev );
+}
 
-bool SoundDevice::pablio_output(bool state) {
-  if(state && !aOutStream) {
-    err = OpenAudioStream( &aOutStream, SAMPLE_RATE, PA_SAMPLE_TYPE,
-			   (PABLIO_WRITE | PABLIO_STEREO) );
+bool SoundDevice::pa_open(bool state,int mode) {
+  PaDevInfo *dev,*other;
+  PaDeviceID id;
+  int creq,oreq;
+  char dir[7];
+  if(mode == PaInput) { // input requested
+    dev = &input_device;
+    other = &output_device;
+    creq = PaInput;
+    oreq = PaOutput;
+    strcpy(dir,"input");
+    dev->id = Pa_GetDefaultInputDeviceID();
+  }
+  else if(mode == PaOutput) { // output requested
+    dev = &output_device;
+    other = &input_device;
+    creq = PaOutput;
+    oreq = PaInput;
+    strcpy(dir,"output");
+    dev->id = Pa_GetDefaultOutputDeviceID();
+  }
+  if(state && ((pa_mode & creq) != creq)) {
+    dev->info = Pa_GetDeviceInfo( dev->id );
+    if(dev->info) func("%s device: %s",dir,dev->info->name);
+    else {
+      error("%s device not available",dir);
+      return false;
+    }
+    if((pa_mode & oreq) == oreq) {
+      /* input device is already opened...check if we are trying to open the same device */
+      if(other->info) { 
+        if(strcmp(other->info->name,dev->info->name) == 0) {
+          Pa_StopStream( other->stream );
+          Pa_CloseStream( other->stream );
+          err = pa_real_open(PaInput|PaOutput);
+          if(err == paNoError ) output_device.stream = input_device.stream;
+		}
+		else {
+          err = pa_real_open(mode);
+		}
+      }
+      else {
+        error("Full duplex has been requested but we don't have portaudio information");
+        return false;
+      }
+    }
+    else {
+      err = pa_real_open(mode);
+    }
     if( err != paNoError) {
       Pa_Terminate();
-      error("error opening output sound device: %s",Pa_GetErrorText( err ) );
+      error("error opening %s sound device: %s",dir,Pa_GetErrorText( err ) );
       return false;
-    } else
-      info_output = Pa_GetDeviceInfo( Pa_GetDefaultOutputDevice() );
-
-  } else if(!state && aOutStream) {
+    }
+    else {
+      err = Pa_StartStream(dev->stream);
+      if(err != paNoError) {
+         error("error starting %s audio stream: %s",dir,Pa_GetErrorText( err ) );
+         return false;
+      }
+      pa_mode = pa_mode | creq;
+    }
+  } else if(!state && dev->stream) { // XXX - i have to check if this is still right
     
-    CloseAudioStream(aOutStream);
-    aOutStream = NULL;
-    info_output = NULL;
-
+    if((pa_mode & creq) == creq) {
+       if((pa_mode & oreq) == oreq) {
+         pa_mode = oreq;
+       }
+       else {
+         Pa_StopStream(dev->stream);
+         Pa_CloseStream(dev->stream);
+         pa_mode = PaNull;
+       }
+    }
+    dev->stream = NULL;
+    dev->info = NULL;
+    dev->pipe->flush();
+	//delete dev->pipe;
   }
   return true;
 }
@@ -128,7 +227,7 @@ bool SoundDevice::pablio_output(bool state) {
 bool SoundDevice::output(bool state) {
   bool res = false;
   if(jack) return true;
-  if(!res) res = pablio_output(state);
+  if(!res) res = pa_open(state,PaOutput);
   return res;
 }
 
@@ -171,28 +270,27 @@ bool SoundDevice::open(bool read, bool write) {
       return true;
     }
 #endif
-  
   if( ! output(write) ) return false;
   
-  if(info_output) func("output device: %s",info_output->name);
-  else error("output device not available");
+  //if( ! input(read) ) return false;
   
-  if( ! input(read) ) return false;
-  
-  if(info_input) func("input device: %s",info_input->name);
-  else error("input device not available");
-
   return true;
 }
 
 void SoundDevice::close() {
-  if(aInStream)
-    CloseAudioStream( aInStream);
-  aInStream = NULL;
+  if(input_device.stream)
+    Pa_StopStream( input_device.stream);
+    Pa_CloseStream( input_device.stream );
+    input_device.stream = NULL;
+    input_device.pipe->flush();
+    //delete input_device.pipe;
 
-  if(aOutStream)
-    CloseAudioStream( aOutStream);
-  aOutStream = NULL;
+  if(output_device.stream)
+    Pa_StopStream( output_device.stream);
+    Pa_CloseStream( output_device.stream );
+    output_device.stream = NULL;
+    output_device.pipe->flush();
+    //delete output_device.pipe;
 }
 
 int SoundDevice::read(void *buf, int len) {
@@ -201,13 +299,12 @@ int SoundDevice::read(void *buf, int len) {
 
   if(jack) {
 
-    res = jack_in_pipe->read(len<<1,buf);
+    res = jack_in_pipe->read(len*2,buf);
 
-  } else if(aInStream) { // pablio
+  } else if(input_device.stream) { // portaudio
 
     // takes number of left and right frames (stereo / 2)
-    res = ReadAudioStream( aInStream, buf, len);
-
+    res = input_device.pipe->read(len*2,buf);
   }  
   return res;
 }
@@ -218,14 +315,12 @@ int SoundDevice::write(void *buf, int len) {
 
   if(jack) { // jack audio daemon
 
-    res = jack_out_pipe->write(len<<1,buf);
+    res = jack_out_pipe->write(len*2,buf);
 
-  } else if(aOutStream) { // pablio
+  } else if(output_device.stream) { // portaudio
 
     // takes number of left and right frames (stereo / 2)
-    res = WriteAudioStream( aOutStream, buf, len>>1);
-
+	res = output_device.pipe->write(len*2,buf);
   }
   return res;
-
 }

@@ -173,7 +173,7 @@ void Stream_mixer::cafudda()
 
   /* here memset takes byte num
      max *4 (32bit) *2 (stereo) */
-  memset(process_buffer,0,MIX_CHUNK<<3);
+  memset(process_buffer,0,MIX_CHUNK*8);
 
   //  max = 0;
   peak[cpeak] = 0;
@@ -200,7 +200,7 @@ void Stream_mixer::cafudda()
       if(chan[i]->on) {	
 
 	// this read from pipe is set to mix int32 down to the process_buffer
-	cc = chan[i]->erbapipa->read(MIX_CHUNK<<1,process_buffer);
+	cc = chan[i]->erbapipa->read(MIX_CHUNK*2,process_buffer);
 
 
 	// if(cc!=MIX_CHUNK<<2) warning("hey! mix16stereo on ch[%u] returned %i",i,cc);
@@ -226,7 +226,7 @@ void Stream_mixer::cafudda()
     // max = (max<ires) ? ires : max;
 #else
     linein_samples = snddev->read(linein_buf,MIX_CHUNK);
-    for(cc=0; cc<linein_samples<<1; cc++) { //<<1 stereo
+    for(cc=0; cc<linein_samples*2; cc++) { //<<1 stereo
       
       // mix and multiply for the volume coefficient
       process_buffer[cc] += (int32_t) (linein_buf[cc] * linein_vol);
@@ -266,7 +266,7 @@ void Stream_mixer::cafudda()
 	 && out->initialized
 	 && out->running) {
 
-	out->erbapipa->write(MIX_CHUNK<<2,audio_buffer);
+	out->erbapipa->write(MIX_CHUNK*4,audio_buffer);
 	total_bitrate += out->get_bitrate();
 
       }
@@ -281,9 +281,9 @@ void Stream_mixer::cafudda()
 	 dsp takes number of *BYTES*, the format
 	 is being setted with ioctls in initialization */
 #ifndef PORTAUDIO
-      write(dsp,audio_buffer,MIX_CHUNK<<2);
+      write(dsp,audio_buffer,MIX_CHUNK*4);
 #else
-      snddev->write(audio_buffer,MIX_CHUNK<<1); // always stereo
+      snddev->write(audio_buffer,MIX_CHUNK*2); // always stereo
 #endif
 
       //      do {ret=write(dsp,audio_buffer,MIX_CHUNK<<2);} while (ret==-1 && errno==EINTR);
@@ -297,7 +297,7 @@ void Stream_mixer::cafudda()
        && gui->meter_shown()) {
       // integer only weighted media over 8 elements -jrml
       gui->vumeter_set( (peak[0]+peak[1]+peak[2]+peak[3]+
-			 peak[4]+peak[5]+peak[6]+peak[7])>>3 );
+			 peak[4]+peak[5]+peak[6]+peak[7])/8 );
       gui->bpsmeter_set( total_bitrate );
       cpeak = 0;
     }
@@ -982,7 +982,7 @@ void Stream_mixer::clip_audio(int samples) {
 #endif
 
   if(samples==0) return;
-  int words = samples<<1;
+  int words = samples*2;
 
   for(c=0;c<words;c++) {
     /* value of the attenuated sample */
@@ -1013,7 +1013,7 @@ void Stream_mixer::clip_audio(int samples) {
 #ifdef MOP_LOGGING        
   /* every 128 chunks print the current k value and the average of exceeding area */     
   if ((mopct % 128) == 0) {
-    supsum >>= 7;
+    supsum = spsump/128;
     warning("JMIX::clip_audio(%i) : k = (%f,%ld)",samples,k,supsum);
     supsum = sum;
   }

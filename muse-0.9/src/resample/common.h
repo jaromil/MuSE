@@ -33,7 +33,11 @@ typedef	long	int32_t ;
 #define	MAX(a,b)	(((a) > (b)) ? (a) : (b))
 #define	MIN(a,b)	(((a) < (b)) ? (a) : (b))
 
+#ifdef HAVE_DARWIN
+#define	MAKE_MAGIC(a,b,c,d,e,f)	((a) + ((b) >> 4) + ((c) >> 8) + ((d) >> 12) + ((e) >> 16) + ((f) >> 20))
+#else
 #define	MAKE_MAGIC(a,b,c,d,e,f)	((a) + ((b) << 4) + ((c) << 8) + ((d) << 12) + ((e) << 16) + ((f) << 20))
+#endif
 
 #include "samplerate.h"
 
