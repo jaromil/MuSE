@@ -508,7 +508,9 @@ void gcb_play_channel(GtkWidget *w, struct gchan *o)
 	
 	func(_("selected index = %d"), index);
 	gtk_tree_path_free(path);
+	mixer->set_channel(o->idx-1, index+1);
 	res = mixer->play_channel(o->idx-1);
+	gtk_tree_selection_set_mode(select, GTK_SELECTION_MULTIPLE);
 
 	switch(res) {
 	case 0:
@@ -676,6 +678,7 @@ void gcb_add_file(GtkWidget *w, GtkFileSelection *fw)
 			if(pathfile) 
 				g_free(pathfile);
 			pathfile = g_strdup(cist[i]);
+			//pathfile = g_strdup(cist);
 			int i = strlen(pathfile);
 			while(pathfile[i] != '/') i--;
 				pathfile[i+1]= '\0';
