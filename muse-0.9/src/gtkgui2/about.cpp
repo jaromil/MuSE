@@ -31,6 +31,8 @@
 #include <utils.h>
 #include <xpm2/dyne.h>
 #include <xpm2/rastasoft.h>
+#include <xpm2/freaknet.h>
+#include <xpm2/servus.h>
 
 GtkWidget*
 about_win(void)
@@ -82,9 +84,9 @@ about_win(void)
 
 	
 	// TODO: logo del freaknet
-	pixbuf = gdk_pixbuf_new_from_inline(-1, rastalion, 0, NULL);
+	pixbuf = gdk_pixbuf_new_from_inline(-1, freaknet, 0, NULL);
 	img = gtk_image_new_from_pixbuf(pixbuf);
-	gtk_fixed_put(GTK_FIXED(fixed1), img, 6, 200);
+	gtk_fixed_put(GTK_FIXED(fixed1), img, 32, 280);
 	//	gtk_box_pack_start(GTK_BOX(vbox2), img, FALSE, FALSE, 0);
 
 
@@ -186,7 +188,12 @@ about_win(void)
 	pixbuf = gdk_pixbuf_new_from_inline(-1, rastalion, 0, NULL);
 	img = gtk_image_new_from_pixbuf(pixbuf);
 	gtk_box_pack_start(GTK_BOX(vbox2), img, FALSE, FALSE, 0);
+
+	pixbuf = gdk_pixbuf_new_from_inline(-1, servus, 0, NULL);
+	img = gtk_image_new_from_pixbuf(pixbuf);
+	gtk_box_pack_start(GTK_BOX(vbox2), img, FALSE, FALSE, 0);
 	
+
 	gtk_widget_show_all(window1);
 
 	return window1;
