@@ -168,7 +168,7 @@ IN_DATATYPE *MuseDecMp3::get_audio() {
       err = true;      
       return(NULL);
     default:
-      error("mpeglib: unknown error :(");
+      error("mpeglib: unknown error '%d' :(", server->geterrorcode());
       err = true;      
       return(NULL);
     }

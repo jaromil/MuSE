@@ -281,7 +281,12 @@ int Soundinputstreamfromhttp::getbytedirect(void)
 
 bool Soundinputstreamfromhttp::_readbuffer(char *buffer,int size)
 {
-  if(fread(buffer,size,1,fp)!=1)
+  int len=0;
+  do {
+    len += fread(buffer+len,1,size-len,fp);
+  } while (len<size && !feof(fp) && !ferror(fp) && errno==EINTR);
+  
+  if(len!=size)
   {
     seterrorcode(SOUND_ERROR_FILEREADFAIL);
     return false;
@@ -296,9 +301,12 @@ bool Soundinputstreamfromhttp::eof(void)
 
 int Soundinputstreamfromhttp::getblock(char *buffer,int size)
 {
-  int l;
-  l=fread(buffer,1,size,fp);
-  if(l==0)seterrorcode(SOUND_ERROR_FILEREADFAIL);
+  int l=0;
+  do {
+    l += fread(buffer+l,1,size-l,fp);
+  } while (l<size && !feof(fp) && !ferror(fp) && errno==EINTR);
+  
+  if(l!=size) seterrorcode(SOUND_ERROR_FILEREADFAIL);
   return l;
 }
 
