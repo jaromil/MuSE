@@ -20,4 +20,4 @@ libnightolo2_a_SOURCES =	\
 	about.cpp \
 	gtk2_gui.cpp \
 	xmlprofile.cpp \
-	radiosched.cpp
+	gradiosched.cpp

@@ -21,7 +21,7 @@
 #include <jutils.h>
 #include <jmixer.h>
 
-#include <radiosched.h>
+#include <gradiosched.h>
 
 #include <gen.h>
 #include <config.h>

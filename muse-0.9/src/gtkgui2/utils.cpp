@@ -25,7 +25,7 @@
 #include <listpack.h>
 #include <vumeters.h>
 #include <utils.h>
-#include <radiosched.h>
+#include <gradiosched.h>
 
 #include <jmixer.h>
 
