@@ -407,7 +407,6 @@ strip_header( FILE *fd )
 	  if (ch == '\n') crlf++;
 	  else if (ch == '\r') /*nothing*/;
 	  else crlf = 0;
-	  printf("%c",ch);
 	}
 }
 
