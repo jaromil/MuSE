@@ -138,9 +138,16 @@ bool OutLame::apply_profile() {
 
   /* BITRATE */
   lame_set_brate(enc_flags,bps());
+
   Shouter *ice = (Shouter*)icelist.begin();
   while(ice) {
-    ice->bps( bps() );
+    char tmp[256];
+
+    snprintf(tmp,256,"%u",bps());       ice->bps( tmp );
+    snprintf(tmp,256,"%u",freq());      ice->freq( tmp );
+    snprintf(tmp,256,"%u",channels());  ice->channels( tmp );
+    snprintf(tmp,256,"%.2f",quality()); ice->quality( tmp );
+    
     ice = (Shouter*)ice->next;
   }
 

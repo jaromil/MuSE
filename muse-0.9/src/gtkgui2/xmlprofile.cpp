@@ -304,7 +304,7 @@ void profile_lame_write(void)
 	}
 
 	if(!(listrunner = g_list_first(lameprof))) {
-		error("listrunner is (null)");
+	  func("gtkgui2/xmlprofile.cpp ERROR listrunner is (null)");
 	}
 	while(listrunner) {
 		tmp = (struct encprof *) listrunner->data;
@@ -343,7 +343,7 @@ void profile_vorbis_write(void)
 	}
 
 	if(!(listrunner = g_list_first(vorbisprof))) {
-		error("listrunner is (null)");
+	  func("gtkgui2/xmlprofile.cpp ERROR listrunner is (null)");
 	}
 	while(listrunner) {
 		tmp = (struct encprof *) listrunner->data;

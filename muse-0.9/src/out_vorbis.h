@@ -68,6 +68,8 @@ class OutVorbis : public OutChannel {
   SRC_STATE *rsmp_state;
   SRC_DATA rsmp_data;  
 
+  bool encoder_initialized;
+
  public:
   OutVorbis();
   ~OutVorbis();

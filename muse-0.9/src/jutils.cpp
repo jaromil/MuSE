@@ -33,10 +33,13 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <libintl.h>
 
 #include <jutils.h>
 #include <gui.h>
 #include <config.h>
+
+
 
 static int verbosity;
 static FILE *logfd = NULL;

@@ -1,9 +1,9 @@
 /*
   Copyright (c) 2001 Charles Samuels <charles@kde.org>
-  Copyright (c) 2002 - 2003 Denis Rojo <jaromil@dyne.org>
+  Copyright (c) 2002 - 2004 Denis Rojo <jaromil@dyne.org>
   
 this pipe class was first written by Charles Samuels
-and then heavily mutilated and optimized by Denis Rojo
+and then heavily mutilated and optimized by Denis "jaromil" Rojo
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
@@ -36,33 +36,114 @@ Boston, MA 02111-1307, USA.
 #define MIN(a,b) (a<=b) ? a : b; 
 
 #define _SIZE(val) \
-  int val; \
-  if ((char*)end >= (char*)start) \
+  if ((char*)end > (char*)start) \
     val = (char*)end-(char*)start; \
   else  \
     val = ((char*)bufferEnd-(char*)start)+((char*)end-(char*)buffer);
 
 #define _SPACE(val) \
-  _SIZE(__size); \
-  val = ((char*)bufferEnd-(char*)buffer)-__size;
+  _SIZE(val); \
+  val = ((char*)bufferEnd-(char*)buffer)-val;
+
+// COPY AND MIX CALLBACKS
+// they provide function that are moving data
+// handling it in different ways. it is an optimization when we do
+// conversions while copying the buffer around, or mixing it directly
+// from the pipe to a buffer.
+
+// samples are double if stereo (1 sample is only left or right)
+// multiplying them by the samplesize we can obtain sizes in bytes
+
+static inline void copy_byte(void *dst, void *src, int samples) {
+  memcpy(dst,src,samples);
+  }
+
+static inline void copy_int16_to_float(void *dst, void *src, int samples) {
+  register int c;
+  for( c = samples; c>0 ; c-- ) {
+    ((float*)dst)[c] = ((int16_t*)src)[c] / 32768.0f;
+  }
+}
+
+static inline void copy_float_to_int16(void *dst, void *src, int samples) {
+  register int c;
+  for( c = samples; c>0 ; c-- ) {
+    ((int16_t*)dst)[c] = (int16_t) lrintf( ((float*)src)[c] );
+  }
+}
+
+static inline void mix_int16_to_int32(void *dst, void *src, int samples) {
+  register int c;
+  for( c = samples ; c>0 ; c-- ) {
+    ((int32_t*)dst)[c]
+      +=
+      ((int16_t*)src)[c];
+  }
+}
+
+///// now register all the copy callbacks functions
+// // this is also a list for the available types
+
+static struct pipe_copy_list callbacks[] = {
+  { "copy_byte", copy_byte, 1, 1 },
+  { "copy_int16_to_float", copy_int16_to_float, sizeof(int16_t), sizeof(float) },
+  { "copy_float_to_int16", copy_float_to_int16, sizeof(float), sizeof(int16_t) },
+  { "mix_int16_to_int32", mix_int16_to_int32, sizeof(int16_t), sizeof(int32_t) },
+  { 0, 0 }
+};
 
 /*
   start is a pointer to the first character that goes out
   end is a pointer to the last character to go out
 */
 
+bool Pipe::set_input_type(char *name) {
+  int c;
+  for(c=0 ; callbacks[c].callback ; c++) {
+    if(strcasecmp(name,callbacks[c].name)==0) {
+      write_copy_cb = &callbacks[c];
+      return true;
+    }
+  }
+  error("can't set input type \"%s\" on pipe",name);
+  return false;
+}
+
+bool Pipe::set_output_type(char *name) {
+  int c;
+  for(c=0 ; callbacks[c].callback ; c++) {
+    if(strcasecmp(name,callbacks[c].name)==0) {
+      read_copy_cb = &callbacks[c];
+      return true;
+    }
+  }
+  error("can't set output type \"%s\" on pipe",name);
+  return false;
+}
+
+
 Pipe::Pipe(int size) {
   func("Pipe::Pipe(%i)",size);
   pipesize = size;
-  buffer = malloc(pipesize);
+  buffer = calloc(pipesize, 1);
   if(!buffer)
     error("FATAL: can't allocate %i bytes buffer for audio Pipe: %s",
 	  pipesize, strerror(errno));
   bufferEnd=(char*)buffer+size;
   end=start=buffer;
-  blocking = true;
+
+  // set default types to simple bytes
+  set_input_type("copy_byte");
+  set_output_type("copy_byte");
+  // set blocking timeout (ttl) defaults
+  read_blocking = false;
+  read_blocking_time = 2000;
+  write_blocking = false;
+  write_blocking_time = 2000;
+
   _thread_init();
   //unlock();
+  
 }
 
 Pipe::~Pipe() {
@@ -73,382 +154,193 @@ Pipe::~Pipe() {
   //  _thread_destroy();
 }
 
-
-int Pipe::read_float_intl(int samples, float *buf, int channels) {
+void Pipe::set_block(bool input, bool output) {
   lock();
-  _SIZE(buffered);
-  int c, cc;
-  int length = samples<<2;
-  float *pp = buf;
-
-  if (buffered<length) {
-    //    func("Pipe::read_float(%i,%p) : only %i bytes in the pipe",
-    //          samples,buf,buffered);
-    unlock();
-    return -1;
-  }
-
-  int origLength=length;
-  
-  while (buffered && length)	{
-				
-    /* |buffer*****|end-----------|start********|bufferEnd
-       |buffer-----|start*********|end----------|bufferEnd */
-    
-    int len = MIN(length,buffered);
-    
-    int currentBlockSize = (char*)bufferEnd-(char*)start;
-    currentBlockSize=MIN(currentBlockSize,len);
-
-    /* fill */
-    cc = currentBlockSize; //>>2 QUAAA
-    switch(channels) {
-    case 1:
-      for(c=0; c<cc; c++)
-	pp[c] = (((IN_DATATYPE*)start)[c*2] +
-		 ((IN_DATATYPE*)start)[c*2+1]) / 65536.0f; // /2 /32768.0f
-      break;
-    case 2:
-      for(c=0; c<cc; c++) {
-	//	pp[c*2] = ((IN_DATATYPE*)start)[c*2] /32768.0f;
-	//	pp[c*2+1] = ((IN_DATATYPE*)start)[c*2+1] /32768.0f;
-	pp[c] = ((IN_DATATYPE*)start)[c] / 32768.0f;
-      }
-      break;
-    default: break;
-    }
-    /* --- */
-
-    (char*)start += currentBlockSize;
-    len -= currentBlockSize;
-    (char*)pp += currentBlockSize;
-    length -= currentBlockSize;
-    if ((end!=buffer) && (start==bufferEnd))
-      start = buffer;
-    
-    if (len) { /* short circuit */
-      
-      /* fill */
-      cc = len; // >>2 QUAAA
-    switch(channels) {
-    case 1:
-      for(c=0; c<cc; c++)
-	pp[c] = (((IN_DATATYPE*)start)[c*2] +
-		 ((IN_DATATYPE*)start)[c*2+1]) / 65536.0f; // /2 /32768.0f
-      break;
-    case 2:
-      for(c=0; c<cc; c++) {
-	//	pp[c*2] = ((IN_DATATYPE*)start)[c*2] /32768.0f;
-	//	pp[c*2+1] = ((IN_DATATYPE*)start)[c*2+1] /32768.0f;
-	pp[c] = ((IN_DATATYPE*)start)[c] / 32768.0f;
-      }
-      break;
-    default: break;
-    }
-    /* --- */
-    
-    (char*)pp += len;
-    (char*)start += len;
-    length -= len;
-    if ((end!=buffer) && (start==bufferEnd))
-      start = buffer;
-    }
-  }
-  
+  write_blocking = input;
+  read_blocking = output;
   unlock();
-  return (origLength-length)>>2;
-}  
+}
 
-
-
-/* this takes SAMPLES, they can be stereo or mono
-   mono will be averaged between the two channels
-   it is supposed that the pipes always contains 16bit STEREO (length = samples<<2)
-   
-   RETURNS: samples read
- */
-int Pipe::read_float_bidi(int samples, float **buf, int channels) {
+void Pipe::set_block_timeout(int input, int output) {
   lock();
-
-  _SIZE(buffered);
-
-  /* if nothing is in, returns -1 */
-  if(!buffered) {
-    unlock();
-    func("Pipe:read_float_bidi(%i,%p,%i) : nothing in the pipe",
-	 samples, buf, channels);
-    return -1;
-  }
-
-  int c, cc;
-  int length = samples<<2;
-  float **pp = buf;
-
-  if (buffered<length)
-    if(blocking) {
-      unlock();
-      func("Pipe::read_float_bidi(%i,%p,%i) : only %i bytes in the pipe",
-	   samples,buf,channels,buffered);
-      return -1;
-    } else
-      length = buffered;
-
-  int origLength=length;
-  
-  while (buffered && length)	{
-				
-    /* |buffer*****|end-----------|start********|bufferEnd
-       |buffer-----|start*********|end----------|bufferEnd */
-    
-    int len = MIN(length,buffered);
-    
-    int currentBlockSize = (char*)bufferEnd-(char*)start;
-    currentBlockSize=MIN(currentBlockSize,len);
-
-    /* fill */
-    cc = currentBlockSize>>2;
-    switch(channels) {
-    case 1:
-      for(c=0; c<cc; c++)
-	pp[0][c] = (((IN_DATATYPE*)start)[c*2] +
-		    ((IN_DATATYPE*)start)[c*2+1]) / 65536.0f; // /2 /32768.0f
-      break;
-    case 2:
-      for(c=0; c<cc; c++) {
-	pp[0][c] = ((IN_DATATYPE*)start)[c*2] /32768.0f;
-	pp[1][c] = ((IN_DATATYPE*)start)[c*2+1] /32768.0f;
-      }
-      break;
-    default:
-      error("Pipe:read_float_bidi doesn't supports %i channels",channels);
-      break;
-    }
-    /* --- */
-
-    (char*)start += currentBlockSize;
-    len -= currentBlockSize;
-    (char*)pp += currentBlockSize;
-    length -= currentBlockSize;
-    if ((end!=buffer) && (start==bufferEnd))
-      start = buffer;
-    
-    if (len) { /* short circuit */
-      
-      /* fill */
-      cc = len>>2;
-      switch(channels) {
-      case 1:
-	for(c=0; c<cc; c++)
-	  pp[0][c] = (((IN_DATATYPE*)start)[c*2] +
-		      ((IN_DATATYPE*)start)[c*2+1]) / 65536.0f; // /2 /32768.0f
-	break;
-      case 2:
-	for(c=0; c<cc; c++) {
-	  pp[0][c] = ((IN_DATATYPE*)start)[c*2] /32768.0f;
-	  pp[1][c] = ((IN_DATATYPE*)start)[c*2+1] /32768.0f;
-	}
-	break;
-      default:
-	error("Pipe:read_float_bidi doesn't supports %i channels",channels);
-	break;
-      }
-      /* --- */
-      
-      (char*)pp += len;
-      (char*)start += len;
-      length -= len;
-      if ((end!=buffer) && (start==bufferEnd))
-	start = buffer;
-    }
-  }
-  
-  unlock();
-  return (origLength-length)>>2;
-}  
-
-
-void Pipe::block(bool val) {
-  lock();
-  blocking = val;
+  write_blocking_time = input;
+  read_blocking_time = output;
   unlock();
 }
     
+int Pipe::read(int length, void *data) {
+  int worklen, origlen, truelen;
+  int blk, len, buffered, buffered_bytes;
+  int ttl = 0;
+  
+  if(read_blocking) ttl = read_blocking_time;
 
-int Pipe::mix16stereo(int samples, int32_t *mix) {
   lock();
-  /* int buffered = size(); */
-  _SIZE(buffered);
-  int c, cc;
 
-  int length = samples<<2;
-  int32_t *pp = mix;
+  _SIZE(buffered_bytes);
+  buffered = buffered_bytes 
+    / read_copy_cb->src_samplesize;
+  truelen = length;
 
-  //  if (!buffered) return -1;  
 
-  if (buffered<length) {
-    //    func("Pipe::mix16stereo(%i,%p) : only %i bytes in the pipe",
-    //    samples,mix,buffered);
-    unlock();
-    return -1;
-  }
-  
-  int origLength=length;
-  
-  while (buffered && length)	{
-				
-    /* |buffer*****|end-----------|start********|bufferEnd
-       |buffer-----|start*********|end----------|bufferEnd */
+  while(buffered<length) {
     
-    int len = MIN(length,buffered);
-    
-    int currentBlockSize = (char*)bufferEnd-(char*)start;
-    currentBlockSize=MIN(currentBlockSize,len);
-
-    /* mix */
-    cc = currentBlockSize>>1;
-    for(c=0; c<cc ;c++)
-      pp[c] += (int32_t) ((IN_DATATYPE*)start)[c];
-    /* --- */
-
-    (char*)start += currentBlockSize;
-    len -= currentBlockSize;
-    (char*)pp += currentBlockSize;
-    length -= currentBlockSize;
-    if ((end!=buffer) && (start==bufferEnd))
-      start = buffer;
-    
-    if (len) { /* short circuit */
-      
-      /* mix */
-      cc = len>>1;
-      for(c=0; c<cc ;c++)
-	pp[c] += (int) ((IN_DATATYPE*)start)[c];
-      /* --- */
-
-      (char*)pp += len;
-      (char*)start += len;
-      length -= len;
-      if ((end!=buffer) && (start==bufferEnd))
-	start = buffer;
+  /* if less than desired is in, then 
+     (blocking) waits
+     (non blocking) returns what's available */
+    if(read_blocking) {
+      unlock();
+      if(!ttl) return -1;
+      jsleep(0,10); ttl -= 10;
+      lock();
+      _SIZE(buffered_bytes);
+      buffered = buffered_bytes 
+	/ read_copy_cb->src_samplesize;
+    } else {
+    // nothing in the pipe
+      if(!buffered) {
+	unlock();
+	return 0;
+      } else
+	truelen = buffered;
+      break;
     }
   }
 
-  unlock();
-  return origLength-length;
-}  
-	
-int Pipe::read(int length, void *data) {
-  lock();
+  origlen = worklen = truelen * read_copy_cb->src_samplesize;
 
-  _SIZE(buffered);
-
-  /* if nothing is in, returns -1 */
-  if(!buffered) {
-    unlock();
-    return -1;
-  }
-
-  /* if less than desired is in, then 
-     (blocking) returns -1
-     (non blocking) returns what's available */
-  if (buffered<length)
-    if(blocking) {
-      unlock();
-      return -1;
-    } else
-      length = buffered;
-
-  
-  int origLength=length;
-  
-  while (buffered && length)	{
+  while (worklen) {
 				
     /* |buffer*****|end-----------|start********|bufferEnd
        |buffer-----|start*********|end----------|bufferEnd */
     
-    int len = MIN(length,buffered);
+    len = MIN(worklen,buffered_bytes);
     
-    int currentBlockSize = (char*)bufferEnd-(char*)start;
-    currentBlockSize=MIN(currentBlockSize,len);
+    blk = ((char*)bufferEnd - (char*)start);
+
+    blk=MIN(blk,len);
+    
     /* fill */
-    memcpy(data, start, currentBlockSize);
+    (*read_copy_cb->callback)
+      (data, start,
+       blk / read_copy_cb->src_samplesize);
     
-    (char*)start += currentBlockSize;
-    len -= currentBlockSize;
-    (char*)data += currentBlockSize;
-    length -= currentBlockSize;
+    (char*)start += blk;
+    len -= blk;
+    (char*)data += blk;
+    worklen -= blk;
     if ((end!=buffer) && (start==bufferEnd))
       start = buffer;
     
     if (len) { /* short circuit */
-      memcpy(data, start, len);
+
+      (*read_copy_cb->callback)
+	(data, start,
+	 len / read_copy_cb->src_samplesize);
+      
       (char*)data += len;
       (char*)start += len;
-      length -= len;
+      worklen -= len;
       if ((end!=buffer) && (start==bufferEnd))
 	start = buffer;
     }
   }
   
   unlock();
-  return origLength-length;
+  return ( (origlen-worklen)/read_copy_cb->src_samplesize );
 }
 
 int Pipe::write(int length, void *data) {
-  int spc;
+  int worklen, origlen, space_samples;
+  int space_bytes, len, truelen, blk;
+  int ttl = 0;
+
+  if(write_blocking) ttl = write_blocking_time;
+
   lock();
 
-  _SPACE(spc);
-  if (length>(spc-1)) {
-    //    warning("Pipe::write(%i,%p) : not enough space in the pipe (spc=%i)",length,data,spc);
-//    fprintf(stderr,".");
-    unlock();
-    return -1;
+  _SPACE(space_bytes);
+  space_samples = (space_bytes / write_copy_cb->dst_samplesize);
+  truelen = length;
+
+  while(length > space_samples) {
+
+    // timeout block mechanism
+    if(write_blocking) {
+      unlock();
+      if(!ttl) return -1; // block timeout
+      jsleep(0,10); ttl -= 10; // wait 10 milliseconds
+      lock();
+      // recalculate actual sizes
+      _SPACE(space_bytes);
+      space_samples = space_bytes
+	/ write_copy_cb->dst_samplesize;
+
+    } else { // non-block
+
+      if(!space_bytes) {
+	unlock();
+	return 0; // nothing in the pipe
+      } else
+	// write what's available
+	truelen = space_samples;
+      break;
+    }
   }
+  
+  origlen = worklen = truelen * write_copy_cb->dst_samplesize;
 
-  int origLength=length;
-
-  while (length) {
+  while (worklen) {
     
     /* |buffer-----|end***********|start--------|bufferEnd
        |buffer*****|start---------|end**********|bufferEnd */
-    //    _SPACE(spc);
-    int len=MIN(length, spc-1);
+    len=MIN(worklen, space_bytes);
     
-    int currentBlockSize = (char*)bufferEnd-(char*)end;
-    currentBlockSize=MIN(currentBlockSize, len);
-    ::memcpy(end, data, currentBlockSize);
+    blk = (char*)bufferEnd-(char*)end;
+    blk = MIN(blk, len);
     
-    (char*)end += currentBlockSize;
-    
-    len -= currentBlockSize;
-    
-    (char*)data += currentBlockSize;
-    length -= currentBlockSize;
-    if ((start!=buffer) && (end==bufferEnd))
-      end = buffer;
+    /* fill */
+    (*write_copy_cb->callback)
+      (end, data,
+       blk / write_copy_cb->dst_samplesize);
+
+      (char*)end += blk;
+      len -= blk;
+      (char*)data += blk;
+      worklen -= blk;
+      if ((start!=buffer)
+	  && (end==bufferEnd))
+	end = buffer;
 		
     if (len) { // short circuit		
-      ::memcpy(end, data, len);
+
+      (*write_copy_cb->callback)
+	(end, data,
+	 len / write_copy_cb->dst_samplesize);
+
       (char*)data += len;
       (char*)end += len;
-      length -= len;
+      worklen -= len;
       
-      if ((start!=buffer) && (end==bufferEnd))
+      if ((start!=buffer)
+	  && (end==bufferEnd))
 	end = buffer;
     }
   }
+  _SPACE(space_bytes);
   unlock();
-  return origLength-length;
+  return ((origlen-worklen) / write_copy_cb->dst_samplesize);
 }
 
 // |buffer******|end--------------|start**************|bufferEnd
 // |buffer-----|start**************|end---------------|bufferEnd
 int Pipe::size() {
+  int res;
   /* size macro allocates the result variable by itself */
   lock();
   _SIZE(res);
   unlock();
+
   return res;
 }
 
@@ -459,6 +351,7 @@ int Pipe::space() {
   lock();
   _SPACE(res);
   unlock();
+
   return res;
 }
 

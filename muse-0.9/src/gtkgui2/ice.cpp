@@ -361,7 +361,7 @@ void ice_profmenu(struct icedata *i)
 	
 	
 	if(!(listrunner = g_list_first(iceprof))) 
-		error(_("listrunner doesn't exist"));
+		func(_("gtkgui2/ice.cpp ERROR listrunner doesn't exist"));
 	
 		
 	while(listrunner) {

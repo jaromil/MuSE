@@ -36,7 +36,7 @@ OutVorbis::OutVorbis()
   headersize = 0;
 
   sprintf(name,"Ogg/Vorbis encoder");
-  sprintf(version,"version unknown");
+  sprintf(version," ");
 
   tipo = OGG;
 
@@ -45,19 +45,17 @@ OutVorbis::OutVorbis()
   pcm = (float*) malloc(INBUF);
   rsmpled = (float*) malloc(RSMPBUF);
   rsmp_state = NULL;
+
+  encoder_initialized = false;
 }
 
 
 bool OutVorbis::init() {
   func("OutVorbis::init() %p",this);
 
-  vorbis_info_init(&vi);  
+  //  vorbis_info_init(&vi);  
 
-  act("initializing %s %i",name,vi.version);
-
-
-  initialized = true;
-
+  //  act("initializing %s %i",name,vi.version);
 
   
   if(!apply_profile()) {
@@ -66,46 +64,7 @@ bool OutVorbis::init() {
     return false;
   }
 
-  vorbis_encode_setup_init(&vi);
-
-  /* Now, set up the analysis engine, stream encoder, and other
-     preparation before the encoding begins. */
-  vorbis_analysis_init(&vd,&vi);
-  vorbis_block_init(&vd,&vb);
-  ogg_stream_init(&os, time(NULL));
-
-  /* sets up our comments */
-  {
-    char tmp[128];
-    sprintf(tmp,"%s version %s",PACKAGE,VERSION);
-    vorbis_comment_init(&vc);
-    vorbis_comment_add_tag(&vc,"Streamed with",tmp);
-  }
-
-  /* Now, build the three header packets and send through to the stream 
-     output stage (but defer actual file output until the main encode loop) */
-
-  /* Build the packets */
-  vorbis_analysis_headerout
-    (&vd,&vc,&header_main,&header_comments,&header_codebooks);
-
-  /* And stream them out */
-  ogg_stream_packetin(&os,&header_main);
-  ogg_stream_packetin(&os,&header_comments);
-  ogg_stream_packetin(&os,&header_codebooks);
-  
-  /* write out headers */
-  headersize = 0;
-  _pbyte = (int8_t*)header; 
-  while(ogg_stream_flush(&os,&og)) {
-    memcpy(_pbyte,og.header,og.header_len);
-    _pbyte += og.header_len;
-    memcpy(_pbyte,og.body,og.body_len);
-    _pbyte += og.body_len;
-    headersize += og.header_len + og.body_len;
-  }
-
-  vorbis_comment_clear(&vc);
+  erbapipa->set_output_type("copy_int16_to_float");
 
   initialized = true;
   return initialized;
@@ -131,8 +90,10 @@ int OutVorbis::encode() {
     return -1;
   }
 
-  /* this takes SAMPLES and returns SAMPLES */
-  num = erbapipa->read_float_intl(OUT_CHUNK,pcm,channels());
+  /* this now takes bytes and returns bytes */
+  num = erbapipa->read(OUT_CHUNK,pcm);
+  // QUAA or?:   num = erbapipa->read(OUT_CHUNK*2,pcm);
+
 
   if(num<OUT_CHUNK)
     func("OutVorbis::encode() : erbapipa->read_float_bidi reads %i samples instead of %i",
@@ -152,8 +113,8 @@ int OutVorbis::encode() {
   }
 
   samples = rsmp_data.output_frames_gen;
-  //  func("%i frames resampled in %i with ratio %.4f",
-  //  rsmp_data.input_frames_used, samples, rsmp_data.src_ratio);
+  func("%i frames resampled in %i with ratio %.4f (num:%u OUT_CHUNK:%u)",
+       rsmp_data.input_frames_used, samples, rsmp_data.src_ratio, num, OUT_CHUNK);
 
   /* initialize the vorbis encoder to work on the resampled size */
   _intbuf = vorbis_analysis_buffer(&vd,samples);
@@ -213,6 +174,8 @@ int OutVorbis::encode() {
 }
 
 int OutVorbis::prepare(float *buf, float **fbuf, int num) {
+  // this function distributes interlaced data in two l/r arrays
+
   int i=0;
   switch(channels()) {
   case 1:
@@ -255,32 +218,89 @@ bool OutVorbis::apply_profile() {
   int rsmp_err = 0;
 
   if(rsmp_state) src_delete(rsmp_state);
+  // SRC_SINC_(BEST|MEDIUM)_QUALITY or SRC_SINC_FASTEST
   rsmp_state = src_new(SRC_SINC_BEST_QUALITY, channels() ,&rsmp_err);
   if(!rsmp_state)
     error("Ogg/Vorbis can't initialize resampler: %s",src_strerror(rsmp_err));
   else func("ogg resampler %s initialized",src_get_name(SRC_SINC_BEST_QUALITY));
   
   /* set ratio for resampling with ogg vorbis */
-  double ratio = (double)((float)freq() / 44100.0f);
-  //  src_set_ratio(rsmp_state, ratio);
-  rsmp_data.src_ratio = ratio;
- 
+  {
+    double ratio = (double)((float)freq() / 44100.0f);
+    rsmp_data.src_ratio = ratio/2; // input is always stereo
+  }
   if(!src_is_valid_ratio(rsmp_data.src_ratio))
-    error("invalid resampling ratio: %.4f", ratio);
-  func("resample ratio for freq %i is %.4f", 
-       freq(), ratio);
+    error("invalid resampling ratio: %.4f", rsmp_data.src_ratio);
+  func("resample ratio for freq %i is %.4f", freq(), rsmp_data.src_ratio);
 
-  if( vorbis_encode_setup_vbr
-      (&vi, channels(), freq(), quality()/10.0f) ) {
-    error("vorbis_encode_setup_vbr failed: invalid parameters");
-    error("apply vorbis_encode_setup_vbr(%p,%u,%u,%f)",
-	  &vi, channels(), freq(), quality()/10.0f);
+
+  ////////////////////////////////////
+  /// vorbis encoder initialization
+  if(encoder_initialized) {
+    // clear the encoder for new initialization
+    ogg_stream_clear(&os);
+    vorbis_block_clear(&vb);
+    vorbis_dsp_clear(&vd);
+    vorbis_info_clear(&vi);
+  } else encoder_initialized = true;
+
+  vorbis_info_init(&vi);
+  if( vorbis_encode_init
+      (&vi, channels(), freq(), bps()*1000, bps()*1000, bps()*1000) ) {
+    error("vorbis_encode_init failed: invalid parameters");
     res = false;
   }
+  /* Now, set up the analysis engine, stream encoder, and other
+     preparation before the encoding begins. */
+  vorbis_analysis_init(&vd,&vi);
+  vorbis_block_init(&vd,&vb);
+  ogg_stream_init(&os, time(NULL));
+
+  /* sets up our comments */
+  {
+    char tmp[128];
+    sprintf(tmp,"%s version %s",PACKAGE,VERSION);
+    vorbis_comment_init(&vc);
+    vorbis_comment_add_tag(&vc,"Streamed with",tmp);
+  }
+
+  /* Now, build the three header packets and send through to the stream 
+     output stage (but defer actual file output until the main encode loop) */
+
+  /* Build the packets */
+  vorbis_analysis_headerout
+    (&vd,&vc,&header_main,&header_comments,&header_codebooks);
+
+  /* And stream them out */
+  ogg_stream_packetin(&os,&header_main);
+  ogg_stream_packetin(&os,&header_comments);
+  ogg_stream_packetin(&os,&header_codebooks);
+  
+  /* write out headers */
+  headersize = 0;
+  _pbyte = (int8_t*)header; 
+  while(ogg_stream_flush(&os,&og)) {
+    memcpy(_pbyte,og.header,og.header_len);
+    _pbyte += og.header_len;
+    memcpy(_pbyte,og.body,og.body_len);
+    _pbyte += og.body_len;
+    headersize += og.header_len + og.body_len;
+  }
+
+  vorbis_comment_clear(&vc);
+  ////////////////////////////////////////
+
+
 
   Shouter *ice = (Shouter*)icelist.begin();
   while(ice) {
-    ice->bps( bps() );
+    char tmp[256];
+
+    snprintf(tmp,256,"%u",bps());       ice->bps( tmp );
+    snprintf(tmp,256,"%u",freq());      ice->freq( tmp );
+    snprintf(tmp,256,"%u",channels());  ice->channels( tmp );
+    snprintf(tmp,256,"%.2f",quality()); ice->quality( tmp );
+    
     ice = (Shouter*)ice->next;
   }
 
@@ -309,11 +329,12 @@ OutVorbis::~OutVorbis() {
   free(pcm);
   free(rsmpled);
 
-  ogg_stream_clear(&os);
-  
-  vorbis_block_clear(&vb);
-  vorbis_dsp_clear(&vd);
-  vorbis_info_clear(&vi);
+  if(encoder_initialized) {
+    ogg_stream_clear(&os);
+    vorbis_block_clear(&vb);
+    vorbis_dsp_clear(&vd);
+    vorbis_info_clear(&vi);
+  }
 }
 
 #endif

@@ -95,18 +95,6 @@ static char m_sched_file[FILENAME_MAX+1] = {0};
 # define SFIA_CMNT "comment"
 
 
-
-static void 
-_dbg(char *error, ...)
-{
-  va_list args;
-
-  va_start(args, error);
-  vfprintf(stderr, error, args);
-  va_end(args);
-}
-
-
 const char *
 sched_file_path(void)
 {
@@ -166,15 +154,14 @@ _token(const char *str, char *buf, int len)
 	    *buf++ = *str++;
 	}
 	buf = b;
-	//_dbg("  _token: %s\n", buf);
+	func("radioscheduler:  _token: %s\n", buf);
 	
-	if (digits=_wkd(buf)) {
-	    strcpy(buf, digits);
-	}
-	if (digits=_mth(buf)) {
-	    strcpy(buf, digits);
-	}
-	//_dbg("  _token: %s str '%s'\n", buf, str);
+	digits=_wkd(buf);
+	if(digits) strcpy(buf, digits);
+
+	digits=_mth(buf);
+	if(digits) strcpy(buf, digits);
+	func("radioscheduler:  _token: %s str '%s'\n", buf, str);
 	return str;
 }
 
@@ -274,8 +261,8 @@ void Basic_scheduler::_thread_destroy() {
 
 void Basic_scheduler::run() {
 
-  register struct tm *tm;
-  int status, i, pid;
+  //  register struct tm *tm;
+  //  int status, i, pid;
   time_t clk;
   unsigned left; //time left to sleep
   
@@ -338,7 +325,7 @@ void Basic_scheduler::dump() {
   
   for (int i=1; i<=playlist->len(); i++ ) {
      Url *p = (Url*)playlist->pick(i);
-     notice( "schedule_record: \n" 
+     func( "schedule_record: \n" 
           "  Min: %s, Hr: %s, Day: %s, Mon: %s, WDay: %s \n"
           "  MnPlay %d,\n"
           "  Url %s, commnent '%s'\n",
@@ -354,7 +341,7 @@ void Basic_scheduler::on_wakeup( void )
 {
     register struct tm *tm;
     time_t cur_time;
-    int st, pid;
+    //    int st, pid;
 
     func("Basic_scheduler::on_wakeup\n");
     
@@ -393,8 +380,13 @@ bool Basic_scheduler::start_inner_channel( Url *rec )
   playing = rec;
   playing->mnleft = playing->mnplay; 
   channel->playlist->addurl( playing->path );
-  channel->playlist->sel(1); //FIXME: channel complaints no song selected 
+
+//FIXME: channel complaints no song selected 
+  channel->playlist->sel(1);
+  playing->sel(true);
+
   return channel->play();
+
 }
 
 
@@ -475,7 +467,7 @@ void Basic_scheduler::stop_channel(void)
 bool Basic_scheduler::match( const char *left, int right )
 {
   register int n;
-  register char c;
+  //  register char c;
   char tok[16];
 
   //notice("match '%s' %d ", left, right);
@@ -673,17 +665,18 @@ create_xml_schedule_file(void)
 char *
 format_xml_sched_rec(const sched_rec *rec)
 {
-    gchar *ret = g_strconcat(
-	        "<" SFI_S, 
-			" " SFIA_SRC "=\"", rec->src, "\"",
-			" " SFIA_CMNT "=\"", rec->comment, "\"",
-			" " SFIA_WKD "=\"", rec->wkd, "\"",
-			" " SFIA_S "=\"", rec->stime, "\"",
-			" " SFIA_E "=\"", rec->etime, "\"",
-			" " SFIA_DAY "=\"*\"",
-			" " SFIA_MTH "=\"*\"",
-			"/>\n", NULL
-	        );
+  gchar *ret = g_strconcat(
+			   "<" SFI_S, 
+			   " " SFIA_SRC "=\"", rec->src, "\"",
+			   " " SFIA_CMNT "=\"", rec->comment, "\"",
+			   " " SFIA_WKD "=\"", rec->wkd, "\"",
+			   " " SFIA_S "=\"", rec->stime, "\"",
+			   " " SFIA_E "=\"", rec->etime, "\"",
+			   " " SFIA_DAY "=\"*\"",
+			   " " SFIA_MTH "=\"*\"",
+			   "/>\n", NULL
+			   );
+  return ret;
 
 }
 
@@ -853,4 +846,5 @@ int Scheduler_xml::addentry( void *instance, sched_rec *sr )
 	    ((Scheduler_xml*)instance)->playlist->addurl(sr->src, mn, hr, sr->day, 
 		    sr->month, sr->wkd, cmnplay, sr->comment);
 	}
+    return 1; /// anything else?
 }

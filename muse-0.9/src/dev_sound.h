@@ -4,6 +4,12 @@
 #include <portaudio.h>
 #include <pablio.h>
 
+#include <config.h>
+#ifdef HAVE_JACK
+#include <jack/jack.h>
+#endif
+#include <pipe.h>
+
 class SoundDevice {
  public:
   SoundDevice();
@@ -28,9 +34,22 @@ class SoundDevice {
 
   void close(); ///< close the sound device
   
-  int read(void *buf, int len); ///< reads audio data from the device in a buffer
+  int read(void *buf, int len); ///< reads audio data from the device in a buffer, len is samples
   
-  int write(void *buf, int len); ///< writes audio data from a buffer to the device
+  int write(void *buf, int len); ///< writes audio data from a buffer to the device, len is samples
+
+  jack_client_t *jack_client;
+  jack_port_t *jack_in_port;
+  jack_port_t *jack_out_port;
+  jack_default_audio_sample_t *jack_in_buf;
+  jack_default_audio_sample_t *jack_out_buf;
+  size_t jack_sample_size;
+  int jack_samplerate;
+  bool jack;
+  bool jack_in;
+  bool jack_out;
+  Pipe *jack_in_pipe;
+  Pipe *jack_out_pipe;
 
  private:
   PABLIO_Stream *aInStream; ///< Portaudio input stream 
@@ -39,6 +58,9 @@ class SoundDevice {
   const PaDeviceInfo *info_input;
   const PaDeviceInfo *info_output;  
 
+  bool pablio_input(bool state);
+  bool pablio_output(bool state);
+  
   PaError err;
 
 };

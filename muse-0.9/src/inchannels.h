@@ -104,7 +104,7 @@ class Channel {
   MuseDec *dec; /* that's the decoder object superclass
 		   the specific implementation is instantiated in load()
 		   where it is recognized by parsing the filename
-		   TODO: better ways to recognize file/stream types */
+		   @TODO: better ways to recognize file/stream types in Channel */
 
   /* load returns:
      0 = error
@@ -150,10 +150,7 @@ class Channel {
   int bitrate;
   */
   
-  /* frames and samples after resampling to 44khz
-     samples = number of 44khz stereo samples */
-  int frames;
-  int samples;
+  int frames; ///< number of 16bit audio values (double if stereo)
 
   uint8_t playmode;
 

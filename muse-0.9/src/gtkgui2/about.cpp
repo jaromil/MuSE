@@ -69,14 +69,24 @@ about_win(void)
 
 	label1 = gtk_label_new (_("development team for this release:\n"
 				  "\n"
-				  "jaromil aka Denis Rojo - main coder and mantainer\n"
-				  "nightolo aka Antonino Radici - GTK user interface\n"
-				  "rubik aka Luca Profico - console user interface\n"
-				  "pallotron aka Angelo Failla - more input channels\n"));
+				  "Denis \"jaromil\" Rojo - main coder and mantainer\n"
+				  "Antonino \"nightolo\" Radici - GTK user interface\n"
+				  "Luca \"rubik\" Profico - NCurses user interface\n"
+				  "Angelo \"pallotron\" Failla - more input channels\n"
+				  "Eugen Melinte - radio scheduler, http stream parser\n"
+				  ""));
 
 	//gtk_label_set_justify (GTK_LABEL (label1), GTK_JUSTIFY_LEFT);
 	//gtk_box_pack_start(GTK_BOX(vbox1), label1, FALSE, FALSE, 0);
 	gtk_fixed_put(GTK_FIXED(fixed1), label1, 6, 6);
+
+	
+	// TODO: logo del freaknet
+	pixbuf = gdk_pixbuf_new_from_inline(-1, rastalion, 0, NULL);
+	img = gtk_image_new_from_pixbuf(pixbuf);
+	gtk_fixed_put(GTK_FIXED(fixed1), img, 6, 200);
+	//	gtk_box_pack_start(GTK_BOX(vbox2), img, FALSE, FALSE, 0);
+
 
 	scrolledwindow1 = gtk_scrolled_window_new (NULL, NULL);
 	//gtk_box_pack_start(GTK_BOX(vbox1), scrolledwindow1, FALSE, FALSE, 12);
@@ -105,16 +115,16 @@ about_win(void)
 		   "\n"
 		   "MuSE as it is now would have never existed without\n"
 		   "the contributions of:\n"
-		   "= Alex, Rasty and Martinez ( maria libera! ) good vibes\n"
-		   "= August Black ( aug.ment.org ) original GUI scheme\n"
-		   "= Asbesto Molesto ( freaknet.org ) testing and docu\n"
-		   "= Eric de Castro Lopo ( mega-nerd.com )\n"
-		   "= Filippo \"Godog\" ( esaurito.net ) for documentation\n"
-		   "= Lobo for herbivore and free open air open source\n"
-		   "= Markus Seidl ( funda.ment.org ) vision of such a tool\n"
-		   "= Matteo Nastasi aka Mop ( alternativeoutput.it )\n"
-		   "= PUBLIC VOICE Lab ( pvl.at ) support for development\n"
 		   "= SERVUS.AT trusting this project since its beginning\n"
+		   "= Alex, Rasty and Martinez ( maria libera! ) good vibes\n"
+		   "= August Black ( aug.ment.org ) original interface design\n"
+		   "= Asbesto Molesto ( freaknet.org ) testing and docu\n"
+		   "= Eric de Castro Lopo ( mega-nerd.com ) resample & libsnd\n"
+		   "= Filippo \"Godog\" ( esaurito.net ) organization and deb\n"
+		   "= Lobo for herbivore and the karma to code well\n"
+		   "= Markus Seidl ( funda.ment.org ) vision of such a tool\n"
+		   "= Matteo Nastasi aka Mop ( alternativeoutput.it ) dsp exp\n"
+		   "= PUBLIC VOICE Lab ( pvl.at ) support and horizons\n"
 		   "\n"
 		   "Also waves and thanks to:\n"
 		   "voyager, void, blicero, sandolo, eni,\n"

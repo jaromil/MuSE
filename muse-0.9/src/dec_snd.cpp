@@ -91,7 +91,7 @@ IN_DATATYPE *MuseDecSndFile::get_audio () {
 		
 		framepos += frames;
 		fps = samplerate;
-		func("MuseDecSndFile::get_audio => Frames readed: %d/%d", framepos, frametot);
+		//		func("MuseDecSndFile::get_audio => Frames readed: %d/%d", framepos, frametot);
 		return ((IN_DATATYPE *) snd_buffer); 	
 
 	} else { framepos=0; eos = true; return (NULL); }

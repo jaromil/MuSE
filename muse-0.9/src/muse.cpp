@@ -119,7 +119,7 @@
 /* command line stuff */
 
 char *version =
-"%s version %s  [ muse.dyne.org ]";
+"%s version %s http://muse.dyne.org";
 
 char *help =
 "Usage: muse [generic options] [-e [encoder options] [stream options] ] [files]\n"
@@ -239,6 +239,11 @@ bool take_args(int argc, char **argv) {
       exit(0);
 
     case 'v':
+      
+      notice("GTK2 GUI by Antonino \"nightolo\" Radici <night@freaknet.org>");
+      notice("Ncurses console by Luca \"rubik\" Profico <rubik@olografix.org>");
+      act(" ");
+      notice("BIG UP \\o/  dyne.org / FreakNet / RASTASOFT / Metro Olografix");
       act(" ");
       act("part of the redistributed code is copyright by the respective authors,");
       act("please refer to the AUTHORS file and to the sourcecode for complete");
@@ -651,7 +656,7 @@ bool check_config() {
 int main(int argc, char **argv) {
 
   notice(version,PACKAGE,VERSION);
-  act("by Denis \"jaromil\" Rojo  [ rastasoft.org ]");
+  act("by Denis \"jaromil\" Rojo http://rastasoft.org");
   act("--");
 
   /* register signal traps */
@@ -687,16 +692,14 @@ int main(int argc, char **argv) {
 
   check_config();
 
-  if(dspout||micrec) {
-    mix->set_live(micrec);
-    mix->set_lineout(dspout);
-    //    snddev = mix->open_soundcard(micrec,dspout);
-  }
+  // setup soundcard
+  mix->set_live(micrec);
+  mix->set_lineout(dspout);
   
-  if(!snddev) {
-    warning("no soundcard found");
-    act("line-in and speaker out deactivated");
-  }
+  //  if(!snddev) {
+  //    warning("no soundcard found");
+  //    act("line-in and speaker out deactivated");
+  //  }
 
   if(thegui==GTK1 || thegui==GTK2)
     if(!getenv("DISPLAY")) { /* no graphical environment */
@@ -725,7 +728,9 @@ int main(int argc, char **argv) {
   case GTK1:
 #ifdef GUI_NIGHTOLO
     notice("spawning the GTK-1.2 GUI");
-    act("by nightolo <night@dyne.org>");
+    act("by nightolo <night@freaknet.org>");
+    warning("GTK-1.2 should be upgraded to GTK 2 on your system");
+    warning("this old version of the interface is much unstable");
     gui = new GTK_GUI(argc,argv,mix);
 #else
     error("the Gtk-1.2 interface is not compiled in");
@@ -734,7 +739,7 @@ int main(int argc, char **argv) {
   case GTK2:
 #ifdef GUI_NIGHTOLO2
     notice("spawning the GTK-2 GUI");
-    act("by nightolo <night@dyne.org>");	  
+    act("by Antonino \"nightolo\" Radici <night@freaknet.org>");
     gui = new GTK2_GUI(argc,argv,mix);
 #else
     error("the Gtk2 interface is not compiled in");
@@ -743,7 +748,8 @@ int main(int argc, char **argv) {
   case NCURSES:
 #ifdef GUI_RUBIK
     notice("spawning the NCURSES console user interface");
-    act("by Luca Profico aka rubik <rubik@olografix.org>");
+    act("by Luca \"rubik\" Profico <rubik@olografix.org>");
+
     gui = new NCURSES_GUI(argc,argv,mix);
     MuseSetLog("muse.log");
 #else
@@ -775,15 +781,8 @@ int main(int argc, char **argv) {
       mix->delete_enc(outch->id);
       error("encoder removed");
       
-    } else {
-      func("configuring %s Q%i freq%i chan%i",
-	   outch->name,
-	   (int)fabs(outch->quality()),
-	   outch->freq(),
-	   outch->channels());
-      
-      if(mix->apply_enc( outch->id )) outch->start();
-    }
+    } else if(mix->apply_enc( outch->id )) outch->start();
+
     if(!outch) break;
     outch = (OutChannel*) outch->next;
   }

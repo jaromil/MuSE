@@ -53,7 +53,13 @@ class Shouter : public Entry {
   INT_SET(port,_port);
   CHAR_SET(pass,_pass);
   CHAR_SET(mount,_mount);
-  INT_SET(bps,_bps); /* setted by the encoder */
+  
+  /* setted by the encoder */
+  CHAR_SET(bps,_bps);
+  CHAR_SET(freq,_freq);
+  CHAR_SET(channels,_channels);
+  CHAR_SET(quality,_quality);
+
   INT_SET(login,_login);
   CHAR_SET(name,_name);
   CHAR_SET(url,_url);

@@ -59,6 +59,7 @@
    For example decoder implementations, please refer to:
    - MuseDecMp3 class implemented in dec_mp3.h and dec_mp3.cpp
    - MuseDecOgg class implemented in dec_ogg.h and dec_ogg.cpp
+   - MuseDecSnd class implemented in dec_snd.h and dec_snd.cpp
 
    @brief decoder parent abstraction class
 */

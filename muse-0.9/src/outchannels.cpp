@@ -75,6 +75,8 @@ OutChannel::OutChannel(char *myname)
   idseed = 0;
 
   erbapipa = new Pipe(OUT_PIPESIZE);
+  erbapipa->set_block(true,true);
+  erbapipa->set_block_timeout(500,500);
 
   /* setup defaults */
   bps(24);

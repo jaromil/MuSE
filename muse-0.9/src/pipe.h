@@ -3,7 +3,7 @@
   Copyright (c) 2002-2004 Denis Rojo <jaromil@dyne.org>
   
   this pipe class was first written by Charles Samuels
-  and then heavily mutilated by jaromil
+  and almost completely rewritten by Denis "jaromil" Rojo
   
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Library General Public
@@ -67,6 +67,20 @@
 
    @brief fast buffered threadsafe FIFO pipe
 */
+
+/** this function prototype is used in the callbacks that are handling
+    the phisical copying of the memory. they are various functions
+    statically implemented in pipe.cpp */
+typedef void (pipe_copy_f)(void *src, void *dst, int samples);
+
+/** this is the prototype struct holding the list of available types */
+typedef struct pipe_copy_list {
+  char *name;
+  pipe_copy_f *callback;
+  int src_samplesize;
+  int dst_samplesize;
+};
+
 class Pipe {
 public:
 
@@ -78,6 +92,36 @@ public:
   
   ~Pipe();
   ///< Pipe destructor class
+
+  /**
+     A Pipe can be of different types, meaning that it does different
+     kind of operations when reading or writing like: conversions,
+     mixing of various kinds, all opearations that we can optimize when
+     doing in one single pass, while data is flowing around.
+     Implementations of the various types available can be obtained
+     looking into pipe.cpp when the copy callback functions are registered.
+     The set_input_type and set_output_type methods are used to set which
+     kind of operation the Pipe will execute when moving in and out the
+     data.
+     Default is "copy_byte" which simply copies one byte each sample,
+     you want to change this to set it to the sample type you are using
+
+     types available:
+     * copy_byte
+     * copy_int16_to_float        int to float using /32768.0f
+     * copy_float_to_int16        float to int using lrintf()
+     * mix_int16_to_int32         simple sum of 16bit over 32bit int
+
+  */
+  bool set_input_type(char *name);
+  ///< set the input conversion type for this Pipe
+  bool set_output_type(char *name);
+  ///< set the output conversion type for this Pipe
+
+  void set_block(bool input, bool output);
+  ///< set the blocking policy on the read and write
+  void set_block_timeout(int input, int output);
+  ///< set the timeout in milliseconds for the read and write block
 
   /**
      Reads out audio data from the pipe filling up the given buffer
@@ -102,8 +146,11 @@ public:
      @brief read from FIFO pipe in a float stereo interpolated l/r array
      @param samples amount of data to be read in  samples (1= l&r float)
      @param buf float buffer to be filled, must be allocated allready
-     @param channels number of channels (1=mono, 2=stereo) */
-  int read_float_intl(int samples, float *buf, int channels);
+     @param channels number of channels (1=mono, 2=stereo)
+     @return amount of data read, or -1 on error, if Pipe::blocking is true
+ */
+
+  //  int read_float_intl(int samples, float *buf, int channels);
 
   /**
      Read from FIFO pipe in a float bidimensional array.
@@ -113,7 +160,7 @@ public:
      i never use it in MuSE i just did it together with the _intl
      
      */
-  int read_float_bidi(int samples, float **buf, int channels);
+  //  int read_float_bidi(int samples, float **buf, int channels);
   ///< read from the pipe into a bidimensional float array
    
   /**
@@ -125,7 +172,7 @@ public:
      @param samples number of samples to be mixed (1= l&r 16bit)
      @param mix 32bit integer mixing buffer
      @return amount of samples mixed */
-  int mix16stereo(int samples, int32_t *mix);
+  //  int mix16stereo(int samples, int32_t *mix);
   
   //	int peek(int length, void *data, bool block=true) const; // TODO
  
@@ -140,6 +187,26 @@ public:
      the amount of data written.
     */
   int write(int length, void *data);
+
+  /**
+     Thread safe write data inside the FIFO pipe, like the main write().
+     In one pass does a conversion over the data being written, from
+
+     @param length amount of bytes of data to be written
+     @param data buffer from where to take the float data to be converted and written
+     @return the amount of data written
+  */
+  //  int write_float2int(int length, void *data);
+
+  /**
+     Thread safe write data inside the FIFO pipe, like the main write().
+     In one pass does a conversion over the data being written, from
+     int to float using casting.
+     @param length amount of bytes of data to be written
+     @param data buffer from where to take the int data to be converted and written
+     @return the amount of data written
+  */
+  //  int write_int2float(int length, void *data);
 
   /**
      @brief Setup blocking behaviour of the Pipe.
@@ -178,7 +245,16 @@ public:
   void *start;
   void *end;
 
+  pipe_copy_list *read_copy_cb;
+  pipe_copy_list *write_copy_cb;
+
   int pipesize;
+  
+  bool read_blocking;
+  bool write_blocking;
+  int read_blocking_time;
+  int write_blocking_time;
+
 };
 
 #endif

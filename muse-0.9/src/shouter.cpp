@@ -54,6 +54,10 @@ Shouter::Shouter()
   name("Streaming with MuSE");
   url("http://muse.dyne.org");
   desc("Free Software Multiple Streaming Engine");
+  bps("24000");
+  quality("4.0");
+  freq("22050");
+  channels("1");
 
   profile_changed = true;
 }
@@ -130,26 +134,17 @@ bool Shouter::apply_profile() {
     sprintf(tmp,"/%s",mount());
     mount(tmp);
   }
-  /*
-  switch(format) {
 
-  case SHOUT_FORMAT_VORBIS:
+  // use a .ogg termination on ogg streams
+  // this fixes stream codec recognization in xmms et al.
+  if(format == SHOUT_FORMAT_VORBIS)
     if(!strstr(mount(),".ogg")) {
       char tmp[MAX_VALUE_SIZE];
       sprintf(tmp,"%s.ogg",mount());
       mount(tmp);
     }
-    break;
+  
 
-  case SHOUT_FORMAT_MP3:
-    if(!strstr(mount(),".mp3")) {
-      char tmp[MAX_VALUE_SIZE];
-      sprintf(tmp,"%s.mp3",mount());
-      mount(tmp);
-    }
-    break;
-  }
-  */
   if( shout_set_mount(ice,mount()) )
     error("shout_set_mount: %s",shout_get_error(ice));
 
@@ -166,9 +161,23 @@ bool Shouter::apply_profile() {
   //if( shout_set_bitrate(ice,_bps) )
   //  error("shout_set_bitrate: %s",shout_get_error(ice));
   
+  if( shout_set_audio_info(ice, SHOUT_AI_BITRATE, bps()) )
+    error("shout_set_audio_info %s: %s",SHOUT_AI_BITRATE, bps());
 
-  if( shout_set_public(ice,1) )
-    error("shout_set_public: %s",shout_get_error(ice));
+  if( shout_set_audio_info(ice, SHOUT_AI_SAMPLERATE, freq()) )
+    error("shout_set_audio_info %s: %s",SHOUT_AI_SAMPLERATE, freq());
+  
+  if( shout_set_audio_info(ice, SHOUT_AI_CHANNELS, channels()) )
+    error("shout_set_audio_info %s: %s",SHOUT_AI_CHANNELS, channels());
+
+  if( shout_set_audio_info(ice, SHOUT_AI_QUALITY, quality()) )
+    error("shout_set_audio_info %s: %s",SHOUT_AI_QUALITY, quality());
+
+  func("Shouter audio info: %sKbp/s %sHz %s channels %sq",
+       shout_get_audio_info(ice, SHOUT_AI_BITRATE),
+       shout_get_audio_info(ice, SHOUT_AI_SAMPLERATE),
+       shout_get_audio_info(ice, SHOUT_AI_CHANNELS),
+       shout_get_audio_info(ice, SHOUT_AI_QUALITY));
 
   if( shout_set_protocol(ice,login()) )
     error("shout_set_protocol %i: %s",login(),shout_get_error(ice));

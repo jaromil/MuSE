@@ -105,46 +105,46 @@ int MuseDecMp3::load(char *file) {
 					this is normally not needed
 					see the seek() method for info */
 	  
-  /* now the notice is in inchannels.cpp:load()
-    notice("Mp3 decoder opened bitstream %uKb/s %uKHz %s %sseekable",
-	 bitrate,samplerate/1000,
-	 (channels==1)?"mono":"stereo",
-	 (seekable)?" ":" non ");
-  //  func("for every chunk there are samples[%i] and bytes[%i]",samples,framesize);
-  */
   return(res);
 }
+
+
 
 IN_DATATYPE *MuseDecMp3::get_audio() {
 
   if(!server->run(1)) {
     switch(server->geterrorcode()) {
     case SOUND_ERROR_FINISH:
-      func("mpeglib: end of stream");
+
+      if(seekable) {
+	framepos = server->getcurrentframe();
+	func(_("mpeglib: end of stream at frame position %u"),framepos);
+      } else
+	func(_("mpeglib: end of stream"));
       eos = true;
       return(NULL);
     case SOUND_ERROR_FILEOPENFAIL:
-      error("mpeglib: failed opening file (FILEOPENFAIL)");
+      error(_("mpeglib: failed opening file (FILEOPENFAIL)"));
       err = true;
       return(NULL);
     case SOUND_ERROR_FILEREADFAIL:
-      error("mpeglib: failed reading from file (FILEREADFAIL)");
+      error(_("mpeglib: failed reading from file (FILEREADFAIL)"));
       err = true;
       return(NULL);
     case SOUND_ERROR_UNKNOWNPROXY:
-      error("mpeglib: unknown proxy");
+      error(_("mpeglib: unknown proxy"));
       err = true;      
       return(NULL);
     case SOUND_ERROR_UNKNOWNHOST:
-      error("mpeglib: unknown host");
+      error(_("mpeglib: unknown host"));
       err = true;      
       return(NULL);
     case SOUND_ERROR_SOCKET:
-      error("mpeglib: socket error");
+      error(_("mpeglib: socket error"));
       err = true;      
       return(NULL);
     case SOUND_ERROR_CONNECT:
-      error("mpeglib: connect error");
+      error(_("mpeglib: connect error"));
       err = true;      
       return(NULL);
     case SOUND_ERROR_FDOPEN:
@@ -152,11 +152,11 @@ IN_DATATYPE *MuseDecMp3::get_audio() {
       err = true;      
       return(NULL);
     case SOUND_ERROR_HTTPFAIL:
-      error("mpeglib: http failure");
+      error(_("mpeglib: http failure"));
       err = true;      
       return(NULL);
     case SOUND_ERROR_HTTPWRITEFAIL:
-      error("mpeglib: http write failed");
+      error(_("mpeglib: http write failed"));
       err = true;      
       return(NULL);
     case SOUND_ERROR_TOOMANYRELOC:
@@ -164,11 +164,11 @@ IN_DATATYPE *MuseDecMp3::get_audio() {
       err = true;      
       return(NULL);
     case SOUND_ERROR_THREADFAIL:
-      error("mpeglib: thread failure");
+      error(_("mpeglib: thread failure"));
       err = true;      
       return(NULL);
     default:
-      error("mpeglib: unknown error '%d' :(", server->geterrorcode());
+      error(_("mpeglib: unknown error '%d' :("), server->geterrorcode());
       err = true;      
       return(NULL);
     }

@@ -25,6 +25,7 @@ extern "C" {
 
 #include <stdio.h>
 #include <string.h>
+#include <libintl.h>
 
   /**
      @file jutils.h generic utilities
@@ -35,6 +36,10 @@ extern "C" {
 #define FUNC 2 /* se il debug level e' questo
 		  ci sono le funzioni chiamate */
 #define WARN 1 /* ... blkbblbl */
+
+// for native language support
+#define _(x)	gettext(x)
+
 
   /**
      Macro declaration of parameters 

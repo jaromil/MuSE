@@ -54,7 +54,7 @@
 #include <out_lame.h>
 #endif
 
-#define CODENAME "RASTAPASTA"
+#define CODENAME "STREAMTIME"
 
 
 
@@ -91,7 +91,7 @@ Stream_mixer::Stream_mixer() {
 
   dspout = false;
   linein = false;
-  linein_vol = 16;
+  linein_vol = 1;
   fileout = false;
   quit = false;
 
@@ -100,6 +100,10 @@ Stream_mixer::Stream_mixer() {
 
   // create the Sound Device controller class
   snddev = new SoundDevice();
+  if( snddev->open(true,true) ) {
+    dsp = 1;
+    fullduplex = true;
+  }
 
   /* this is the base seed for new encoders id */
   idseed = 0; //abs(time(NULL) & getpid()) >> 2;
@@ -151,94 +155,6 @@ void Stream_mixer::register_gui(GUI *reg_gui) {
   gui->set_title(temp);
 }
 
-#ifndef PORTAUDIO
-
-// old OSS UNIX code
-
-#include <sys/soundcard.h>
-
-bool Stream_mixer::open_soundcard(bool in, bool out) {
-
-  if(!in && !out) return false;
-
-  int format,tstereo,speed,caps; //,val;   
-  
-  /* can't be nonblocking for correct playing
-     but to check if /dev/dsp is free we must use that */
-  if((dsp=open("/dev/dsp",O_RDWR|O_NONBLOCK))==-1) {
-    error("can't open soundcard: %s", strerror(errno));
-    return(false);
-  } else {
-    if(fcntl(dsp, F_SETFL, 0) <0) { /* remove O_NONBLOCK */
-      close(dsp);
-      error("can't switch to blocking mode");
-      return(false);
-    }
-    notice("Found soundcard on /dev/dsp");
-  }
-  
-  /* BUFFER FRAGMENTATION
-     val = (FRAGCOUNT << 16) | FRAGSIZE;  
-     if(ioctl(dsp,SNDCTL_DSP_SETFRAGMENT,&val)==-1)
-     error("failed to set dsp buffers:");
-  */
-
-
-  format = AFMT_S16_LE;
-  
-  tstereo = 1; /* only stereo _DSP_ in/out */
-  speed = SAMPLE_RATE; /* 44100hz mixing */
-  
-  ioctl(dsp, SNDCTL_DSP_GETCAPS, &caps);
-  if(caps & DSP_CAP_DUPLEX) {
-    fullduplex = true;
-    act("full duplex supported. good");
-    ioctl(dsp, SNDCTL_DSP_SETDUPLEX, 0);
-    ioctl(dsp, DSP_CAP_DUPLEX, 0);
-  } else {
-    act("only halfduplex is supported");
-    fullduplex = false;
-  }
-  
-  /* FORMAT
-     if(ioctl(dsp,SNDCTL_DSP_SETFMT,&format)==-1)
-     error("failed to set data format");
-  */
-  if(ioctl(dsp,SNDCTL_DSP_SAMPLESIZE,&format) <0)
-    error("failed to set dsp samplesize");
-  
-  /* CHANNELS */
-  if(ioctl(dsp,SNDCTL_DSP_STEREO,&tstereo)==-1)
-    error("something went wrong with the stereo setting");
-  
-  /* SAMPLERATE */
-  if(ioctl(dsp,SNDCTL_DSP_SPEED,&speed)==-1)
-    error("speed setting failed");
-  
-  /* GET FRAG SIZE BACK
-     if(ioctl(dsp,SNDCTL_DSP_GETBLKSIZE,&val)==-1)
-     error("get block size failed to return");
-  */
-  
-  act("mixing 16bit %dHz stereo",speed);
-  
-  if(out) dspout = true;
-  
-  livein.init(speed, tstereo+1, &dsp);
-  linein = in;
-  
-  return(true);
-} /* open_soundcard */
-
-void Stream_mixer::close_soundcard() {
-  if(!dsp) return;
-  ioctl(dsp, SNDCTL_DSP_RESET, 0);
-  close(dsp);
-}
-
-#else
-
-
 bool Stream_mixer::open_soundcard(bool in, bool out) {
   if( ! snddev->open(in,out) ) return false;
   dsp = 1;
@@ -249,8 +165,6 @@ bool Stream_mixer::open_soundcard(bool in, bool out) {
 void Stream_mixer::close_soundcard() {
   snddev->close();
 }
-
-#endif
 
 void Stream_mixer::cafudda()
 {
@@ -284,9 +198,16 @@ void Stream_mixer::cafudda()
       */
 
       if(chan[i]->on) {	
-	cc = chan[i]->erbapipa->mix16stereo(MIX_CHUNK,process_buffer);
+
+	// this read from pipe is set to mix int32 down to the process_buffer
+	cc = chan[i]->erbapipa->read(MIX_CHUNK<<1,process_buffer);
+
+
 	// if(cc!=MIX_CHUNK<<2) warning("hey! mix16stereo on ch[%u] returned %i",i,cc);
+	if(cc<0) continue;
+	//	c+=cc<<1;
 	c+=cc;
+
 	if(have_gui)
 	  if(chan[i]->update) {
 	    updchan(i);
@@ -305,7 +226,7 @@ void Stream_mixer::cafudda()
     // max = (max<ires) ? ires : max;
 #else
     linein_samples = snddev->read(linein_buf,MIX_CHUNK);
-    for(cc=0; cc<linein_samples<<1; cc++) {
+    for(cc=0; cc<linein_samples<<1; cc++) { //<<1 stereo
       
       // mix and multiply for the volume coefficient
       process_buffer[cc] += (int32_t) (linein_buf[cc] * linein_vol);
@@ -320,7 +241,7 @@ void Stream_mixer::cafudda()
   
 #ifdef HAVE_SCHEDULER
   if (rsched && rsched->channel->opened) {
-	c += rsched->channel->erbapipa->mix16stereo(MIX_CHUNK,process_buffer);
+    c += rsched->channel->erbapipa->read(MIX_CHUNK,process_buffer);
   }
 #endif
 
@@ -340,12 +261,18 @@ void Stream_mixer::cafudda()
 
     out = (OutChannel*) outchans.begin();
     while(out) {
-      if(!out->running) {
-	out = (OutChannel*) out->next;
-	continue;      }
-      out->push(audio_buffer,MIX_CHUNK<<2);
-      total_bitrate += out->get_bitrate();
+
+      if(out->encoding
+	 && out->initialized
+	 && out->running) {
+
+	out->erbapipa->write(MIX_CHUNK<<2,audio_buffer);
+	total_bitrate += out->get_bitrate();
+
+      }
+
       out = (OutChannel*) out->next;
+
     }
 
     /* WRITE 2 DSP */
@@ -356,8 +283,9 @@ void Stream_mixer::cafudda()
 #ifndef PORTAUDIO
       write(dsp,audio_buffer,MIX_CHUNK<<2);
 #else
-      snddev->write(audio_buffer,MIX_CHUNK);
+      snddev->write(audio_buffer,MIX_CHUNK<<1); // always stereo
 #endif
+
       //      do {ret=write(dsp,audio_buffer,MIX_CHUNK<<2);} while (ret==-1 && errno==EINTR);
       // what was that? there shouldn't be a loop on the audiocard write -jrml
     }
@@ -367,6 +295,7 @@ void Stream_mixer::cafudda()
     if(have_gui 
        && cpeak==8 
        && gui->meter_shown()) {
+      // integer only weighted media over 8 elements -jrml
       gui->vumeter_set( (peak[0]+peak[1]+peak[2]+peak[3]+
 			 peak[4]+peak[5]+peak[6]+peak[7])>>3 );
       gui->bpsmeter_set( total_bitrate );
@@ -716,6 +645,24 @@ int selector(const struct dirent *dir) {
 #ifdef HAVE_VORBIS
       || strncasecmp(dir->d_name+strlen(dir->d_name)-4,".ogg",4)==0
 #endif
+#ifdef HAVE_SNDFILE
+      || strncasecmp(dir->d_name+strlen(dir->d_name)-4,".wav",4)==0
+      || strncasecmp(dir->d_name+strlen(dir->d_name)-4,".aif",4)==0
+      || strncasecmp(dir->d_name+strlen(dir->d_name)-5,".aiff",4)==0
+      || strncasecmp(dir->d_name+strlen(dir->d_name)-4,".snd",4)==0
+      || strncasecmp(dir->d_name+strlen(dir->d_name)-3,".au",4)==0
+      || strncasecmp(dir->d_name+strlen(dir->d_name)-4,".raw",4)==0
+      || strncasecmp(dir->d_name+strlen(dir->d_name)-4,".paf",4)==0
+      || strncasecmp(dir->d_name+strlen(dir->d_name)-4,".iff",4)==0
+      || strncasecmp(dir->d_name+strlen(dir->d_name)-4,".svx",4)==0
+      || strncasecmp(dir->d_name+strlen(dir->d_name)-3,".sf",4)==0
+      || strncasecmp(dir->d_name+strlen(dir->d_name)-4,".voc",4)==0
+      || strncasecmp(dir->d_name+strlen(dir->d_name)-4,".w64",4)==0
+      || strncasecmp(dir->d_name+strlen(dir->d_name)-4,".pvf",4)==0
+      || strncasecmp(dir->d_name+strlen(dir->d_name)-3,".xi",4)==0
+      || strncasecmp(dir->d_name+strlen(dir->d_name)-4,".htk",4)==0
+      || strncasecmp(dir->d_name+strlen(dir->d_name)-4,".mat",4)==0
+#endif
       || strncasecmp(dir->d_name+strlen(dir->d_name)-3,".pl",3)==0
       || strncasecmp(dir->d_name+strlen(dir->d_name)-4,".pls",4)==0
       || strncasecmp(dir->d_name+strlen(dir->d_name)-4,".m3u",4)==0 )
@@ -770,6 +717,19 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
     path = chan[ch]->playlist->addurl(temp);
     if(have_gui) gui->add_playlist(ch,path);
     return(true);
+  }
+
+  if(strncasecmp(temp,"jack://",7)==0) { // it's a JACK CLIENT
+#ifdef HAVE_JACK
+    func("it's a jack client input channel");
+    strncpy(temp,file,MAX_PATH_SIZE);
+    path = chan[ch]->playlist->addurl(temp);
+    if(have_gui) gui->add_playlist(ch,path);
+    return(true);
+#else
+    error("jack daemon support not compiled, client \'%s\' cannot be activated",&temp[7]);
+    return(false);
+#endif
   }
   
   /* if it's not a stream, check if the file exists and it's readable */
@@ -882,7 +842,8 @@ void Stream_mixer::rem_from_playlist(int ch, int pos) {
 
   chan[ch]->playlist->rem(pos);
 
-  pos = (pos>chan[ch]->playlist->len()) ? chan[ch]->playlist->len() : pos;
+  pos = (pos>chan[ch]->playlist->len()) ?
+    chan[ch]->playlist->len() : pos;
   if(pos>0) {
     chan[ch]->playlist->sel(pos);
     if(have_gui) gui->sel_playlist(ch,pos-1);  
@@ -1043,7 +1004,10 @@ void Stream_mixer::clip_audio(int samples) {
     }
   }
   k = (k * MOP_ADV_RETM + 
-       1.0 / ((1.0 + MOP_ADV_KARE * (sum / (float)(samples*32767))))) / (MOP_ADV_RETM + 1.0);
+       1.0 / ((1.0 + MOP_ADV_KARE *
+	       (sum / (float)(samples*32767))
+	       ))
+       ) / (MOP_ADV_RETM + 1.0);
   
 #ifdef MOP_LOGGING        
   /* every 128 chunks print the current k value and the average of exceeding area */     

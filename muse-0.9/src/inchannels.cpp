@@ -45,6 +45,9 @@
 #ifdef HAVE_SNDFILE
 #include <dec_snd.h>
 #endif
+#ifdef HAVE_JACK
+#include <dec_jack.h>
+#endif
 #include <dec_mp3.h>
 
 #include "httpstream.h"
@@ -74,7 +77,14 @@ Channel::Channel() {
   idle = true;
 
   _thread_init();
+
+  // setup the pipe
   erbapipa = new Pipe(IN_PIPESIZE);
+  erbapipa->set_output_type("mix_int16_to_int32");
+  // blocking input and output, default timeout is 200 ms
+  erbapipa->set_block(true,true);
+  erbapipa->set_block_timeout(400,200);
+
   playlist = new Playlist();
   dec = NULL;
   fill_prev_smp = true;
@@ -128,25 +138,26 @@ void Channel::run() {
       buff = dec->get_audio();
       dec->unlock();
     /* then call resample() which sets up:
-       samples = number of 44khz stereo samples
+       frames = number of 16bit sound values
        and returns *IN_DATATYPE pointing to the resampled buffer */
       if(buff) {
 	buff = resample(buff);
+
 	/* at last pushes it up into the pipe
 	   bytes are samples<<2 being the audio 16bit stereo */
-	while( erbapipa->write
-	       (samples<<2,buff) <0
-	       && !quit) jsleep(0,20);
+	erbapipa->write(frames<<1,buff);
+
 	/* then calculates the position and time */
 	if(dec->seekable) state = upd_time();
 
       } else /* if get_audio returns NULL then is eos or error */
 	if(dec->eos) upd_eos();
 	else if(dec->err) upd_err();
-	else { /* should never be here */
-	  error("unknown state on %s channel",dec->name);
-	  report(); state = 0.0;
-	} // if(buf) else      
+	else { // nothing comes out but we hang on
+	  //	  error("unknown state on %s channel",dec->name);
+	  //	  report(); state = 0.0;
+	  jsleep(0,20);
+	}
 
     } else { // if(on)
 
@@ -175,7 +186,6 @@ IN_DATATYPE *Channel::resample(IN_DATATYPE *audio) {
 
   frames = dec->frames;
   frames = (*munch)(buffo,audio,prev_smp,frames,volume);
-  samples = frames/2; /// dec->channels;
 
   /* save last part of the chunk
      for the next resampling */
@@ -191,26 +201,26 @@ bool Channel::play() {
   if(on) return(true);
 
   if(!running) {
-    error("%i:%s %s channel thread not launched",
+    error(_("%i:%s %s channel thread not launched"),
 	  __LINE__,__FILE__,__FUNCTION__);
     return(false);
   }
 
   if(!opened) {
     Url *url;
-    warning("Channel::play() : no song loaded");
+    warning(_("Channel::play() : no song loaded"));
     url = (Url*) playlist->selected();
     if(!url) {
-      warning("Channel::play() : no song selected in playlist");
+      warning(_("Channel::play() : no song selected in playlist"));
       url = (Url*)playlist->begin();
       if(!url) {
-	error("Channel::play() : playlist is void");
+	error(_("Channel::play() : playlist is void"));
 	return(false);
       }
     }
 
     if( !load( url->path ) ) {
-      error("Channel::play() : can't load %s",url->path);
+      error(_("Channel::play() : can't load %s"),url->path);
       return(false);
     } else url->sel(true);
   }
@@ -238,6 +248,7 @@ bool Channel::stop() {
 
 int Channel::load(char *file) {
   MuseDec *ndec = NULL;
+  char tmp[256];
   int res;
   /* returns:
      0 = error
@@ -246,6 +257,8 @@ int Channel::load(char *file) {
   hstream cod = HS_NONE;
 
   /* parse supported file types */
+
+  snprintf(tmp,256,"%s",file);
   
   if (strstr(file, "http://")) {
     cod = stream_detect(file);
@@ -256,17 +269,14 @@ int Channel::load(char *file) {
     func("creating Ogg decoder");
     ndec = new MuseDecOgg();
 #else
-    error("can't open OggVorbis (support not compiled)");
+    error(_("Can't open OggVorbis (support not compiled)"));
 #endif
   }
   if(strncasecmp(file+strlen(file)-4,".mp3",4)==0 || cod==HS_MP3) {
     func("creating Mp3 decoder");
     ndec = new MuseDecMp3();
   }
-  // pallotron: aggiungo lo string compare per i formati
-  // sndfile, per ora metto solo voc e wav.
-  // TODO: vedere come si chiamano le altre estensioni
-  // ed aggiungerle.
+  // pallotron: aggiungo lo string compare per i formati sndfile
   if(strncasecmp(file+strlen(file)-4,".wav",4)==0
      || strncasecmp(file+strlen(file)-4,".aif",4)==0
      || strncasecmp(file+strlen(file)-5,".aiff",4)==0
@@ -288,23 +298,39 @@ int Channel::load(char *file) {
     func("creating LibSndFile decoder");
     ndec = new MuseDecSndFile();
 #else
-    error("can't open sound file (support not compiled)");
+    error(_("Can't open sound file (support not compiled)"));
+#endif
+  }
+
+  if(strncasecmp(file,"jack://",7)==0) {
+#ifdef HAVE_JACK
+    func("creating Jack Audio Daemon input client");
+    // setup the filename with a MuSE___ prefix
+    // for the jack client name
+    //    file[0]='M';file[1]='u';file[2]='S';file[3]='E';
+    //    file[4]='_';file[5]='_';file[6]='_';
+    ndec = new MuseDecJack();
+
+    snprintf(tmp,256,"MuSE_in_%s",&file[7]);
+  
+#else
+    error(_("Jack audio daemon support is not compiled in this version of MuSE"));
 #endif
   }
   
   if(!ndec) {
-    error("can't open %s (unrecognized extension)",file);
+    error(_("Can't open %s (unrecognized extension)"),file);
     return(0);
   }
 
   lock();
 
   ndec->lock();
-  res = ndec->load(file); // try to load the file/stream into the decoder
+  res = ndec->load(tmp); // try to load the file/stream into the decoder
   ndec->unlock();
 
   if(!res) { // there is an error: we keep everything as it is
-    error("decoder load returns error",file);
+    error(_("decoder load returns error"),file);
     unlock();
     delete ndec;
     return(0);
@@ -313,7 +339,7 @@ int Channel::load(char *file) {
   res = set_resampler(ndec);
 
   if(!res) {
-    error("invalid input samplerate %u",ndec->samplerate);
+    error(_("invalid input samplerate %u"),ndec->samplerate);
     unlock();
     delete ndec;
     return(0);
@@ -332,12 +358,21 @@ int Channel::load(char *file) {
   
   unlock();
 
-  notice("loaded %s",file);
-  notice("%s %iHz %s %s %iKb/s",
-	 dec->name, dec->samplerate,
-	 (dec->channels==1) ? "mono" : "stereo",
-	 (dec->seekable) ? "file" : "stream",
-	 dec->bitrate);
+  notice(_("loaded %s"),file);
+  if(dec->bitrate)
+    notice("%s %s %iHz %s %iKb/s",
+	   dec->name,
+	   (dec->seekable) ? "file" : "stream",
+	   dec->samplerate,
+	   (dec->channels==1) ? "mono" : "stereo",
+	   dec->bitrate);
+  else
+    notice("%s %s %iHz %s",
+	   dec->name,
+	   (dec->seekable) ? "file" : "stream",
+	   dec->samplerate,
+	   (dec->channels==1) ? "mono" : "stereo");
+	   
   return res;
 }
      
@@ -347,7 +382,7 @@ bool Channel::pos(float pos) {
   pos = (pos<0.0) ? 0.0 : (pos>1.0) ? 1.1 : pos;
   dec->lock();
   if(!dec->seek(pos))
-    error("Channel::seek : error calling decoder seek to %f",position);
+    error(_("error seeking decoder position to %f"),position);
   else
     position = time.f = pos;
   dec->unlock();
@@ -384,7 +419,7 @@ bool Channel::set_resampler(MuseDec *ndec) {
     else munch = resample_mono_16;
     break;
   default:
-    warning("Channel::set_mixer : i can't mix sound at %uhz",
+    warning(_("Can't mix sound at %uhz"),
 	    ndec->samplerate);
     return(false);
   }
@@ -399,22 +434,23 @@ float Channel::upd_time() {
   /* calculate the float 0.0-1.0 position on stream */
   res = (float)dec->framepos/(float)dec->frametot;
 
+
   /* calculate the time */
-  if( ((res-time.f)>0.003) || (time.f-res)>0.003) {
+  //  if( ((res-time.f)>0.003) || (time.f-res)>0.003) {
     time.f = res;
     secs = dec->framepos / dec->fps;
     //    func("secs %i",secs);
     if(secs>3600) {
       time.h = (int) secs / 3600;
       secs -= time.h*3600;
-    }
+    } else time.h = 0;
     if(secs>60) {
       time.m = (int) secs / 60;
       secs -= time.m*60;
-    }
+    } else time.m = 0;
     time.s = (int) secs;
     update = true;
-  }
+    //  }
 
   return(res);
 }
@@ -450,7 +486,7 @@ void Channel::skip() {
 void Channel::upd_eos() {
   PARADEC
     if(!dec->eos) return;
-  func("end of %s on %s playing for %i:%i:%i",
+  func(_("End of %s on %s playing for %i:%i:%i"),
        (seekable)?"stream":"file",dec->name,
        time.h,time.m,time.s);
   skip();
@@ -460,8 +496,8 @@ void Channel::upd_eos() {
 void Channel::upd_err() {
   PARADEC
     if(!dec->err) return;
-    error("error on %s, skipping %s",
-	dec->name,(seekable)?"stream":"file");
+  error(_("error on %s, skipping %s"),
+	dec->name,(seekable)?_("stream"):_("file"));
   report();
   skip();
   dec->err = false;
@@ -550,7 +586,7 @@ void Channel::_thread_destroy() {
 void Channel::report() {
 
   func("Channel | %s | %s | %s | %s |",
-	 (opened)?"opened":" ",
+       (opened)?"opened":" ",
 	 (running)?"running":" ",
 	 (on)?"on":"off",
 	 (seekable)?"seekable":" ");
@@ -566,7 +602,7 @@ void Channel::report() {
         time.h, time.m, time.s, dec->framepos,dec->frametot);
     func("samplerate %i channels %i bitrate %i",
         dec->samplerate,dec->channels,dec->bitrate);
-    func("frames %i samples %i",dec->frames,samples);
+    func("frames (16bit) %i",dec->frames);
   } else {
     func("time: %i:%i:%i ", time.h, time.m, time.s);
   }
