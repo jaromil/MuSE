@@ -137,6 +137,7 @@
    for memory fencing and debugging
    ================================== */
 #ifdef WITH_DMALLOC
+#include <stdin.h>
 #include <dmalloc.h>
 #endif /* WITH_DMALLOC */
 /* ========================= */
