@@ -51,17 +51,16 @@ GList *iceprof, *lameprof, *vorbisprof;
 int lameid, oggid;
 float storevol[MAX_CHANNELS];
 char *pathfile;
-/* id of "select_row" handler */
-guint blockid[7];
 bool state;
 bool vu_status = false;
+int dndch=0;
+gboolean dndlock=FALSE;
 
 bool gtkgui_init(int argc, char *argv[], Stream_mixer *mix)
 {
 
 	GtkWidget *bbox = NULL;
 	bool isx = false;
-	int i;
 	/* FIXME: bisogan mettere l'enable_nls*/
 	/* i18n */
 	setlocale(LC_ALL, "");
@@ -72,9 +71,6 @@ bool gtkgui_init(int argc, char *argv[], Stream_mixer *mix)
 	/* initialization */
 	state = true;
 	mixer = mix;
-	for(i = 0; i < 7; i++) {
-		blockid[i] = 0;
-	}
 	
 	list_init(&listachan);
 	list_init(&lamelist);
@@ -231,9 +227,7 @@ bool gtkgui_sel_playlist(unsigned int chan, int row)
 	gtk_tree_selection_get_selected(selection, NULL, &iter);
 	path = gtk_tree_model_get_path(model, &iter);
 	
-	g_signal_handler_block(G_OBJECT(selection), blockid[chan+1]);
 	gtk_tree_selection_select_path(selection, path);
-	g_signal_handler_unblock(G_OBJECT(selection), blockid[chan+1]);
 	
 	gtk_tree_path_free(path);
 	

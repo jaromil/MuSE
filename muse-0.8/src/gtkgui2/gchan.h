@@ -62,7 +62,6 @@ void spawnfilew(GtkWidget *,struct gchan *); /* open file sel win */
 void httpwin(GtkWidget *, struct gchan *);
 void httpinsert(GtkWidget *, struct gchan *);
 
-void gcb_set_channel(GtkTreeSelection *, struct gchan *);
 void gcb_set_playmode(GtkWidget *, struct gchan *);
 void gcb_play_channel(GtkWidget *, struct gchan *);
 void gcb_stop_channel(GtkWidget *, struct gchan *);

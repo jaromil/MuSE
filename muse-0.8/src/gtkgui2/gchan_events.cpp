@@ -55,20 +55,29 @@ void gcb_event_set_position(GtkWidget *w, GdkEventButton *s, struct gchan *o)
 
 void DND_begin(GtkWidget *w, GdkDragContext *dc, struct gchan *o)
 {
-	notice("drag_begin");
+	/* if we don't lock set_channel into DND operation we'll get 
+	 * wrong song position */
+	dndlock = TRUE;
+	dndch = o->idx; 
+
+	func("drag_begin");
 	
 }
 
 void DND_end(GtkWidget *w, GdkDragContext *dc, struct gchan *o)
 {
-	notice("drag_end");
+	/* release lock, good work boy :) */
+	dndlock = FALSE;
+	
+	dndch = 0;
+	func("drag_end");
 }
 
 gboolean DND_data_motion(GtkWidget *w, GdkDragContext *dc, gint x, gint y,
 				guint t, struct gchan *o)
 {
 	gdk_drag_status(dc, GDK_ACTION_MOVE, t);
-	notice("drag_data_motion");
+	func("drag_data_motion");
 	return FALSE;
 }
 
@@ -79,6 +88,7 @@ gboolean DND_data_get(GtkWidget *w, GdkDragContext *dc,
 	GtkTreeModel *model;
 	GtkTreeSelection *select;
 	gchar *title;
+	
 	
 	select = gtk_tree_view_get_selection(GTK_TREE_VIEW(w));
 	if(	gtk_tree_selection_get_selected(select, &model, &iter)) {
@@ -92,7 +102,7 @@ gboolean DND_data_get(GtkWidget *w, GdkDragContext *dc,
 					8, /* 8 bits per character */
 					(guchar *) title, strlen(title));
 		}
-		notice("drag_data_get");
+		func("drag_data_get");
 		return TRUE;
 	}
 	
@@ -103,11 +113,12 @@ void DND_data_received(GtkWidget *w, GdkDragContext *dc, gint x, gint y,
 				GtkSelectionData *selection, guint info, guint t,
 				struct gchan *o)
 {
-	GtkTreeIter iter;
-	GtkTreeModel *model;
-	GtkTreeSelection *select;
-	GtkTreePath *path;
-	gint row=0;
+	GtkTreeIter iter, itersrc;
+	GtkTreeModel *model, *modelsrc;
+	GtkTreeSelection *select, *selectsrc;
+	GtkTreePath *path, *pathsrc;
+	GtkWidget *source;
+	gint row=0, rowsrc=0;
 	gchar *title;
 
 	if(selection == NULL)
@@ -115,14 +126,42 @@ void DND_data_received(GtkWidget *w, GdkDragContext *dc, gint x, gint y,
 	if(selection->length < 0)
 		return;
 	
+	/* <federico> nightolo: if gtk_drag_get_source_widget(drag_context) returns NULL, it comes from another process
+	 * tnx to #gtk+ :) 
+	 */
+	
+	source = gtk_drag_get_source_widget(dc);
+	notice("source = %p info %d", source, info);
+	
 	title = (gchar *) selection->data;
+	
 	
 	select = gtk_tree_view_get_selection(GTK_TREE_VIEW(w));
 	if(gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(w),
 				x, y, &path, NULL, NULL, NULL)) {
 		row = gtk_tree_path_get_indices(path)[0];
-		notice("row = %d", row);
+		func("GTKGUI2::DND_data_received row = %d", row);
 		gtk_tree_path_free(path);
+	}
+	
+	if(!source && (info == DRAG_TAR_INFO_1 || info == DRAG_TAR_INFO_0)) {
+		func("I got text/uri");
+		mixer->add_to_playlist(o->idx-1, title);
+	} else {
+		if(source) {
+			selectsrc = gtk_tree_view_get_selection(GTK_TREE_VIEW(source));
+			gtk_tree_selection_get_selected(selectsrc, &modelsrc, &itersrc);
+			pathsrc = gtk_tree_model_get_path(modelsrc, &itersrc);
+			rowsrc = gtk_tree_path_get_indices(pathsrc)[0];
+			
+			notice("dndch = %d rowsrc = %d row = %d", dndch-1, rowsrc+1, row+1);
+			if(dndch >= 0 && rowsrc >= 0 && row >= 0) {
+				func("move_song called %d %d %d %d", dndch-1, rowsrc+1, o->idx-1, row+1);
+				mixer->move_song(dndch-1, rowsrc+1, o->idx-1, row+1);
+			}
+
+			gtk_tree_path_free(pathsrc);
+		}
 	}
 	
 	gtk_tree_selection_get_selected(select, &model, NULL);
@@ -132,12 +171,28 @@ void DND_data_received(GtkWidget *w, GdkDragContext *dc, gint x, gint y,
 			TITLE, title,
 			-1);
 	
-	notice("drag_data_received");
+	func("drag_data_received");
 }
 
 void DND_data_delete(GtkWidget *w, GdkDragContext *dc, struct gchan *o)
 {
-	notice("drag_data_delete");
+	GtkTreeIter iter;
+	GtkTreeModel *model;
+	GtkTreeSelection *select;
+	GtkTreePath *path;
+	gint row;
+	
+	select = gtk_tree_view_get_selection(GTK_TREE_VIEW(w));
+	if(	gtk_tree_selection_get_selected(select, &model, &iter)) {
+		path = gtk_tree_model_get_path(model, &iter);
+		row = gtk_tree_path_get_indices(path)[0];
+		mixer->rem_from_playlist(o->idx-1, row+1);
+	
+		gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+		gtk_tree_path_free(path);
+	}
+	
+	func("drag_data_delete");
 }
 
 /* end */
@@ -157,11 +212,7 @@ gboolean gcb_event_view_popup(GtkWidget *w, GdkEventButton *s, struct gchan *o)
 				&path, NULL, NULL, NULL)) {
 			gtk_tree_selection_unselect_all(select);
 			
-			g_signal_handler_block(G_OBJECT(select), 
-					blockid[o->idx]);
 			gtk_tree_selection_select_path(select, path);
-			g_signal_handler_unblock(G_OBJECT(select), 
-					blockid[o->idx]);
 			
 			if((row = gtk_tree_path_get_indices(path)))
 				act(_("il row e' %d"), row[0]);

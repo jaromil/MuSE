@@ -253,8 +253,6 @@ bool createch(void)
 	gtk_tree_selection_set_mode (select, GTK_SELECTION_SINGLE);
 	g_signal_connect(G_OBJECT(tree), "button_press_event",
 			G_CALLBACK(gcb_event_view_popup), object);
-	blockid[idx] = g_signal_connect(G_OBJECT(select), "changed",
-			G_CALLBACK(gcb_set_channel), object);
         renderer = gtk_cell_renderer_text_new();
         column = gtk_tree_view_column_new_with_attributes("Nick", 
 			renderer, "text", TITLE, NULL);
@@ -442,47 +440,6 @@ struct gchan *gcb_findch(unsigned int idx,unsigned int pos)
 		return (struct gchan *) tmp->data;
 }
 
-void gcb_set_channel(GtkTreeSelection *selection, struct gchan *o)
-{
-	GtkTreeModel *model;
-	GtkTreePath *path;
-	GtkTreeIter iter;
-	gint row;
-	guint res;
-	
-	func(_("called gcb_set_channel"));
-
-	if((gtk_tree_selection_get_selected(selection, &model, &iter))) {
-		path = gtk_tree_model_get_path(model, &iter);
-		row = gtk_tree_path_get_indices(path)[0];
-		act(_("%d row"), row);
-	
-		res = mixer->set_channel(o->idx-1, row+1); 
-
-		if(!res)
-			func(_("GTK_GUI::gcb_set_channel : Stream_mixer::set_channel(%d,%d) returned %u"), o->idx-1, row+1, res);
-
-		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(o->play), FALSE);
-
-		switch(res) {
-		case 0:
-		  func(_("GTK_GUI::gcb_set_channel : can't open bitstream"));
-		  o->channel=0;
-		  break;
-		case 1:  /* channel is seekable */
-		  gtk_entry_set_text(GTK_ENTRY(o->ptime), "00:00");
-		  gtk_adjustment_set_value(GTK_ADJUSTMENT(o->adjprog), 0.0);
-		  o->channel=1;
-		  break;
-		case 2: /* unseekable */
-		  gtk_entry_set_text(GTK_ENTRY(o->ptime), "-----");
-		  gtk_adjustment_set_value(GTK_ADJUSTMENT(o->adjprog), 0.0);
-		  o->channel=2;
-		  break;
-		}
-	}
-
-}
 
 void gcb_set_playmode(GtkWidget *w, struct gchan *o) 
 {
@@ -494,9 +451,45 @@ void gcb_set_playmode(GtkWidget *w, struct gchan *o)
 
 void gcb_play_channel(GtkWidget *w, struct gchan *o)
 {
+	GtkTreeModel *model;
+	GtkTreePath *path;
+	GtkTreeIter iter;
+	GtkTreeSelection *select;
+	gint row=0;
+	guint res;
 	bool pro = false;
 
-	if(GTK_TOGGLE_BUTTON(w)->active) {
+	select = gtk_tree_view_get_selection(GTK_TREE_VIEW(o->tree));
+
+	if(GTK_TOGGLE_BUTTON(w)->active) 
+		if((gtk_tree_selection_get_selected(select, &model, &iter))) {
+			path = gtk_tree_model_get_path(model, &iter);
+			row = gtk_tree_path_get_indices(path)[0];
+			
+			res = mixer->set_channel(o->idx-1, row+1); 
+
+			gtk_tree_path_free(path);
+			
+		if(!res)
+			func(_("GTK_GUI::gcb_set_channel : Stream_mixer::set_channel(%d,%d) returned %u"), o->idx-1, row+1, res);
+
+		switch(res) {
+			case 0:
+			  o->channel=0;
+			  break;
+			case 1:  /* channel is seekable */
+			  gtk_entry_set_text(GTK_ENTRY(o->ptime), "00:00");
+			  gtk_adjustment_set_value(GTK_ADJUSTMENT(o->adjprog), 0.0);
+			  o->channel=1;
+			  break;
+			case 2: /* unseekable */
+			  gtk_entry_set_text(GTK_ENTRY(o->ptime), "-----");
+			  gtk_adjustment_set_value(GTK_ADJUSTMENT(o->adjprog), 0.0);
+			  o->channel=2;
+			  break;
+		}
+
+			
 		pro = mixer->play_channel(o->idx-1);
 		if(pro)
 			notice(_("ok for playing"));
@@ -505,8 +498,8 @@ void gcb_play_channel(GtkWidget *w, struct gchan *o)
 			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(o->play),
 					FALSE);
 		}
-		
 	}
+		
 
 }
 

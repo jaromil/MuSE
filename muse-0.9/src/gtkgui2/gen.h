@@ -80,8 +80,8 @@ extern int lameid, oggid;
 extern float storevol[MAX_CHANNELS];
 extern char *pathfile;
 extern struct vumeters *vu;
-/* id of "select_row" handler */
-extern guint blockid[7];
+extern int dndch;
+extern gboolean dndlock;
 extern bool state; 
 extern bool vu_status;
 
