@@ -276,7 +276,6 @@ void gtkgui_set_vuband(int value)
 
 void gtkgui_exit(void) 
 {
-printf("gtkgui_exit\r\n");
 	gtk_widget_destroy(window);
 	g_list_free(listachan);
 	g_list_free(lamelist);
