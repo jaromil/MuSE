@@ -196,10 +196,10 @@ AC_ARG_ENABLE(gtk2,
 
 if test "${HAVE_X11}" = "yes"; then
    
-  AM_PATH_GTK(1.2.0, [
-    HAVE_GTK="yes"
-    AC_DEFINE(HAVE_GTK, 1, have working GTK)],
-  HAVE_GTK="no")
+dnl  AM_PATH_GTK(1.2.0, [
+dnl    HAVE_GTK="yes"
+dnl    AC_DEFINE(HAVE_GTK, 1, have working GTK)],
+dnl  HAVE_GTK="no")
 
   PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0 gthread-2.0 >= 2.0.0, [
     HAVE_GTK2="yes"
@@ -243,8 +243,12 @@ AC_CHECK_HEADER(lame/lame.h, [
 dnl ===============
 dnl CHECK OGGVORBIS
 dnl ===============
-AM_PATH_OGG(have_ogg=yes,AC_MSG_WARN(Ogg not found!); exit 0)
-AM_PATH_VORBIS(have_vorbis=yes,AC_MSG_WARN(Vorbis not found!); exit 0)
+AM_PATH_OGG(have_ogg=yes,[
+	AC_MSG_WARN(Ogg not found!)
+	exit 0 ])
+AM_PATH_VORBIS(have_vorbis=yes,[
+	AC_MSG_WARN(Vorbis not found!)
+	exit 0 ])
 
 dnl Check for socklen_t
 AC_MSG_CHECKING([for unix98 socklen_t])
@@ -485,10 +489,6 @@ fi
 
 if test "$have_lame" = "yes"; then
 	echo ":: Linking Lame libraries for MP3 encoding"
-fi
-
-if test "${GUI_NIGHTOLO}" = "true"; then
-	echo ":: Building the GTK+ user interface"
 fi
 
 if test "${GUI_NIGHTOLO2}" = "true"; then

@@ -23,7 +23,7 @@
 #define __SHOUTER_H__
 
 extern "C" {
-#include <libshout2-kh/shout.h>
+#include "shout/shout.h"
 }
 
 #include <linklist.h>
