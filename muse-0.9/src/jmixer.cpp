@@ -311,7 +311,8 @@ void Stream_mixer::cafudda()
 	gui->vumeter_set( 0 );
 	gui->bpsmeter_set( 0 );
       }
-    }
+    } else // no GUI and no channels playing: quit CLI
+      quit = true;
 
   }
 
