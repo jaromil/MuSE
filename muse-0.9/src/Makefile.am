@@ -24,6 +24,7 @@ muse_SOURCES =  \
     playlist.cpp        \
     jutils.cpp      \
     radiosched.cpp      \
+	httpstream.cpp  \
     gui.cpp
 
 muse_DEPENDENCIES = @GUI_DEPS@ resample/libresample.a libmpeg/libmpeg.a shout/libshout.a

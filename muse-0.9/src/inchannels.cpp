@@ -47,6 +47,9 @@
 #endif
 #include <dec_mp3.h>
 
+#include "httpstream.h"
+
+
 //#ifdef DEBUG
 #define PARADEC if(!dec) error("%s:%s %i :: decoder is NULL",__FILE__,__FUNCTION__,__LINE__);
 //#endif
@@ -236,11 +239,16 @@ int Channel::load(char *file) {
   /* returns:
      0 = error
      1 = stream is seakable
-     2 = stream is not seekable  */  
+     2 = stream is not seekable  */ 
+  hstream cod = HS_NONE;
 
   /* parse supported file types */
+  
+  if (strstr(file, "http://")) {
+    cod = stream_detect(file);
+  }
 
-  if(strncasecmp(file+strlen(file)-4,".ogg",4)==0) {
+  if(strncasecmp(file+strlen(file)-4,".ogg",4)==0 || cod==HS_OGG) {
 #ifdef HAVE_VORBIS
     func("creating Ogg decoder");
     ndec = new MuseDecOgg();
@@ -248,7 +256,7 @@ int Channel::load(char *file) {
     error("can't open OggVorbis (support not compiled)");
 #endif
   }
-  if(strncasecmp(file+strlen(file)-4,".mp3",4)==0) {
+  if(strncasecmp(file+strlen(file)-4,".mp3",4)==0 || cod==HS_MP3) {
     func("creating Mp3 decoder");
     ndec = new MuseDecMp3();
   }

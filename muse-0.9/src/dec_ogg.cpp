@@ -24,6 +24,9 @@
 #include <jutils.h>
 #include <config.h>
 
+#include "httpstream.h"
+
+
 #ifdef HAVE_VORBIS
 
 /* ----- OggVorbis input channel ----- */
@@ -58,7 +61,7 @@ IN_DATATYPE *MuseDecOgg::get_audio() {
     ov_read(&vf, _inbuf, IN_CHUNK, 0, 2, 1, &current_section);
   
   if(res<0) {
-    warning("MuseDecOgg:_get_audio() : bitstream error");
+    warning("MuseDecOgg:_get_audio() : bitstream error %d", res);
     err = true;
     return(NULL);
   }
@@ -77,7 +80,7 @@ IN_DATATYPE *MuseDecOgg::get_audio() {
 int MuseDecOgg::load(char *file) {
   int res = 0;
 
-  oggfile = fopen(file,"rb");
+  oggfile = hopen(file,"rb");
   if(oggfile==NULL) {
     error("MuseDecOgg::open(%s) : can't open file",file);
     return(res);
