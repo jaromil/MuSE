@@ -1,15 +1,34 @@
-/* mp3.c: libshout MP3 format handler */
+/* -*- c-basic-offset: 8; -*- */
+/* mp3.c: libshout MP3 format handler
+ *
+ *  Copyright (C) 2002-2003 the Icecast team <team@icecast.org>
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Library General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2 of the License, or (at your option) any later version.
+ *
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Library General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Library General Public
+ *  License along with this library; if not, write to the Free
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <config.h>
+
 #include "shout.h"
 #include "shout_private.h"
 
+#include <config.h>
+
 /*
- * MP3 Frame handling curtesy of Scott Manley - may he always be Manley.
+ * MP3 frame handling courtesy of Scott Manley - may he always be Manley.
  */
 
 #define MPEG_MODE_MONO 3
@@ -51,7 +70,7 @@ typedef struct {
 } mp3_header_t;
 
 /* -- const data -- */
-const unsigned int bitrate[3][3][16] =
+static const unsigned int bitrate[3][3][16] =
 {
 	{
 		{ 0, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 0 },
@@ -68,7 +87,7 @@ const unsigned int bitrate[3][3][16] =
 	}
 };
 
-const unsigned int samplerate[3][4] =
+static const unsigned int samplerate[3][4] =
 {
 	{ 44100, 48000, 32000, 0 },
 	{ 22050, 24000, 16000, 0 },
@@ -265,7 +284,7 @@ static void parse_header(mp3_header_t *mh, uint32_t header)
 		mh->samples = 576;
 
 	if(mh->samplerate)
-		mh->framesize = ((float)mh->samples * mh->bitrate * 1000 / (float)mh->samplerate) / 8 + mh->padding;
+		mh->framesize = (mh->samples * mh->bitrate * 1000 / mh->samplerate) / 8 + mh->padding;
 }
 
 /* mp3 frame parsing stuff */

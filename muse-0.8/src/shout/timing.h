@@ -1,8 +1,8 @@
 #ifndef __TIMING_H__
 #define __TIMING_H__
 
-#include <sys/types.h>
-#include <config.h>
+//#include <sys/types.h>
+#include <inttypes.h>
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
@@ -10,6 +10,12 @@
 #ifdef _WIN32
 typedef __int64 int64_t;
 typedef unsigned __int64 uint64_t;
+#endif
+
+/* config.h should be included before we are to define _mangle */
+#ifdef _mangle
+# define timing_get_time _mangle(timing_get_time)
+# define timing_sleep _mangle(timing_sleep)
 #endif
 
 uint64_t timing_get_time(void);

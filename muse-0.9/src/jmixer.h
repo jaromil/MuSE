@@ -20,9 +20,10 @@
  */
 
 
-/** @file MuSE mixer public interface header
+/**
+   @file jmixer.h MuSE mixer public interface header
 
-    @desc this is the main external API to use MuSE
+   @desc this is the main external API to use MuSE
 */
 
 #ifndef __JMIXER_H

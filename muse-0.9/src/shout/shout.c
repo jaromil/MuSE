@@ -1,4 +1,22 @@
-/* shout.c: Implementation of public libshout interface shout.h */
+/* -*- c-basic-offset: 8; -*- */
+/* shout.c: Implementation of public libshout interface shout.h
+ *
+ *  Copyright (C) 2002-2003 the Icecast team <team@icecast.org>
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Library General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2 of the License, or (at your option) any later version.
+ *
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Library General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Library General Public
+ *  License along with this library; if not, write to the Free
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 #define _REENTRANT 1
 #define _GNU_SOURCE 1
@@ -8,34 +26,75 @@
 #include <string.h>
 #include <errno.h>
 
-#include <config.h>
-
 #include "shout.h"
-#include "shout_private.h"
-
 #include "sock.h"
 #include "timing.h"
-#include "util.h"
 #include "httpp.h"
 
+#include "shout_private.h"
+#include "util.h"
+
+#include <config.h>
+
 /* -- local prototypes -- */
-static int login_ice(shout_t *self);
 static int login_xaudiocast(shout_t *self);
 static int login_icy(shout_t *self);
 static int login_http_basic(shout_t *self);
+static char *http_basic_authorization(shout_t *self);
+
+/* -- static data -- */
+static int _initialized = 0;
 
 /* -- public functions -- */
+
+void shout_init(void)
+{
+	if (_initialized)
+		return;
+
+	sock_initialize();
+	_initialized = 1;
+}
+
+void shout_shutdown(void)
+{
+	if (!_initialized)
+		return;
+
+	sock_shutdown();
+	_initialized = 0;
+}
 
 shout_t *shout_new(void)
 {
 	shout_t *self;
 
-	if (!(self = (struct shout *)calloc(1, sizeof(shout_t)))) {
+	/* in case users haven't done this explicitly. Should we error
+	 * if not initialized instead? */
+	shout_init();
+	
+	if (!(self = (shout_t *)calloc(1, sizeof(shout_t)))) {
 		return NULL;
 	}
 
-	if (!(self->host = util_strdup(LIBSHOUT_DEFAULT_HOST))) {
-		free(self);
+	if (shout_set_host(self, LIBSHOUT_DEFAULT_HOST) != SHOUTERR_SUCCESS) {
+		shout_free(self);
+
+		return NULL;
+	}
+	if (shout_set_user(self, LIBSHOUT_DEFAULT_USER) != SHOUTERR_SUCCESS) {
+		shout_free(self);
+
+		return NULL;
+	}
+	if (shout_set_agent(self, LIBSHOUT_DEFAULT_USERAGENT) != SHOUTERR_SUCCESS) {
+		shout_free(self);
+
+		return NULL;
+	}
+	if (!(self->audio_info = _shout_util_dict_new())) {
+		shout_free(self);
+
 		return NULL;
 	}
 
@@ -58,7 +117,8 @@ void shout_free(shout_t *self)
 	if (self->genre) free(self->genre);
 	if (self->description) free(self->description);
 	if (self->user) free(self->user);
-    if (self->useragent) free(self->useragent);
+	if (self->useragent) free(self->useragent);
+	if (self->audio_info) _shout_util_dict_free (self->audio_info);
 
 	free(self);
 }
@@ -69,25 +129,26 @@ int shout_open(shout_t *self)
 	if (!self)
 		return SHOUTERR_INSANE;
 
-	if (!self->host || !self->password || !self->port || self->connected)
+	if (self->connected)
+		return SHOUTERR_CONNECTED;
+
+	if (!self->host || !self->password || !self->port)
 		return self->error = SHOUTERR_INSANE;
 
-	if (self->format == SHOUT_FORMAT_VORBIS && self->protocol != SHOUT_PROTOCOL_ICE && self->protocol != SHOUT_PROTOCOL_HTTP)
+	if (self->format == SHOUT_FORMAT_VORBIS && self->protocol != SHOUT_PROTOCOL_HTTP)
 		return self->error = SHOUTERR_UNSUPPORTED;
 
-    if(self->protocol != SHOUT_PROTOCOL_HTTP) {
-    	self->socket = sock_connect(self->host, self->port);
-	    if (self->socket <= 0)
-		    return self->error = SHOUTERR_NOCONNECT;
-    }
+	if(self->protocol != SHOUT_PROTOCOL_HTTP) {
+		if (self->protocol == SHOUT_PROTOCOL_ICY)
+			self->socket = sock_connect(self->host, self->port+1);
+		else
+			self->socket = sock_connect(self->host, self->port);
+		if (self->socket <= 0)
+			return self->error = SHOUTERR_NOCONNECT;
+	}
 
-    if (self->protocol == SHOUT_PROTOCOL_HTTP) {
-        if ((self->error = login_http_basic(self)) != SHOUTERR_SUCCESS)
-            return self->error;
-    }
-    else if (self->protocol == SHOUT_PROTOCOL_ICE) {
-		if ((self->error = login_ice(self)) != SHOUTERR_SUCCESS) {
-			sock_close(self->socket);
+	if (self->protocol == SHOUT_PROTOCOL_HTTP) {
+		if ((self->error = login_http_basic(self)) != SHOUTERR_SUCCESS) {
 			return self->error;
 		}
 	} else if (self->protocol == SHOUT_PROTOCOL_XAUDIOCAST) {
@@ -159,26 +220,27 @@ int shout_send(shout_t *self, const unsigned char *data, size_t len)
 ssize_t shout_send_raw(shout_t *self, const unsigned char *data, size_t len)
 {
 	ssize_t ret;
-    size_t remaining = len;
+	size_t remaining = len;
 
 	if (!self) 
-		return -1;
+		return SHOUTERR_INSANE;
 
-    self->error = SHOUTERR_SUCCESS;
+	if (!self->connected)
+		return SHOUTERR_UNCONNECTED;
+
+	self->error = SHOUTERR_SUCCESS;
 
 	while(remaining) {
 		ret = sock_write_bytes(self->socket, data, remaining);
-        if(ret == (ssize_t)remaining)
-            return len;
-        else if(ret < 0) {
-            if(errno == EINTR)
-                ret = 0;
-            else {
-                self->error = SHOUTERR_SOCKET;
-                return -1;
-            }
-        }
-        remaining -= ret;
+		if(ret == (ssize_t)remaining)
+			return len;
+		else if(ret < 0) {
+			if(errno == EINTR)
+				ret = 0;
+			else
+				return self->error = SHOUTERR_SOCKET;
+		}
+		remaining -= ret;
 	}
 
 	return len;
@@ -200,11 +262,95 @@ void shout_sync(shout_t *self)
 		timing_sleep((uint64_t)sleep);
 }
 
-int shout_get_errno(shout_t *self)
+int shout_delay(shout_t *self)
 {
-    return self->error;
+	if (!self)
+		return 0;
+
+	if (self->senttime == 0)
+		return 0;
+
+	/* Is this cast to double needed? */
+	return (double)self->senttime / 1000 - (timing_get_time() - self->starttime);
+}
+  
+shout_metadata_t *shout_metadata_new(void)
+{
+	return _shout_util_dict_new();
 }
 
+void shout_metadata_free(shout_metadata_t *self)
+{
+	if (!self)
+		return;
+
+	_shout_util_dict_free(self);
+}
+
+int shout_metadata_add(shout_metadata_t *self, const char *name, const char *value)
+{
+	if (!self || !name)
+		return SHOUTERR_INSANE;
+
+	return _shout_util_dict_set(self, name, value);
+}
+
+/* open second socket to server, send HTTP request to change metadata.
+ * TODO: prettier error-handling. */
+int shout_set_metadata(shout_t *self, shout_metadata_t *metadata)
+{
+	sock_t socket;
+	int rv;
+	char *encvalue;
+
+	if (!self || !metadata)
+		return SHOUTERR_INSANE;
+
+	if (!(encvalue = _shout_util_dict_urlencode(metadata, '&')))
+		return SHOUTERR_MALLOC;
+
+	if ((socket = sock_connect(self->host, self->port)) <= 0)
+		return SHOUTERR_NOCONNECT;
+
+	if (self->protocol == SHOUT_PROTOCOL_ICY)
+		rv = sock_write(socket, "GET /admin.cgi?mode=updinfo&pass=%s&%s HTTP/1.0\r\nUser-Agent: %s (Mozilla compatible)\r\n\r\n",
+		  self->password, encvalue, shout_get_agent(self));
+	else if (self->protocol == SHOUT_PROTOCOL_HTTP) {
+		char *auth = http_basic_authorization(self);
+
+		rv = sock_write(socket, "GET /admin/metadata?mode=updinfo&mount=%s&%s HTTP/1.0\r\nUser-Agent: %s\r\n%s\r\n",
+		  self->mount, encvalue, shout_get_agent(self), auth ? auth : "");
+	} else
+		rv = sock_write(socket, "GET /admin.cgi?mode=updinfo&pass=%s&mount=%s&%s HTTP/1.0\r\nUser-Agent: %s\r\n\r\n",
+		  self->password, self->mount, encvalue, shout_get_agent(self));
+	free(encvalue);
+	if (!rv) {
+		sock_close(socket);
+		return SHOUTERR_SOCKET;
+	}
+
+	sock_close(socket);
+
+	return SHOUTERR_SUCCESS;
+}
+
+/* getters/setters */
+const char *shout_version(int *major, int *minor, int *patch)
+{
+	if (major)
+		*major = LIBSHOUT_MAJOR;
+	if (minor)
+		*minor = LIBSHOUT_MINOR;
+	if (patch)
+		*patch = LIBSHOUT_MICRO;
+
+	return VERSION;
+}
+
+int shout_get_errno(shout_t *self)
+{
+	return self->error;
+}
 
 const char *shout_get_error(shout_t *self)
 {
@@ -235,6 +381,14 @@ const char *shout_get_error(shout_t *self)
 	}
 }
 
+int shout_get_connected(shout_t *self)
+{
+	if (self->connected)
+		return SHOUTERR_CONNECTED;
+	else
+		return SHOUTERR_UNCONNECTED;
+}
+
 int shout_set_host(shout_t *self, const char *host)
 {
 	if (!self)
@@ -246,7 +400,7 @@ int shout_set_host(shout_t *self, const char *host)
 	if (self->host)
 		free(self->host);
 
-	if (!(self->host = util_strdup(host)))
+	if (!(self->host = _shout_util_strdup(host)))
 		return self->error = SHOUTERR_MALLOC;
 
 	return self->error = SHOUTERR_SUCCESS;
@@ -292,7 +446,7 @@ int shout_set_password(shout_t *self, const char *password)
 	if (self->password)
 		free (self->password);
 
-	if (!(self->password = util_strdup(password)))
+	if (!(self->password = _shout_util_strdup(password)))
 		return self->error = SHOUTERR_MALLOC;
 
 	return self->error = SHOUTERR_SUCCESS;
@@ -308,17 +462,25 @@ const char* shout_get_password(shout_t *self)
 
 int shout_set_mount(shout_t *self, const char *mount)
 {
-	if (!self)
+	size_t len;
+
+	if (!self || !mount)
 		return SHOUTERR_INSANE;
 
 	if (self->connected)
 		return self->error = SHOUTERR_CONNECTED;
-
+	
 	if (self->mount)
 		free(self->mount);
 
-	if (!(self->mount = util_strdup(mount)))
+	len = strlen (mount) + 1;
+	if (mount[0] != '/')
+		len++;
+
+	if (!(self->mount = malloc(len)))
 		return self->error = SHOUTERR_MALLOC;
+
+	sprintf (self->mount, "%s%s", mount[0] == '/' ? "" : "/", mount);
 
 	return self->error = SHOUTERR_SUCCESS;
 }
@@ -342,7 +504,7 @@ int shout_set_name(shout_t *self, const char *name)
 	if (self->name)
 		free(self->name);
 
-	if (!(self->name = util_strdup(name)))
+	if (!(self->name = _shout_util_strdup(name)))
 		return self->error = SHOUTERR_MALLOC;
 
 	return self->error = SHOUTERR_SUCCESS;
@@ -367,7 +529,7 @@ int shout_set_url(shout_t *self, const char *url)
 	if (self->url)
 		free(self->url);
 
-	if (!(self->url = util_strdup(url)))
+	if (!(self->url = _shout_util_strdup(url)))
 		return self->error = SHOUTERR_MALLOC;
 
 	return self->error = SHOUTERR_SUCCESS;
@@ -392,7 +554,7 @@ int shout_set_genre(shout_t *self, const char *genre)
 	if (self->genre)
 		free(self->genre);
 
-	if (! (self->genre = util_strdup (genre)))
+	if (! (self->genre = _shout_util_strdup (genre)))
 		return self->error = SHOUTERR_MALLOC;
 
 	return self->error = SHOUTERR_SUCCESS;
@@ -417,7 +579,7 @@ int shout_set_agent(shout_t *self, const char *agent)
 	if (self->useragent)
 		free(self->useragent);
 
-	if (! (self->useragent = util_strdup (agent)))
+	if (! (self->useragent = _shout_util_strdup (agent)))
 		return self->error = SHOUTERR_MALLOC;
 
 	return self->error = SHOUTERR_SUCCESS;
@@ -425,10 +587,10 @@ int shout_set_agent(shout_t *self, const char *agent)
 
 const char *shout_get_agent(shout_t *self)
 {
-    if (!self)
-        return NULL;
+	if (!self)
+		return NULL;
 
-    return self->useragent;
+	return self->useragent;
 }
 
 
@@ -443,7 +605,7 @@ int shout_set_user(shout_t *self, const char *username)
 	if (self->user)
 		free(self->user);
 
-	if (! (self->user = util_strdup (username)))
+	if (! (self->user = _shout_util_strdup (username)))
 		return self->error = SHOUTERR_MALLOC;
 
 	return self->error = SHOUTERR_SUCCESS;
@@ -451,10 +613,10 @@ int shout_set_user(shout_t *self, const char *username)
 
 const char *shout_get_user(shout_t *self)
 {
-    if (!self)
-        return NULL;
+	if (!self)
+		return NULL;
 
-    return self->user;
+	return self->user;
 }
 
 int shout_set_description(shout_t *self, const char *description)
@@ -468,7 +630,7 @@ int shout_set_description(shout_t *self, const char *description)
 	if (self->description)
 		free(self->description);
 
-	if (! (self->description = util_strdup (description)))
+	if (! (self->description = _shout_util_strdup (description)))
 		return self->error = SHOUTERR_MALLOC;
 
 	return self->error = SHOUTERR_SUCCESS;
@@ -482,25 +644,39 @@ const char *shout_get_description(shout_t *self)
 	return self->description;
 }
 
-int shout_set_bitrate(shout_t *self, unsigned int bitrate)
+int shout_set_dumpfile(shout_t *self, const char *dumpfile)
 {
 	if (!self)
 		return SHOUTERR_INSANE;
 
 	if (self->connected)
-		return self->error = SHOUTERR_CONNECTED;
+		return SHOUTERR_CONNECTED;
 
-	self->bitrate = bitrate;
+	if (self->dumpfile)
+		free(self->dumpfile);
+
+	if (! (self->dumpfile = _shout_util_strdup (dumpfile)))
+		return self->error = SHOUTERR_MALLOC;
 
 	return self->error = SHOUTERR_SUCCESS;
 }
 
-unsigned int shout_get_bitrate(shout_t *self)
+const char *shout_get_dumpfile(shout_t *self)
 {
 	if (!self)
-		return 0;
+		return NULL;
 
-	return self->bitrate;
+	return self->dumpfile;
+}
+
+int shout_set_audio_info(shout_t *self, const char *name, const char *value)
+{
+	return self->error = _shout_util_dict_set(self->audio_info, name, value);
+}
+
+const char *shout_get_audio_info(shout_t *self, const char *name)
+{
+	return _shout_util_dict_get(self->audio_info, name);
 }
 
 int shout_set_public(shout_t *self, unsigned int public)
@@ -556,10 +732,9 @@ int shout_set_protocol(shout_t *self, unsigned int protocol)
 	if (self->connected)
 		return self->error = SHOUTERR_CONNECTED;
 
-	if (protocol != SHOUT_PROTOCOL_ICE &&
+	if (protocol != SHOUT_PROTOCOL_HTTP &&
 	    protocol != SHOUT_PROTOCOL_XAUDIOCAST &&
-	    protocol != SHOUT_PROTOCOL_ICY &&
-        protocol != SHOUT_PROTOCOL_HTTP)
+	    protocol != SHOUT_PROTOCOL_ICY)
 		return self->error = SHOUTERR_UNSUPPORTED;
 
 	self->protocol = protocol;
@@ -579,8 +754,19 @@ unsigned int shout_get_protocol(shout_t *self)
 
 static int send_http_request(shout_t *self, char *username, char *password)
 {
-    if (!sock_write(self->socket, "SOURCE %s HTTP/1.0\r\n", self->mount))
+	char *auth;
+	char *ai;
+
+	if (!sock_write(self->socket, "SOURCE %s HTTP/1.0\r\n", self->mount))
 		return SHOUTERR_SOCKET;
+
+	if (self->password && (auth = http_basic_authorization(self))) {
+		if (!sock_write(self->socket, auth)) {
+			free(auth);
+			return SHOUTERR_SOCKET;
+		}
+		free(auth);
+	}
 
 	if (!sock_write(self->socket, "ice-name: %s\r\n", self->name != NULL ? self->name : "no name"))
 		return SHOUTERR_SOCKET;
@@ -592,41 +778,36 @@ static int send_http_request(shout_t *self, char *username, char *password)
 		if (!sock_write(self->socket, "ice-genre: %s\r\n", self->genre))
 			return SHOUTERR_SOCKET;
 	}
-	if (!sock_write(self->socket, "ice-bitrate: %d\r\n", self->bitrate))
+#if 0
+	ai = shout_get_audio_info(self, SHOUT_AI_BITRATE);
+
+	if (bitrate && !sock_write(self->socket, "ice-bitrate: %s\r\n", bitrate))
 		return SHOUTERR_SOCKET;
+#else
+	if ((ai = _shout_util_dict_urlencode(self->audio_info, ';'))) {
+		if (!sock_write(self->socket, "ice-audio-info: %s\r\n", ai)) {
+			free(ai);
+			return SHOUTERR_SOCKET;
+		}
+	}
+#endif
 	if (!sock_write(self->socket, "ice-public: %d\r\n", self->public))
 		return SHOUTERR_SOCKET;
 	if (self->description) {
 		if (!sock_write(self->socket, "ice-description: %s\r\n", self->description))
 			return SHOUTERR_SOCKET;
 	}
-    if (self->useragent) {
-        if (!sock_write(self->socket, "User-Agent: %s\r\n", self->useragent))
-            return SHOUTERR_SOCKET;
-    }
+	if (self->useragent) {
+		if (!sock_write(self->socket, "User-Agent: %s\r\n", self->useragent))
+			return SHOUTERR_SOCKET;
+	}
 	if (self->format == SHOUT_FORMAT_VORBIS) {
-		if (!sock_write(self->socket, "Content-Type: application/x-ogg\r\n"))
+		if (!sock_write(self->socket, "Content-Type: application/ogg\r\n"))
 			return SHOUTERR_SOCKET;
 	} else if (self->format == SHOUT_FORMAT_MP3) {
 		if (!sock_write(self->socket, "Content-Type: audio/mpeg\r\n"))
 			return SHOUTERR_SOCKET;
 	}
-    if (username && password) {
-        char *data;
-        int len = strlen(username) + strlen(password) + 2;
-        char *orig = malloc(len);
-        strcpy(orig, username);
-        strcat(orig, ":");
-        strcat(orig, password);
-
-        data = util_base64_encode(orig);
-
-        if(!sock_write(self->socket, "Authorization: Basic %s\r\n", data)) {
-            free(data);
-            return SHOUTERR_SOCKET;
-        }
-        free(data);
-    }
 
 	if (!sock_write(self->socket, "\r\n"))
 		return SHOUTERR_SOCKET;
@@ -634,126 +815,123 @@ static int send_http_request(shout_t *self, char *username, char *password)
 	return SHOUTERR_SUCCESS;
 }
 
+static char *http_basic_authorization(shout_t *self)
+{
+	char *out, *in;
+	int len;
+
+	if (!self || !self->user || !self->password)
+		return NULL;
+
+	len = strlen(self->user) + strlen(self->password) + 2;
+	if (!(in = malloc(len)))
+		return NULL;
+	sprintf(in, "%s:%s", self->user, self->password);
+	out = _shout_util_base64_encode(in);
+	free(in);
+
+	len = strlen(out) + 24;
+	if (!(in = malloc(len))) {
+		free(out);
+		return NULL;
+	}
+	sprintf(in, "Authorization: Basic %s\r\n", out);
+	free(out);
+	
+	return in;
+}
 
 static int login_http_basic(shout_t *self)
 {
-    char header[4096];
-    http_parser_t *parser;
-    int code;
-    char *retcode, *realm;
+	char header[4096];
+	http_parser_t *parser;
+	int code;
+	char *retcode;
+#if 0
+	char *realm;
+#endif
     
-    self->error = SHOUTERR_SOCKET;
-
-   	self->socket = sock_connect(self->host, self->port);
-    if (self->socket <= 0) {
-	    return self->error = SHOUTERR_NOCONNECT;
-    }
-
-    if(send_http_request(self, NULL, NULL) != 0) {
-        sock_close(self->socket);
-        return self->error = SHOUTERR_SOCKET;
-    }
-
-    if (util_read_header(self->socket, header, 4096) == 0) {
-        /* either we didn't get a complete header, or we timed out */
-        sock_close(self->socket);
-	    return self->error = SHOUTERR_SOCKET;
-    }
-
-    parser = httpp_create_parser();
-    httpp_initialize(parser, NULL);
-    if (httpp_parse_response(parser, header, strlen(header), self->mount)) {
-        retcode = httpp_getvar(parser, HTTPP_VAR_ERROR_CODE);
-        code = atoi(retcode);
-        if(code >= 200 && code < 300) {
-            httpp_destroy(parser);
-	        return SHOUTERR_SUCCESS;
-        }
-        else if(code == 401) {
-            /* Don't really use this right now other than to check that it's
-             * present.
-             */
-            realm = httpp_getvar(parser, "www-authenticate");
-            if(realm) {
-                httpp_destroy(parser);
-                sock_close(self->socket);
-
-   	            self->socket = sock_connect(self->host, self->port);
-                if (self->socket <= 0)
-            	    return self->error = SHOUTERR_NOCONNECT;
-
-                if(send_http_request(self, self->user, self->password) != 0) {
-                    sock_close(self->socket);
-                    return self->error = SHOUTERR_SOCKET;
-                }
-
-                if (util_read_header(self->socket, header, 4096) == 0) {
-                    /* either we didn't get a complete header, or we timed out */
-                    sock_close(self->socket);
-	                return self->error = SHOUTERR_SOCKET;
-                }
-                parser = httpp_create_parser();
-                httpp_initialize(parser, NULL);
-                if (httpp_parse_response(parser, header, strlen(header), self->mount)) {
-                    retcode = httpp_getvar(parser, HTTPP_VAR_ERROR_CODE);
-                    code = atoi(retcode);
-                    if(code >= 200 && code < 300) {
-                        httpp_destroy(parser);
-            	        return SHOUTERR_SUCCESS;
-                    }
-                }
-            }
-        }
-    }
-
-    httpp_destroy(parser);
-    sock_close(self->socket);
-    return self->error = SHOUTERR_REFUSED;
-}
-
-static int login_ice(shout_t *self)
-{
 	self->error = SHOUTERR_SOCKET;
 
-	if (!sock_write(self->socket, "SOURCE %s ICE/1.0\n", self->mount))
-		return SHOUTERR_SOCKET;
-	if (!sock_write(self->socket, "ice-password: %s\n", self->password))
-		return SHOUTERR_SOCKET;
-	if (!sock_write(self->socket, "ice-name: %s\n", self->name != NULL ? self->name : "no name"))
-		return SHOUTERR_SOCKET;
-	if (self->url) {
-		if (!sock_write(self->socket, "ice-url: %s\n", self->url))
-			return SHOUTERR_SOCKET;
-	}
-	if (self->genre) {
-		if (!sock_write(self->socket, "ice-genre: %s\n", self->genre))
-			return SHOUTERR_SOCKET;
-	}
-	if (!sock_write(self->socket, "ice-bitrate: %d\n", self->bitrate))
-		return SHOUTERR_SOCKET;
-	if (!sock_write(self->socket, "ice-public: %d\n", self->public))
-		return SHOUTERR_SOCKET;
-	if (self->description) {
-		if (!sock_write(self->socket, "ice-description: %s\n", self->description))
-			return SHOUTERR_SOCKET;
-	}
-	if (self->format == SHOUT_FORMAT_VORBIS) {
-		if (!sock_write(self->socket, "Content-Type: application/x-ogg\n"))
-			return SHOUTERR_SOCKET;
-	} else if (self->format == SHOUT_FORMAT_MP3) {
-		if (!sock_write(self->socket, "Content-Type: audio/mpeg\n"))
-			return SHOUTERR_SOCKET;
+   	self->socket = sock_connect(self->host, self->port);
+	if (self->socket < 0) {
+		return self->error = SHOUTERR_NOCONNECT;
 	}
 
-	if (!sock_write(self->socket, "\n"))
-		return SHOUTERR_SOCKET;
+#if 0
+	if(send_http_request(self, NULL, NULL) != 0) {
+#else
+	/* assume we'll have to authenticate, saves round trips on basic */
+	if(send_http_request(self, self->user, self->password) != 0) {
+#endif
+		return self->error = SHOUTERR_SOCKET;
+	}
 
-	return SHOUTERR_SUCCESS;
+	if (_shout_util_read_header(self->socket, header, 4096) == 0) {
+		/* either we didn't get a complete header, or we timed out */
+		return self->error = SHOUTERR_SOCKET;
+	}
+
+	parser = httpp_create_parser();
+	httpp_initialize(parser, NULL);
+	if (httpp_parse_response(parser, header, strlen(header), self->mount)) {
+		retcode = httpp_getvar(parser, HTTPP_VAR_ERROR_CODE);
+		code = atoi(retcode);
+		if(code >= 200 && code < 300) {
+			httpp_destroy(parser);
+			return SHOUTERR_SUCCESS;
+		}
+#if 0
+		else if(code == 401) {
+			/* Don't really use this right now other than to check that it's
+			* present.
+			*/
+			realm = httpp_getvar(parser, "www-authenticate");
+			if(realm) {
+				httpp_destroy(parser);
+				sock_close(self->socket);
+
+				self->socket = sock_connect(self->host, self->port);
+				if (self->socket <= 0)
+					return self->error = SHOUTERR_NOCONNECT;
+
+				if(send_http_request(self, self->user, self->password) != 0) {
+					sock_close(self->socket);
+					return self->error = SHOUTERR_SOCKET;
+				}
+
+				if (_shout_util_read_header(self->socket, header, 4096) == 0) {
+					/* either we didn't get a complete header, or we timed out */
+					sock_close(self->socket);
+					return self->error = SHOUTERR_SOCKET;
+				}
+				parser = httpp_create_parser();
+				httpp_initialize(parser, NULL);
+				if (httpp_parse_response(parser, header, strlen(header), self->mount)) {
+					retcode = httpp_getvar(parser, HTTPP_VAR_ERROR_CODE);
+					code = atoi(retcode);
+					if(code >= 200 && code < 300) {
+						httpp_destroy(parser);
+						return SHOUTERR_SUCCESS;
+					}
+				}
+			}
+		}
+#endif
+	}
+
+	httpp_destroy(parser);
+	return self->error = SHOUTERR_NOLOGIN;
 }
 
 static int login_xaudiocast(shout_t *self)
 {
 	char response[4096];
+	const char *bitrate;
+
+	bitrate = shout_get_audio_info(self, SHOUT_AI_BITRATE);
+	if (!bitrate)
+		bitrate = "0";
 
 	if (!sock_write(self->socket, "SOURCE %s %s\n", self->password, self->mount))
 		return SHOUTERR_SOCKET;
@@ -763,11 +941,13 @@ static int login_xaudiocast(shout_t *self)
 		return SHOUTERR_SOCKET;
 	if (!sock_write(self->socket, "x-audiocast-genre: %s\n", self->genre != NULL ? self->genre : "icecast"))
 		return SHOUTERR_SOCKET;
-	if (!sock_write(self->socket, "x-audiocast-bitrate: %i\n", self->bitrate))
+	if (!sock_write(self->socket, "x-audiocast-bitrate: %s\n", bitrate))
 		return SHOUTERR_SOCKET;
 	if (!sock_write(self->socket, "x-audiocast-public: %i\n", self->public))
 		return SHOUTERR_SOCKET;
 	if (!sock_write(self->socket, "x-audiocast-description: %s\n", self->description != NULL ? self->description : "Broadcasting with the icecast streaming media server!"))
+		return SHOUTERR_SOCKET;
+	if (self->dumpfile && !sock_write(self->socket, "x-audiocast-dumpfile: %s\n", self->dumpfile))
 		return SHOUTERR_SOCKET;
 
 	if (!sock_write(self->socket, "\n"))
@@ -785,6 +965,11 @@ static int login_xaudiocast(shout_t *self)
 int login_icy(shout_t *self)
 {
 	char response[4096];
+	const char *bitrate;
+
+	bitrate = shout_get_audio_info(self, SHOUT_AI_BITRATE);
+	if (!bitrate)
+		bitrate = "0";
 
 	if (!sock_write(self->socket, "%s\n", self->password))
 		return SHOUTERR_SOCKET;
@@ -793,21 +978,15 @@ int login_icy(shout_t *self)
 	if (!sock_write(self->socket, "icy-url:%s\n", self->url != NULL ? self->url : "http://www.icecast.org/"))
 		return SHOUTERR_SOCKET;
 
-#if 0
 	/* Fields we don't use */
-	if (!sock_write(self->socket, "icy-irc:%s\n", self->irc != NULL ? self->irc : ""))
+	if (!sock_write(self->socket, "icy-irc:\nicy-aim:\nicy-icq:\n"))
 		return SHOUTERR_SOCKET;
-	if (!sock_write(self->socket, "icy-aim:%s\n", self->aim != NULL ? self->aim : ""))
-		return SHOUTERR_SOCKET;
-	if (!sock_write(self->socket, "icy-icq:%s\n", self->icq != NULL ? self->icq : ""))
-		return SHOUTERR_SOCKET;
-	if (!sock_write(self->socket, "icy-pub:%i\n", self->ispublic))
-		return SHOUTERR_SOCKET;
-#endif
 
+	if (!sock_write(self->socket, "icy-pub:%i\n", self->public))
+		return SHOUTERR_SOCKET;
 	if (!sock_write(self->socket, "icy-genre:%s\n", self->genre != NULL ? self->genre : "icecast"))
 		return SHOUTERR_SOCKET;
-	if (!sock_write(self->socket, "icy-br:%i\n", self->bitrate))
+	if (!sock_write(self->socket, "icy-br:%s\n", bitrate))
 		return SHOUTERR_SOCKET;
 
 	if (!sock_write(self->socket, "\n"))

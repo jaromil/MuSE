@@ -220,7 +220,7 @@ int OutChannel::create_ice() {
 
   case MP3:
     ice->format = SHOUT_FORMAT_MP3;
-    ice->login(SHOUT_PROTOCOL_XAUDIOCAST);
+    ice->login(SHOUT_PROTOCOL_HTTP);
     break;
 
   case OGG:

@@ -1,11 +1,13 @@
-MuSE 0.8.2 "COTURNIX"
-        new resampling for ogg/vorbis encoding
-	fine tune of encoder channels
-	icy-login back to stream to shoutcast
-	new GTK+-2 graphical interface
-	reorganization of codebase, localization
-	new commandline switches for playmode and device
-	code cleanup gaining overall speed and stability
+MuSE 0.9 "COTURNIX"
+	important engine optimization and speed improvements 
+	new GTK-2 graphical interface with improved usability (nightolo)
+        new resampling for ogg/vorbis encoding (the secret rabbit code)
+	full range of login types for different servers
+	revamped commandline interface with more switches
+	some relevant bugfixes improving overall stability
+	rewrite of decoder channels
+	GTK-2 GUI localization
+	doxygen documentation of the engine's API
 
 MuSE 0.8.1 "Z0RZ0RZ" - 30 03 03
 /* mainly a bugfix release, also introducing usage assestments

@@ -20,7 +20,7 @@
  */
 
 /**
-   @file Ogg/Vorbis decoder
+   @file dec_ogg.h Ogg/Vorbis decoder
    @desc input channel: decoder implemenation
 */
 

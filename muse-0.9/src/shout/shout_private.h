@@ -6,18 +6,24 @@
 #include "shout.h"
 #include "sock.h"
 #include "timing.h"
+#include "util.h"
 
+//#include <stdint.h>
 #include <sys/types.h>
-#ifdef HAVE_STDINT_H
-#  include <stdint.h>
-#elif defined (HAVE_INTTYPES_H)
-#  include <inttypes.h>
-#endif
+#include <inttypes.h>
+
+#include "config.h"
+
+#define LIBSHOUT_MAJOR 2
+#define LIBSHOUT_MINOR 0
+#define LIBSHOUT_MICRO 0
 
 #define LIBSHOUT_DEFAULT_HOST "localhost"
 #define LIBSHOUT_DEFAULT_PORT 8000
 #define LIBSHOUT_DEFAULT_FORMAT SHOUT_FORMAT_VORBIS
-#define LIBSHOUT_DEFAULT_PROTOCOL SHOUT_PROTOCOL_ICE
+#define LIBSHOUT_DEFAULT_PROTOCOL SHOUT_PROTOCOL_HTTP
+#define LIBSHOUT_DEFAULT_USER "source"
+#define LIBSHOUT_DEFAULT_USERAGENT "libshout/" VERSION
 
 struct shout {
 	/* hostname or IP of icecast server */
@@ -30,9 +36,11 @@ struct shout {
 	unsigned int protocol;
 	/* type of data being sent */
 	unsigned int format;
+	/* audio encoding parameters */
+	util_dict *audio_info;
 
-    /* user-agent to use when doing HTTP login */
-    char *useragent;
+	/* user-agent to use when doing HTTP login */
+	char *useragent;
 	/* mountpoint for this stream */
 	char *mount;
 	/* name of the stream */
@@ -43,10 +51,10 @@ struct shout {
 	char *genre;
 	/* description of the stream */
 	char *description;
-    /* username to use for HTTP auth. */
-    char *user;
-	/* bitrate of this stream */
-	int bitrate;
+	/* icecast 1.x dumpfile */
+	char *dumpfile;
+	/* username to use for HTTP auth. */
+	char *user;
 	/* is this stream private? */
 	int public;
 
@@ -65,12 +73,6 @@ struct shout {
 	uint64_t senttime;
 
 	int error;
-};
-
-struct shout_metadata {
-	char *name;
-	char *value;
-	shout_metadata_t *next;
 };
 
 int shout_open_vorbis(shout_t *self);

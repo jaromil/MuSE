@@ -27,7 +27,7 @@ extern "C" {
 #include <string.h>
 
   /**
-     @file generic utilities
+     @file jutils.h generic utilities
   */
 
 #define MAX_DEBUG 2

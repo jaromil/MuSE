@@ -21,7 +21,7 @@
 */
 
 /**
-   @file MuSE decoder abstraction
+   @file decoder.h MuSE decoder abstraction
    @desc header file to be included by decoder implementations
 */
 

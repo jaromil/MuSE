@@ -1,3 +1,4 @@
+/* -*- c-basic-offset: 4; -*- */
 /* sock.c
  * - General Socket Functions
  *
@@ -19,6 +20,10 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+ #include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -27,29 +32,32 @@
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
 
 #ifndef _WIN32
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <sys/time.h>
 #include <netdb.h>
-#include <sys/poll.h>
 #else
 #include <winsock2.h>
 #define vsnprintf _vsnprintf
 #define EINPROGRESS WSAEINPROGRESS
 #define ENOTSOCK WSAENOTSOCK
 #define EWOULDBLOCK WSAEWOULDBLOCK
+#define EALREADY WSAEALREADY
+#define socklen_t    int
+#define va_copy(ap1, ap2) memcpy(&ap1, &ap2, sizeof(va_list))
 #endif
 
 #include "sock.h"
 #include "resolver.h"
 
-#ifndef _WIN32
-extern int errno;
-#endif
 
 /* sock_initialize
 **
@@ -59,11 +67,11 @@ extern int errno;
 void sock_initialize(void)
 {
 #ifdef _WIN32
-	WSADATA wsad;
-	WSAStartup(0x0101, &wsad);
+    WSADATA wsad;
+    WSAStartup(0x0101, &wsad);
 #endif
 
-	resolver_initialize();
+    resolver_initialize();
 }
 
 /* sock_shutdown
@@ -74,8 +82,10 @@ void sock_initialize(void)
 void sock_shutdown(void)
 {
 #ifdef _WIN32
-	WSACleanup();
+    WSACleanup();
 #endif
+
+    resolver_shutdown();
 }
 
 /* sock_get_localip
@@ -87,15 +97,15 @@ void sock_shutdown(void)
 */
 char *sock_get_localip(char *buff, int len)
 {
-	char temp[1024];
+    char temp[1024];
 
-	if (gethostname(temp, 1024) != 0)
-		return NULL;
+    if (gethostname(temp, sizeof(temp)) != 0)
+        return NULL;
 
-	if (resolver_getip(temp, buff, len))
-		return buff;
+    if (resolver_getip(temp, buff, len))
+        return buff;
 
-	return NULL;
+    return NULL;
 }
 
 /* sock_error
@@ -105,9 +115,9 @@ char *sock_get_localip(char *buff, int len)
 int sock_error(void)
 {
 #ifdef _WIN32
-	return WSAGetLastError();
+    return WSAGetLastError();
 #else
-	return errno;
+    return errno;
 #endif
 }
 
@@ -118,7 +128,27 @@ int sock_error(void)
 */
 int sock_recoverable(int error)
 {
-	return (error == 0 || error == EAGAIN || error == EINTR || error == EINPROGRESS || error == EWOULDBLOCK);
+    return (error == 0 || error == EAGAIN || error == EINTR || 
+            error == EINPROGRESS || error == EWOULDBLOCK);
+}
+
+int sock_stalled (int error)
+{
+    return error == EAGAIN || error == EINPROGRESS || error == EWOULDBLOCK || 
+        error == EALREADY;
+}
+
+#if 0
+/* what is this??? */
+static int sock_success (int error)
+{
+    return error == 0;
+}
+#endif
+
+static int sock_connect_pending (int error)
+{
+    return error == EINPROGRESS || error == EALREADY;
 }
 
 /* sock_valid_socket
@@ -127,13 +157,14 @@ int sock_recoverable(int error)
 */
 int sock_valid_socket(sock_t sock)
 {
-	int ret;
-	int optval, optlen;
+    int ret;
+    int optval;
+    socklen_t optlen;
 
-	optlen = sizeof(int);
-	ret = getsockopt(sock, SOL_SOCKET, SO_TYPE, &optval, &optlen);
+    optlen = sizeof(int);
+    ret = getsockopt(sock, SOL_SOCKET, SO_TYPE, &optval, &optlen);
 
-	return (ret == 0);
+    return (ret == 0);
 }
 
 /* inet_aton
@@ -143,15 +174,15 @@ int sock_valid_socket(sock_t sock)
 #ifdef _WIN32
 int inet_aton(const char *s, struct in_addr *a)
 {
-	int lsb, b2, b3, msb;
+    int lsb, b2, b3, msb;
 
-	if (sscanf(s, "%d.%d.%d.%d", &lsb, &b2, &b3, &msb) < 4) {
-		return 0;
-	}
+    if (sscanf(s, "%d.%d.%d.%d", &lsb, &b2, &b3, &msb) < 4) {
+        return 0;
+    }
 
-	a->s_addr = inet_addr(s);
+    a->s_addr = inet_addr(s);
     
-	return (a->s_addr != INADDR_NONE);
+    return (a->s_addr != INADDR_NONE);
 }
 #endif /* _WIN32 */
 
@@ -164,29 +195,39 @@ int inet_aton(const char *s, struct in_addr *a)
 int sock_set_blocking(sock_t sock, const int block)
 {
 #ifdef _WIN32
-	int varblock = block;
+    int varblock = block;
 #endif
 
-	if ((!sock_valid_socket(sock)) || (block < 0) || (block > 1))
-		return SOCK_ERROR;
+    if ((!sock_valid_socket(sock)) || (block < 0) || (block > 1))
+        return SOCK_ERROR;
 
 #ifdef _WIN32
-	return ioctlsocket(sock, FIONBIO, &varblock);
+    return ioctlsocket(sock, FIONBIO, &varblock);
 #else
-	return fcntl(sock, F_SETFL, (block == SOCK_BLOCK) ? 0 : O_NONBLOCK);
+    return fcntl(sock, F_SETFL, (block == SOCK_BLOCK) ? 0 : O_NONBLOCK);
 #endif
 }
 
 int sock_set_nolinger(sock_t sock)
 {
-	struct linger lin = { 0, 0 };
-	return setsockopt(sock, SOL_SOCKET, SO_LINGER, (void *)&lin, sizeof(struct linger));
+    struct linger lin = { 0, 0 };
+    return setsockopt(sock, SOL_SOCKET, SO_LINGER, (void *)&lin, 
+            sizeof(struct linger));
+}
+
+int sock_set_nodelay(sock_t sock)
+{
+    int nodelay = 1;
+
+    return setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (void *)&nodelay,
+            sizeof(int));
 }
 
 int sock_set_keepalive(sock_t sock)
 {
-	int keepalive = 1;
-	return setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (void *)&keepalive, sizeof(int));
+    int keepalive = 1;
+    return setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (void *)&keepalive, 
+            sizeof(int));
 }
 
 /* sock_close
@@ -196,68 +237,140 @@ int sock_set_keepalive(sock_t sock)
 int sock_close(sock_t sock)
 {
 #ifdef _WIN32
-	return closesocket(sock);
+    return closesocket(sock);
 #else
-	return close(sock);
+    return close(sock);
 #endif
 }
+
+/* sock_writev
+ *
+ * write multiple buffers at once, return bytes actually written
+ */
+#ifdef HAVE_WRITEV
+
+ssize_t sock_writev (int sock, const struct iovec *iov, const size_t count)
+{
+    return writev (sock, iov, count);
+}
+
+#else
+
+ssize_t sock_writev (int sock, const struct iovec *iov, const size_t count)
+{
+    int i = count, accum = 0, ret;
+    const struct iovec *v = iov;
+
+    while (i)
+    {
+        if (v->iov_base && v->iov_len)
+        {
+            ret = sock_write_bytes (sock, v->iov_base, v->iov_len);
+            if (ret == -1 && accum==0)
+                return -1;
+            if (ret == -1)
+                ret = 0;
+            accum += ret;
+            if (ret < (int)v->iov_len)
+                break;
+        }
+        v++;
+        i--;
+    }
+    return accum;
+}
+
+#endif
 
 /* sock_write_bytes
 **
 ** write bytes to the socket
 ** this function will _NOT_ block
 */
-int sock_write_bytes(sock_t sock, const char *buff, const int len)
+int sock_write_bytes(sock_t sock, const void *buff, const size_t len)
 {
-	/* sanity check */
-	if (!buff) {
-		return SOCK_ERROR;
-	} else if (len <= 0) {
-		return SOCK_ERROR;
-	} else if (!sock_valid_socket(sock)) {
-		return SOCK_ERROR;
-	}
+    /* sanity check */
+    if (!buff) {
+        return SOCK_ERROR;
+    } else if (len <= 0) {
+        return SOCK_ERROR;
+    } /*else if (!sock_valid_socket(sock)) {
+        return SOCK_ERROR;
+    } */
 
-	return send(sock, buff, len, 0);
+    return send(sock, buff, len, 0);
 }
 
 /* sock_write_string
 **
 ** writes a string to a socket
-** this function always blocks even if the socket is nonblocking
+** This function must only be called with a blocking socket.
 */
 int sock_write_string(sock_t sock, const char *buff)
 {
-	return (sock_write_bytes(sock, buff, strlen(buff)) > 0);
+    return (sock_write_bytes(sock, buff, strlen(buff)) > 0);
 }
 
 /* sock_write
 **
 ** write a formatted string to the socket
-** this function will always block, even if the socket is nonblocking
+** this function must only be called with a blocking socket.
 ** will truncate the string if it's greater than 1024 chars.
 */
 int sock_write(sock_t sock, const char *fmt, ...)
 {
-	char buff[1024];
-	va_list ap;
+    int rc;
+    va_list ap;
 
-	va_start(ap, fmt);
-	vsnprintf(buff, 1024, fmt, ap);
-	va_end(ap);
-	
-	return sock_write_bytes(sock, buff, strlen(buff));
+    va_start (ap, fmt);
+    rc = sock_write_fmt (sock, fmt, ap);
+    va_end (ap);
+
+    return rc;
 }
+
+int sock_write_fmt(sock_t sock, const char *fmt, va_list ap)
+{
+    char buffer [1024], *buff = buffer;
+    int len;
+    int rc = SOCK_ERROR;
+    va_list ap_retry;
+
+    va_copy (ap_retry, ap);
+
+    len = vsnprintf (buff, sizeof (buffer), fmt, ap);
+
+    if (len > 0)
+    {
+        if ((size_t)len < sizeof (buffer))   /* common case */
+            rc = sock_write_bytes(sock, buff, (size_t)len);
+        else
+        {
+            /* truncated */
+            buff = malloc (++len);
+            if (buff)
+            {
+                len = vsnprintf (buff, len, fmt, ap_retry);
+                if (len > 0)
+                    rc = sock_write_bytes (sock, buff, len);
+                free (buff);
+            }
+        }
+    }
+    va_end (ap_retry);
+
+    return rc;
+}
+
 
 int sock_read_bytes(sock_t sock, char *buff, const int len)
 {
-//	int ret;
 
-	if (!sock_valid_socket(sock)) return 0;
-	if (!buff) return 0;
-	if (len <= 0) return 0;
+    /*if (!sock_valid_socket(sock)) return 0; */
+    if (!buff) return 0;
+    if (len <= 0) return 0;
 
-	return recv(sock, buff, len, 0);
+    return recv(sock, buff, len, 0);
 }
 
 /* sock_read_line
@@ -270,128 +383,233 @@ int sock_read_bytes(sock_t sock, char *buff, const int len)
 */
 int sock_read_line(sock_t sock, char *buff, const int len)
 {
-	char c = '\0';
-	int read_bytes, pos;
+    char c = '\0';
+    int read_bytes, pos;
   
-	if (!sock_valid_socket(sock)) {
-		return 0;
-	} else if (!buff) {
-		return 0;
-	} else if (len <= 0) {
-		return 0;
-	}
+    /*if (!sock_valid_socket(sock)) {
+        return 0;
+    } else*/ if (!buff) {
+        return 0;
+    } else if (len <= 0) {
+        return 0;
+    }
 
-	pos = 0;
-	read_bytes = recv(sock, &c, 1, 0);
+    pos = 0;
+    read_bytes = recv(sock, &c, 1, 0);
 
-	if (read_bytes < 0) {
-		return 0;
-	}
+    if (read_bytes < 0) {
+        return 0;
+    }
 
-	while ((c != '\n') && (pos < len) && (read_bytes == 1)) {
-		if (c != '\r')
-			buff[pos++] = c;
-		read_bytes = recv(sock, &c, 1, 0);
-	}
-	
-	if (read_bytes == 1) {
-		buff[pos] = '\0';
-		return 1;
-	} else {
-		return 0;
-	}
+    while ((c != '\n') && (pos < len) && (read_bytes == 1)) {
+        if (c != '\r')
+            buff[pos++] = c;
+        read_bytes = recv(sock, &c, 1, 0);
+    }
+    
+    if (read_bytes == 1) {
+        buff[pos] = '\0';
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
-/* sock_connect_wto
-**
-** Connect to hostname on specified port and return the created socket.
-** timeout specifies the maximum time to wait for this to finish and
-** returns when it expires whether it connected or not
-** setting timeout to 0 disable the timeout.
+/* see if a connection can be written to
+** return -1 unable to check
+** return 0 for not yet
+** return 1 for ok 
 */
+int sock_connected (int sock, unsigned timeout)
+{
+    fd_set wfds;
+    int val = SOCK_ERROR;
+    socklen_t size = sizeof val;
+    struct timeval tv;
+
+    tv.tv_sec = timeout;
+    tv.tv_usec = 0;
+
+    FD_ZERO(&wfds);
+    FD_SET(sock, &wfds);
+
+    switch (select(sock + 1, NULL, &wfds, NULL, &tv))
+    {
+        case 0:  return SOCK_TIMEOUT;
+        default: if (getsockopt(sock, SOL_SOCKET, SO_ERROR, &val, &size) < 0)
+                     val = SOCK_ERROR;
+        case -1: return val;
+    }
+}
+
+#ifdef HAVE_GETADDRINFO
+
+int sock_connect_non_blocking (const char *hostname, const unsigned port)
+{
+    int sock = SOCK_ERROR;
+    struct addrinfo *ai, *head, hints;
+    char service[8];
+
+    memset (&hints, 0, sizeof (hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+
+    snprintf (service, sizeof (service), "%u", port);
+
+    if (getaddrinfo (hostname, service, &hints, &head))
+        return SOCK_ERROR;
+
+    ai = head;
+    while (ai)
+    {
+        if ((sock = socket (ai->ai_family, ai->ai_socktype, ai->ai_protocol)) 
+                > -1)
+        {
+            sock_set_blocking (sock, SOCK_NONBLOCK);
+            if (connect(sock, ai->ai_addr, ai->ai_addrlen) < 0 && 
+                    !sock_connect_pending(sock_error()))
+            {
+                sock_close (sock);
+                sock = SOCK_ERROR;
+            }
+            else
+                break;
+        }
+        ai = ai->ai_next;
+    }
+    if (head) freeaddrinfo (head);
+    
+    return sock;
+}
+
+
 sock_t sock_connect_wto(const char *hostname, const int port, const int timeout)
 {
-	sock_t  sock;
-	struct sockaddr_in sin, server;
-	char ip[20];
+    int sock = SOCK_ERROR;
+    struct addrinfo *ai, *head, hints;
+    char service[8];
 
-	if (!hostname || !hostname[0]) {
-		return SOCK_ERROR;
-	} else if (port <= 0) {
-		return SOCK_ERROR;
-	}
-		
-	sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock == SOCK_ERROR) { 
-		sock_close(sock); 
-		return SOCK_ERROR; 
-	}
+    memset (&hints, 0, sizeof (hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    snprintf (service, sizeof (service), "%u", port);
 
-	memset(&sin, 0, sizeof(struct sockaddr_in));
-	memset(&server, 0, sizeof(struct sockaddr_in));
+    if (getaddrinfo (hostname, service, &hints, &head))
+        return SOCK_ERROR;
 
-	if (!resolver_getip(hostname, ip, 20))
-		return SOCK_ERROR;
-	
-	if (inet_aton(ip, (struct in_addr *)&sin.sin_addr) == 0) {
-		sock_close(sock);
-		return SOCK_ERROR;
-	}
+    ai = head;
+    while (ai)
+    {
+        if ((sock = socket (ai->ai_family, ai->ai_socktype, ai->ai_protocol)) > -1)
+        {
+            if (timeout)
+            {
+                sock_set_blocking (sock, SOCK_NONBLOCK);
+                if (connect (sock, ai->ai_addr, ai->ai_addrlen) < 0)
+                {
+                    if (sock_connected (sock, timeout) > 0)
+                    {
+                        sock_set_blocking(sock, SOCK_BLOCK);
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                if (connect (sock, ai->ai_addr, ai->ai_addrlen) == 0)
+                    break;
+            }
+            sock_close (sock);
+        }
+        sock = SOCK_ERROR;
+        ai = ai->ai_next;
+    }
+    if (head) freeaddrinfo (head);
 
-	memcpy(&server.sin_addr, &sin.sin_addr, sizeof(struct sockaddr_in));
-
-	server.sin_family = AF_INET;
-	server.sin_port = htons(port);
-
-	/* if we have a timeout, use select, if not, use connect straight. */
-	/* dunno if this is portable, and it sure is complicated for such a 
-	   simple thing to want to do.  damn BSD sockets! */
-	if (timeout > 0) {
-		fd_set wfds;
-		struct timeval tv;
-		int retval;
-		int val;
-		int valsize = sizeof(int);
-
-		FD_ZERO(&wfds);
-		FD_SET(sock, &wfds);
-		tv.tv_sec = timeout;
-		tv.tv_usec = 0;
-
-		sock_set_blocking(sock, SOCK_NONBLOCK);
-		retval = connect(sock, (struct sockaddr *)&server, sizeof(server));
-		if (retval == 0) {
-			sock_set_blocking(sock, SOCK_BLOCK);
-			return sock;
-		} else {
-			if (!sock_recoverable(sock_error())) {
-				sock_close(sock);
-				return SOCK_ERROR;
-			}
-		}
-
-		if (select(sock + 1, NULL, &wfds, NULL, &tv)) {
-			retval = getsockopt(sock, SOL_SOCKET, SO_ERROR, (void *)&val, (int *)&valsize);
-			if ((retval == 0) && (val == 0)) {
-				sock_set_blocking(sock, SOCK_BLOCK);
-				return sock;
-			} else {
-				sock_close(sock);
-				return SOCK_ERROR;
-			}
-		} else {
-			sock_close(sock);
-			return SOCK_ERROR;
-		}
-       } else {
-	  	if (connect(sock, (struct sockaddr *)&server, sizeof(server)) == 0) {
-			return sock;
-		} else {
-			sock_close(sock);
-			return SOCK_ERROR;
-		}
-       }
+    return sock;
 }
+
+#else
+
+int sock_try_connection (int sock, const char *hostname, const unsigned port)
+{
+    struct sockaddr_in sin, server;
+    char ip[MAX_ADDR_LEN];
+
+    if (!hostname || !hostname[0] || port == 0)
+        return -1;
+
+    memset(&sin, 0, sizeof(struct sockaddr_in));
+    memset(&server, 0, sizeof(struct sockaddr_in));
+
+    if (!resolver_getip(hostname, ip, MAX_ADDR_LEN))
+    {
+        sock_close (sock);
+        return -1;
+    }
+
+    if (inet_aton(ip, (struct in_addr *)&sin.sin_addr) == 0)
+    {
+        sock_close(sock);
+        return -1;
+    }
+
+    memcpy(&server.sin_addr, &sin.sin_addr, sizeof(struct sockaddr_in));
+
+    server.sin_family = AF_INET;
+    server.sin_port = htons(port);
+
+    return connect(sock, (struct sockaddr *)&server, sizeof(server));
+}
+
+int sock_connect_non_blocking (const char *hostname, const unsigned port)
+{
+    int sock;
+
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock == -1)
+        return -1;
+
+    sock_set_blocking (sock, SOCK_NONBLOCK);
+    sock_try_connection (sock, hostname, port);
+    
+    return sock;
+}
+
+sock_t sock_connect_wto(const char *hostname, const int port, const int timeout)
+{
+    int sock;
+
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock == -1)
+        return -1;
+
+    if (timeout)
+    {
+        sock_set_blocking (sock, SOCK_NONBLOCK);
+        if (sock_try_connection (sock, hostname, port) < 0)
+        {
+            int ret = sock_connected (sock, timeout);
+            if (ret <= 0)
+            {
+                sock_close (sock);
+                return SOCK_ERROR;
+            }
+        }
+        sock_set_blocking(sock, SOCK_BLOCK);
+    }
+    else
+    {
+        if (sock_try_connection (sock, hostname, port) < 0)
+        {
+            sock_close (sock);
+            sock = SOCK_ERROR;
+        }
+    }
+    return sock;
+}
+#endif
+
 
 /* sock_get_server_socket
 **
@@ -401,99 +619,119 @@ sock_t sock_connect_wto(const char *hostname, const int port, const int timeout)
 */
 sock_t sock_get_server_socket(const int port, char *sinterface)
 {
-#ifdef HAVE_IPV6
-	struct sockaddr_storage sa;
-#else	
-	struct sockaddr_in sa;
+#ifdef HAVE_INET_PTON
+    struct sockaddr_storage sa;
+#else    
+    struct sockaddr_in sa;
 #endif
-	int sa_family, sa_len, error, opt;
-	sock_t sock;
-	char ip[40];
+    int family, len, error, opt;
+    sock_t sock;
+    char ip[MAX_ADDR_LEN];
 
-	if (port < 0)
-		return SOCK_ERROR;
+    if (port < 0)
+        return SOCK_ERROR;
 
-	/* defaults */
-	memset(&sa, 0, sizeof(sa));
-	sa_family = AF_INET;
-	sa_len = sizeof(struct sockaddr_in);
+    /* defaults */
+    memset(&sa, 0, sizeof(sa));
+    family = AF_INET;
+    len = sizeof(struct sockaddr_in);
 
-	/* set the interface to bind to if specified */
-	if (sinterface != NULL) {
-		if (!resolver_getip(sinterface, ip, sizeof (ip)))
-			return SOCK_ERROR;
+    /* set the interface to bind to if specified */
+    if (sinterface != NULL) {
+        if (!resolver_getip(sinterface, ip, sizeof (ip)))
+            return SOCK_ERROR;
 
-#ifdef HAVE_IPV6
-		if (inet_pton(AF_INET, ip, &((struct sockaddr_in*)&sa)->sin_addr) > 0) {
-			((struct sockaddr_in*)&sa)->sin_family = AF_INET;
-			((struct sockaddr_in*)&sa)->sin_port = htons(port);
-		} else if (inet_pton(AF_INET6, ip, &((struct sockaddr_in6*)&sa)->sin6_addr) > 0) {
-			sa_family = AF_INET6;
-			sa_len = sizeof (struct sockaddr_in6);
-			((struct sockaddr_in6*)&sa)->sin6_family = AF_INET6;
-			((struct sockaddr_in6*)&sa)->sin6_port = htons(port);
-		} else {
-			return SOCK_ERROR;
-		}
+#ifdef HAVE_INET_PTON
+        if (inet_pton(AF_INET, ip, &((struct sockaddr_in*)&sa)->sin_addr) > 0) {
+            ((struct sockaddr_in*)&sa)->sin_family = AF_INET;
+            ((struct sockaddr_in*)&sa)->sin_port = htons(port);
+        } else if (inet_pton(AF_INET6, ip, 
+                    &((struct sockaddr_in6*)&sa)->sin6_addr) > 0) {
+            family = AF_INET6;
+            len = sizeof (struct sockaddr_in6);
+            ((struct sockaddr_in6*)&sa)->sin6_family = AF_INET6;
+            ((struct sockaddr_in6*)&sa)->sin6_port = htons(port);
+        } else {
+            return SOCK_ERROR;
+        }
 #else
-		if (!inet_aton(ip, &sa.sin_addr)) {
-			return SOCK_ERROR;
-		} else {
-			sa.sin_family = AF_INET;
-			sa.sin_port = htons(port);
-		}
+        if (!inet_aton(ip, &sa.sin_addr)) {
+            return SOCK_ERROR;
+        } else {
+            sa.sin_family = AF_INET;
+            sa.sin_port = htons(port);
+        }
 #endif
-	} else {
-		((struct sockaddr_in*)&sa)->sin_addr.s_addr = INADDR_ANY;
-		((struct sockaddr_in*)&sa)->sin_family = AF_INET;
-		((struct sockaddr_in*)&sa)->sin_port = htons(port);
-	}
+    } else {
+        ((struct sockaddr_in*)&sa)->sin_addr.s_addr = INADDR_ANY;
+        ((struct sockaddr_in*)&sa)->sin_family = AF_INET;
+        ((struct sockaddr_in*)&sa)->sin_port = htons(port);
+    }
 
-	/* get a socket */
-	sock = socket(sa_family, SOCK_STREAM, 0);
-	if (sock == -1)
-		return SOCK_ERROR;
+    /* get a socket */
+    sock = socket(family, SOCK_STREAM, 0);
+    if (sock == -1)
+        return SOCK_ERROR;
 
-	/* reuse it if we can */
-	opt = 1;
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const void *)&opt, sizeof(int));
-	
-	/* bind socket to port */
-	error = bind(sock, (struct sockaddr *)&sa, sa_len);
-	if (error == -1)
-		return SOCK_ERROR;
+    /* reuse it if we can */
+    opt = 1;
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const void *)&opt, sizeof(int));
+    
+    /* bind socket to port */
+    error = bind(sock, (struct sockaddr *)&sa, len);
+    if (error == -1)
+        return SOCK_ERROR;
 
-	return sock;
+    return sock;
 }
 
 int sock_listen(sock_t serversock, int backlog)
 {
-	if (!sock_valid_socket(serversock))
-		return 0;
+    if (!sock_valid_socket(serversock))
+        return 0;
 
-	if (backlog <= 0)
-		backlog = 10;
+    if (backlog <= 0)
+        backlog = 10;
 
-	return (listen(serversock, backlog) == 0);
+    return (listen(serversock, backlog) == 0);
 }
 
 int sock_accept(sock_t serversock, char *ip, int len)
 {
-	struct sockaddr_in sin;
-	int ret;
-	int slen;
+#ifdef HAVE_INET_PTON
+    struct sockaddr_storage sa;
+#else    
+    struct sockaddr_in sa;
+#endif
+    int ret;
+    socklen_t slen;
 
-	if (!sock_valid_socket(serversock))
-		return SOCK_ERROR;
+    if (!sock_valid_socket(serversock))
+        return SOCK_ERROR;
 
-	slen = sizeof(struct sockaddr_in);
-	ret = accept(serversock, (struct sockaddr *)&sin, &slen);
+    slen = sizeof(sa);
+    ret = accept(serversock, (struct sockaddr *)&sa, &slen);
 
-	if (ret >= 0 && ip != NULL) {
-		strncpy(ip, inet_ntoa(sin.sin_addr), len);
-		sock_set_nolinger(ret);
-		sock_set_keepalive(ret);
-	}
+    if (ret >= 0 && ip != NULL) {
+#ifdef HAVE_INET_PTON
+        if(((struct sockaddr_in *)&sa)->sin_family == AF_INET) 
+            inet_ntop(AF_INET, &((struct sockaddr_in *)&sa)->sin_addr,
+                    ip, len);
+        else if(((struct sockaddr_in6 *)&sa)->sin6_family == AF_INET6) 
+            inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&sa)->sin6_addr, 
+                    ip, len);
+        else {
+            strncpy(ip, "ERROR", len-1);
+            ip[len-1] = 0;
+        }
+#else
+        /* inet_ntoa is not reentrant, we should protect this */
+        strncpy(ip, inet_ntoa(sa.sin_addr), len);
+#endif
+        sock_set_nolinger(ret);
+        sock_set_keepalive(ret);
+    }
 
-	return ret;
+    return ret;
 }
+

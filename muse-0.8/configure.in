@@ -325,14 +325,7 @@ fi
 dnl ==============================================================
 dnl Choose which libshout version to use
 dnl ==============================================================
-AC_ARG_WITH(libshout,
-[  --with-libshout    which libshout to use: 1 or 2 (default is 2)],
-[if test "$withval" = 1; then
-   LIBSHOUT_DIR=shout
- fi
-], [
-   LIBSHOUT_DIR=libshout2-kh
-])
+LIBSHOUT_DIR=shout
 LIBSHOUT_LIB="${LIBSHOUT_DIR}/libshout.a"
 
 

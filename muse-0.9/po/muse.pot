@@ -7,7 +7,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2004-03-27 11:25+0100\n"
+"POT-Creation-Date: 2004-03-29 13:52+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -280,7 +280,7 @@ msgstr ""
 msgid "gcb_set_filedump:: Not a valid filename"
 msgstr ""
 
-#: ../src/gtkgui2/filedump.cpp:134 ../src/gtkgui2/gchan.cpp:613
+#: ../src/gtkgui2/filedump.cpp:134
 msgid "You have to insert a filename!!"
 msgstr ""
 
@@ -339,80 +339,98 @@ msgstr ""
 msgid "continuous"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:333
+#. #if GTK_CHECK_VERSION(2,4,0)
+#. notice("use file chooser");
+#. #else
+#: ../src/gtkgui2/gchan.cpp:336
 #, c-format
 msgid "GTK_GUI::spawnfilew : filebrowser for chan[%u]"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:335
+#: ../src/gtkgui2/gchan.cpp:338
 msgid "Select a .mp3 file or a playlist (.pl)"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:360
+#: ../src/gtkgui2/gchan.cpp:366
 msgid "Listen to a network stream"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:378
+#: ../src/gtkgui2/gchan.cpp:384
 msgid "Insert http source:"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:410
+#: ../src/gtkgui2/gchan.cpp:416
 msgid "You have to insert an url!!"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:414
+#: ../src/gtkgui2/gchan.cpp:420
 #, c-format
 msgid "httpinsert() url is %s"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:416
+#: ../src/gtkgui2/gchan.cpp:422
 msgid "GTK_GUI:: httpinsert problem adding url"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:417
+#: ../src/gtkgui2/gchan.cpp:423
 msgid "Problem adding url"
 msgstr ""
 
 #: ../src/gtkgui2/gchan.cpp:509
+#, c-format
+msgid "selected index = %d"
+msgstr ""
+
+#: ../src/gtkgui2/gchan.cpp:532
 msgid "KO for playing :("
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:513
+#: ../src/gtkgui2/gchan.cpp:536
 msgid "ok for playing"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:608
+#: ../src/gtkgui2/gchan.cpp:657
 #, c-format
 msgid "GTK_GUI::gcb_add_file : idx %u"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:620
+#: ../src/gtkgui2/gchan.cpp:672
 #, c-format
 msgid "gcb_add_file:: mixer->add_to_playlist(%u, %s) failed"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:622
+#: ../src/gtkgui2/gchan.cpp:674
 msgid "Problem adding file :\\"
 msgstr ""
 
-#: ../src/gtkgui2/gchan_events.cpp:219
-#, c-format
-msgid "il row e' %d"
-msgstr ""
-
-#: ../src/gtkgui2/gchan_events.cpp:223
+#. select = gtk_tree_view_get_selection(GTK_TREE_VIEW(w));
+#. if(gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(w),
+#. (gint) s->x, (gint) s->y,
+#. &path, NULL, NULL, NULL)) {
+#. gtk_tree_selection_unselect_all(select);
+#.
+#. gtk_tree_selection_select_path(select, path);
+#.
+#. if((row = gtk_tree_path_get_indices(path)))
+#. act(_("il row e' %d"), row[0]);
+#. gtk_tree_path_free(path);
+#. }
+#.
+#: ../src/gtkgui2/gchan_events.cpp:224
 msgid "Add File..."
 msgstr ""
 
-#: ../src/gtkgui2/gchan_events.cpp:228
+#: ../src/gtkgui2/gchan_events.cpp:229
 msgid "Add Url..."
 msgstr ""
 
-#: ../src/gtkgui2/gchan_events.cpp:234 ../src/gtkgui2/ice.cpp:321
+#. 		if(row) {
+#: ../src/gtkgui2/gchan_events.cpp:235 ../src/gtkgui2/ice.cpp:321
 msgid "Delete"
 msgstr ""
 
-#: ../src/gtkgui2/gchan_events.cpp:241
+#. 		}
+#: ../src/gtkgui2/gchan_events.cpp:242
 msgid "Cancel"
 msgstr ""
 
@@ -531,7 +549,12 @@ msgstr ""
 msgid "MuSE-cvs Gtk+2"
 msgstr ""
 
-#: ../src/gtkgui2/musegtk.cpp:271
+#: ../src/gtkgui2/musegtk.cpp:190
+#, c-format
+msgid "I'm adding %s"
+msgstr ""
+
+#: ../src/gtkgui2/musegtk.cpp:272
 #, c-format
 msgid "%d byte/s"
 msgstr ""

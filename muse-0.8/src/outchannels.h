@@ -19,7 +19,7 @@
  */
 
 /**
-   @file MuSE Output Channels interface
+   @file outchannels.h MuSE Output Channels interface
    
    @desc This is the external API offered by OutChannel instances.
    They are returned by create_enc method found in Stream_mixer.

@@ -1,4 +1,23 @@
-/* vorbis.c: Ogg Vorbis data handlers for libshout */
+/* -*- c-basic-offset: 8; -*- */
+/* vorbis.c: Ogg Vorbis data handlers for libshout
+ *
+ *  Copyright (C) 2002-2003 the Icecast team <team@icecast.org>
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Library General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2 of the License, or (at your option) any later version.
+ *
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Library General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Library General Public
+ *  License along with this library; if not, write to the Free
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 
 #include <stdlib.h>
 #include <string.h>
@@ -9,17 +28,25 @@
 #include "shout.h"
 #include "shout_private.h"
 
+#include <config.h>
+
 /* -- local datatypes -- */
 typedef struct {
 	/* total pages broadcasted */
 	unsigned int pages;
-	/* the number of samples for the current page */
-	unsigned int samples;
 
-	unsigned int oldsamples;
 	unsigned int samplerate;
+
 	ogg_sync_state oy;
+	ogg_stream_state os;
+
+	int headers;
+	vorbis_info vi;
+	vorbis_comment vc;
+	int prevW;
+
 	long serialno;
+    int initialised;
 } vorbis_data_t;
 
 /* -- static prototypes -- */
@@ -42,46 +69,78 @@ int shout_open_vorbis(shout_t *self)
 	return SHOUTERR_SUCCESS;
 }
 
+static int blocksize(vorbis_data_t *vd, ogg_packet *p)
+{
+	int this = vorbis_packet_blocksize(&vd->vi, p);
+	int ret = (this + vd->prevW)/4;
+
+	if(!vd->prevW) {
+		vd->prevW = this;
+		return 0;
+	}
+
+	vd->prevW = this;
+	return ret;
+}
+
 static int send_vorbis(shout_t *self, const unsigned char *data, size_t len)
 {
 	vorbis_data_t *vorbis_data = (vorbis_data_t *)self->format_data;
 	int ret;
 	char *buffer;
-	ogg_stream_state os;
 	ogg_page og;
 	ogg_packet op;
-	vorbis_info vi;
-	vorbis_comment vc;
+	int samples;
 
 	buffer = ogg_sync_buffer(&vorbis_data->oy, len);
 	memcpy(buffer, data, len);
 	ogg_sync_wrote(&vorbis_data->oy, len);
 
 	while (ogg_sync_pageout(&vorbis_data->oy, &og) == 1) {
-		if (vorbis_data->serialno != ogg_page_serialno(&og)) {
+		if (vorbis_data->serialno != ogg_page_serialno(&og) || 
+                !vorbis_data->initialised) 
+        {
+			/* Clear the old one - this is safe even if there was no previous
+			 * stream */
+			vorbis_comment_clear(&vorbis_data->vc);
+			vorbis_info_clear(&vorbis_data->vi);
+			ogg_stream_clear(&vorbis_data->os);
+
 			vorbis_data->serialno = ogg_page_serialno(&og);
 
-			vorbis_data->oldsamples = 0;
+			ogg_stream_init(&vorbis_data->os, vorbis_data->serialno);
 
-			ogg_stream_init(&os, vorbis_data->serialno);
-			ogg_stream_pagein(&os, &og);
-			ogg_stream_packetout(&os, &op);
+			vorbis_info_init(&vorbis_data->vi);
+			vorbis_comment_init(&vorbis_data->vc);
 
-			vorbis_info_init(&vi);
-			vorbis_comment_init(&vc);
-			vorbis_synthesis_headerin(&vi, &vc, &op);
+			vorbis_data->initialised = 1;
 
-			vorbis_data->samplerate = vi.rate;
-
-			vorbis_comment_clear(&vc);
-			vorbis_info_clear(&vi);
-			ogg_stream_clear(&os);
+			vorbis_data->headers = 1;
 		}
 
-		vorbis_data->samples = ogg_page_granulepos(&og) - vorbis_data->oldsamples;
-		vorbis_data->oldsamples = ogg_page_granulepos(&og);
+		samples = 0;
 
-		self->senttime += ((double)vorbis_data->samples * 1000000 / (double)vorbis_data->samplerate);
+		ogg_stream_pagein(&vorbis_data->os, &og);
+		while(ogg_stream_packetout(&vorbis_data->os, &op) == 1) {
+			int size;
+
+			if(vorbis_data->headers > 0 && vorbis_data->headers <= 3) {
+				vorbis_synthesis_headerin(&vorbis_data->vi, &vorbis_data->vc, 
+							  &op);
+				if(vorbis_data->headers == 1)
+					vorbis_data->samplerate = vorbis_data->vi.rate;
+
+				vorbis_data->headers++;
+				continue;
+			}
+
+			vorbis_data->headers = 0;
+			size = blocksize(vorbis_data, &op);
+			samples += size;
+		}
+
+		self->senttime += ((double)samples * 1000000) / 
+			((double)vorbis_data->samplerate);
 
 		ret = sock_write_bytes(self->socket, og.header, og.header_len);
 		if (ret != og.header_len)

@@ -24,7 +24,7 @@ muse_SOURCES =  \
     jutils.cpp      \
     gui.cpp
 
-muse_DEPENDENCIES = @GUI_DEPS@
+muse_DEPENDENCIES = @GUI_DEPS@ resample/libresample.a libmpeg/libmpeg.a shout/libshout.a
 
 muse_LDADD = \
 	$(top_srcdir)/src/resample/libresample.a \
