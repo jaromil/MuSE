@@ -463,7 +463,6 @@ AC_OUTPUT([
 Makefile
 src/Makefile
 src/shout/Makefile
-src/libshout2-kh/Makefile
 src/libmpeg/Makefile
 src/gtkgui/Makefile
 src/gtkgui2/Makefile
