@@ -21,6 +21,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <fcntl.h>
 
 #include <config.h>
 
@@ -161,6 +162,21 @@ rconnect( int sock, const struct sockaddr *saddr, socklen_t slen )
     return rc;
 }
 
+static bool
+socket_block( int sock )
+{
+    int file_flags; 
+    
+    if ( (file_flags = fcntl(sock, F_GETFL, 0)) == -1 ) {
+        return false;
+    }
+    if ( fcntl(sock, F_SETFL, (file_flags & ~O_NONBLOCK)) ) {
+        return false;
+    }
+    
+    return true;
+}
+
 char *proxyurl=NULL;
 unsigned long proxyip=0;
 unsigned int proxyport;
@@ -243,6 +259,7 @@ FILE *Soundinputstreamfromhttp::http_open(char *url)
       seterrorcode(SOUND_ERROR_CONNECT);
       return NULL;
     }
+	socket_block(sock);
     if(!writestring(sock,request))return NULL;
     if(!(myfile=fdopen(sock, "rb")))
     {
