@@ -11,6 +11,4 @@ libportaudio_a_SOURCES = \
 	pa_unix_oss.c \
 	pa_unix_solaris.c \
 	pa_mac.c \
-	pa_mac_core.c \
-	pablio.c \
-	ringbuffer.c
+	pa_mac_core.c

@@ -56,7 +56,7 @@ about_win(void)
 	g_signal_connect(G_OBJECT(window1), "delete_event",
 		  G_CALLBACK(gtk_widget_destroy), NULL);
 
-	aboutframe = gtk_frame_new(_("MuSE: Codename COTURNIX"));
+	aboutframe = gtk_frame_new("MuSE :: codename STREAMTIME");
 	gtk_container_add(GTK_CONTAINER(window1), aboutframe);
 	//gtk_container_set_border_width(GTK_CONTAINER(aboutframe), 6);
 	

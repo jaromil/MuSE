@@ -164,7 +164,7 @@ bool SoundDevice::pa_open(bool state,int mode) {
     dev->id = Pa_GetDefaultOutputDeviceID();
   }
   if(state && ((pa_mode & creq) != creq)) {
-    dev->info = Pa_GetDeviceInfo( dev->id );
+    dev->info = (PaDeviceInfo*)Pa_GetDeviceInfo( dev->id );
     if(dev->info) func("%s device: %s",dir,dev->info->name);
     else {
       error("%s device not available",dir);

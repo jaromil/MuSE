@@ -1,4 +1,3 @@
-# Generated automatically from Makefile.in by configure.
 prefix = /usr/local
 INSTALL= /bin/install -c
 GMSGFMT = /usr/bin/msgfmt

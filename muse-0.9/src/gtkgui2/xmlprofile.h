@@ -28,6 +28,7 @@ typedef enum {
 	STATE_URL,
 	STATE_DESCRIPTION,
 	STATE_LOGINTYPE,
+	STATE_USERNAME,
 	STATE_PASSWORD } IceState;
 
 /* OggState and LameState are the same thing */
@@ -44,7 +45,7 @@ typedef enum {
 
 struct iceprof {
 	gchar *name, *host, *port, *mnt;
-	gchar *stream_name, *url, *desc, *logintype, *password;
+	gchar *stream_name, *url, *desc, *logintype, *username, *password;
 };
 struct encprof {
 	gchar *name, *mode, *bitrate, *frequency;

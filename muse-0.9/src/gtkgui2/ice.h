@@ -23,7 +23,7 @@ struct icedata {
 	GtkWidget *frami;
 	/* ice space */
 	GtkWidget *host, *port, *mnt, *name, *url, *desc;
-	GtkWidget *logintype, *pass, *conn;
+	GtkWidget *logintype, *user, *pass, *conn;
 	GList *combi;
 	GtkWidget *lista, *profroot;
 	/* new field 0.8 */

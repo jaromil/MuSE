@@ -288,11 +288,10 @@ void ice_new(codec tipoc)
 	gtk_widget_set_size_request(GTK_WIDGET(i->logintype), 100, 22);
 	gtk_box_pack_start(GTK_BOX(tmpwid), i->logintype, FALSE, FALSE, 0);
 	
-	tmplabel = gtk_label_new(_("Pass"));
+	tmplabel = gtk_label_new(_("Username"));
 	gtk_box_pack_start(GTK_BOX(tmpwid), tmplabel, FALSE, FALSE, 0);
-	i->pass = gtk_entry_new_with_max_length(MAX_OPTION_SIZE);
-	gtk_entry_set_visibility(GTK_ENTRY(i->pass), FALSE);
-	gtk_box_pack_start(GTK_BOX(tmpwid), i->pass, TRUE, TRUE, 0);
+	i->user = gtk_entry_new_with_max_length(MAX_OPTION_SIZE);
+	gtk_box_pack_start(GTK_BOX(tmpwid), i->user, TRUE, TRUE, 0);
 		
 	tmpwid = gtk_hbox_new(FALSE, 6);
 	gtk_box_pack_start(GTK_BOX(tmpbox), tmpwid, FALSE, FALSE, 0);
@@ -322,6 +321,14 @@ void ice_new(codec tipoc)
 	g_signal_connect(G_OBJECT(tmplabel), "clicked", 
 			G_CALLBACK(gcb_rem_icecast), i);
 	gtk_box_pack_start(GTK_BOX(tmpwid), tmplabel, FALSE, FALSE, 0); 
+
+
+	tmplabel = gtk_label_new(_("Pass"));
+	gtk_box_pack_start(GTK_BOX(tmpwid), tmplabel, FALSE, FALSE, 0);
+	i->pass = gtk_entry_new_with_max_length(MAX_OPTION_SIZE);
+	gtk_entry_set_visibility(GTK_ENTRY(i->pass), FALSE);
+	gtk_box_pack_start(GTK_BOX(tmpwid), i->pass, TRUE, TRUE, 0);
+
 
 	/* XXX: toggle comment when profiles are ok */
 	ice_put(i);
@@ -413,6 +420,7 @@ void ice_put(struct icedata *i)
 	gtk_entry_set_text(GTK_ENTRY(i->name), i->coreice->name());
 	gtk_entry_set_text(GTK_ENTRY(i->url), i->coreice->url());
 	gtk_entry_set_text(GTK_ENTRY(i->desc), i->coreice->desc());
+	gtk_entry_set_text(GTK_ENTRY(i->user), i->coreice->user());
 }
 
 void ice_fill(struct icedata *i) {
@@ -436,6 +444,7 @@ void ice_fill(struct icedata *i) {
 
 	i->coreice->host( gtk_editable_get_chars(GTK_EDITABLE(i->host), 0, -1) );
 	i->coreice->port( atoi(gtk_editable_get_chars(GTK_EDITABLE(i->port), 0, -1)) );
+	i->coreice->user( gtk_editable_get_chars(GTK_EDITABLE(i->user), 0, -1) );
 	i->coreice->pass( gtk_editable_get_chars(GTK_EDITABLE(i->pass), 0, -1) );
 	i->coreice->mount( gtk_editable_get_chars(GTK_EDITABLE(i->mnt), 0, -1) );
 	i->coreice->name( gtk_editable_get_chars(GTK_EDITABLE(i->name), 0, -1) );

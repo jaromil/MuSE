@@ -1,4 +1,4 @@
-SUBDIRS = resample shout libmpeg @GUI_DIRS@ @PORTAUDIO_DIRS@
+SUBDIRS = resample libmpeg @GUI_DIRS@ @LIBSHOUT_DIR@ @PORTAUDIO_DIRS@
 
 INCLUDES = -Ishout -I/usr/X11R6/include -Incursesgui @GLIB2_CFLAGS@ @DARWIN_CFLAGS@ @PORTAUDIO_CFLAGS@
 
@@ -32,13 +32,11 @@ muse_SOURCES =  \
 muse_DEPENDENCIES = \
 	@GUI_DEPS@ \
 	resample/libresample.a \
-	libmpeg/libmpeg.a \
-	shout/libshout.a
+	libmpeg/libmpeg.a
 
 muse_LDADD = \
 	$(top_srcdir)/src/resample/libresample.a \
 	$(top_srcdir)/src/libmpeg/libmpeg.a \
-	$(top_srcdir)/src/shout/libshout.a \
 	-lpthread \
 	@M_LIBS@ \
 	@LAME_LIBS@ \
@@ -49,5 +47,5 @@ muse_LDADD = \
 	@GLIB2_LIBS@ \
 	@JACK_LIBS@ \
 	@DARWIN_LIBS@ \
-	@PORTAUDIO_LIBS@
-
+	@PORTAUDIO_LIBS@ \
+	@LIBSHOUT_LIBS@

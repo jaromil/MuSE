@@ -241,6 +241,8 @@ void ice_get_element(GMarkupParseContext *context, const gchar *element,
 		icest = STATE_DESCRIPTION;
 	else if(element[0] == 'l')
 		icest = STATE_LOGINTYPE;
+	else if(element[0] == 's')
+	  icest == STATE_USERNAME;
 	else if(element[0] == 'p')
 		icest = STATE_PASSWORD;
 
@@ -270,6 +272,9 @@ void ice_get_value(GMarkupParseContext *context, const gchar *text, gsize size,
 		case STATE_LOGINTYPE:
 			iceprof_tmp->logintype = g_strdup(text);
 			break;
+	case STATE_USERNAME:
+	  iceprof_tmp->username = g_strdup(text);
+	  break;
 		case STATE_PASSWORD:
 			iceprof_tmp->password = g_strdup(text);
 			break;
@@ -395,11 +400,12 @@ void profile_ice_write(void)
 		  "\t<url>%s</url>\n"
 		  "\t<desc>%s</desc>\n"
 		  "\t<logintype>%s</logintype>\n"
+		  "\t<source>%s</source>\n"
 		  "\t<password>%s</password>\n"
 		  "</profile>\n\n",
 		  tmp->name, tmp->host, tmp->port, tmp->mnt,
 		  tmp->stream_name, tmp->url, tmp->desc,
-		  tmp->logintype, tmp->password);
+		  tmp->logintype, tmp->username, tmp->password);
 		
 		listrunner = g_list_next(listrunner);
 	}
@@ -466,6 +472,7 @@ void profile_ice_free(struct iceprof *i)
 	g_free(i->stream_name);
 	g_free(i->desc);
 	g_free(i->logintype);
+	g_free(i->username);
 	g_free(i->password);
 }
 

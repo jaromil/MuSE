@@ -51,6 +51,7 @@ class Shouter : public Entry {
   CHAR_SET(host,_host);
   char streamurl[MAX_VALUE_SIZE];
   INT_SET(port,_port);
+  CHAR_SET(user,_user);
   CHAR_SET(pass,_pass);
   CHAR_SET(mount,_mount);
   

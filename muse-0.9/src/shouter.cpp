@@ -126,6 +126,13 @@ bool Shouter::apply_profile() {
   
   if( shout_set_password(ice,pass()) )
     error("shout_set_password: %s",shout_get_error(ice));
+  else
+    func("shout_set_password: %s",pass());
+
+  if( shout_set_user(ice,user()) )
+    error("shout_set_user: %s",shout_get_error(ice));
+  else
+    func("shout_set_user: %s",user());
 
   // === fixes the format of the mountpoint
   if((mount())[0]!='/') {
@@ -169,7 +176,7 @@ bool Shouter::apply_profile() {
   if( shout_set_audio_info(ice, SHOUT_AI_CHANNELS, channels()) )
     error("shout_set_audio_info %s: %s",SHOUT_AI_CHANNELS, channels());
 
-  func("Shouter audio info: %sKbp/s %sHz %s channels %sq",
+  func("Shouter audio info: %sKbp/s %sHz %s channels",
        shout_get_audio_info(ice, SHOUT_AI_BITRATE),
        shout_get_audio_info(ice, SHOUT_AI_SAMPLERATE),
        shout_get_audio_info(ice, SHOUT_AI_CHANNELS));
@@ -180,8 +187,6 @@ bool Shouter::apply_profile() {
   if( shout_set_format(ice,format) )
     error("shout_set_format: %s",shout_get_error(ice));
 
-  if( shout_set_user(ice,"source") )
-    error("shout_set_user: %s",shout_get_error(ice));
 
   snprintf(temp,256,"%s ver. %s",PACKAGE,VERSION);
   if( shout_set_agent(ice,temp) )
