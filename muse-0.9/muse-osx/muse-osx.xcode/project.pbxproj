@@ -14,14 +14,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		0249A66BFF388E3F11CA2CEA = {
-			isa = PBXFileReference;
-			lastKnownFileType = archive.ar;
-			name = "libstdc++.a";
-			path = "/usr/lib/libstdc++.a";
-			refType = 0;
-			sourceTree = "<absolute>";
-		};
 //020
 //021
 //022
@@ -80,7 +72,6 @@
 //194
 		195DF8CFFE9D517E11CA2CBB = {
 			children = (
-				8D0C4E970486CD37000505A6,
 			);
 			isa = PBXGroup;
 			name = Products;
@@ -136,19 +127,10 @@
 				AA3FD4C307FCE13C0061F816,
 				AA3FDA5607FD59300061F816,
 				32DBCF6D0370B57F00C91783,
-				20286C2BFDCF999611CA2CEA,
 			);
 			isa = PBXGroup;
 			name = Sources;
 			path = "";
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		20286C2BFDCF999611CA2CEA = {
-			fileEncoding = 4;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.c;
-			path = main.c;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -170,7 +152,6 @@
 				20286C33FDCF999611CA2CEA,
 				4A9504CAFFE6A41611CA0CBA,
 				4A9504C8FFE6A3BC11CA0CBA,
-				0249A66BFF388E3F11CA2CEA,
 			);
 			isa = PBXGroup;
 			name = src;
@@ -305,7 +286,6 @@
 				AA3FD7A807FCE13E0061F816,
 				AA3FD7AB07FCE13E0061F816,
 				AA3FD7AD07FCE13E0061F816,
-				AA3FD7AE07FCE13E0061F816,
 				AA3FD88607FCE1400061F816,
 				AA3FD88907FCE1400061F816,
 				AA3FD88C07FCE1400061F816,
@@ -314,7 +294,6 @@
 				AA3FD8BA07FCE1400061F816,
 				AA3FD8BB07FCE1400061F816,
 				AA3FD8C607FCE1400061F816,
-				AA3FD8CD07FCE1400061F816,
 				AA3FD99A07FCE1410061F816,
 				AA3FD99D07FCE1410061F816,
 				AA3FD9A007FCE1410061F816,
@@ -323,7 +302,6 @@
 				AA3FD9BA07FCE1410061F816,
 				AA3FD9C207FCE1410061F816,
 				AA3FD9C507FCE1410061F816,
-				AA3FD9CC07FCE1410061F816,
 				AA3FD9CE07FCE1410061F816,
 				AA3FD9D107FCE1410061F816,
 				AA3FD9D407FCE1410061F816,
@@ -367,7 +345,6 @@
 		8D0C4E8F0486CD37000505A6 = {
 			buildActionMask = 2147483647;
 			files = (
-				8D0C4E900486CD37000505A6,
 				AA3FCC3E07FCDD370061F816,
 				AA3FD79807FCE13E0061F816,
 				AA3FD79B07FCE13E0061F816,
@@ -410,7 +387,6 @@
 				AA3FD9C407FCE1410061F816,
 				AA3FD9C707FCE1410061F816,
 				AA3FD9C907FCE1410061F816,
-				AA3FD9CB07FCE1410061F816,
 				AA3FD9D007FCE1410061F816,
 				AA3FD9D307FCE1410061F816,
 				AA3FD9D507FCE1410061F816,
@@ -435,19 +411,10 @@
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		8D0C4E900486CD37000505A6 = {
-			fileRef = 20286C2BFDCF999611CA2CEA;
-			isa = PBXBuildFile;
-			settings = {
-				ATTRIBUTES = (
-				);
-			};
-		};
 		8D0C4E910486CD37000505A6 = {
 			buildActionMask = 2147483647;
 			files = (
 				8D0C4E920486CD37000505A6,
-				8D0C4E930486CD37000505A6,
 				AA3FDA5D07FD599B0061F816,
 				AA3FDA6007FD5A3D0061F816,
 			);
@@ -456,12 +423,6 @@
 		};
 		8D0C4E920486CD37000505A6 = {
 			fileRef = 20286C33FDCF999611CA2CEA;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		8D0C4E930486CD37000505A6 = {
-			fileRef = 0249A66BFF388E3F11CA2CEA;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -551,7 +512,6 @@
 				AA3FD4EF07FCE13D0061F816,
 				AA3FD4F007FCE13D0061F816,
 				AA3FD4F207FCE13D0061F816,
-				AA3FD4F307FCE13D0061F816,
 				AA3FD5D207FCE13D0061F816,
 				AA3FD5D307FCE13D0061F816,
 				AA3FD5D507FCE13D0061F816,
@@ -565,9 +525,7 @@
 				AA3FD5E107FCE13D0061F816,
 				AA3FD61407FCE13D0061F816,
 				AA3FD61507FCE13D0061F816,
-				AA3FD61907FCE13D0061F816,
 				AA3FD61B07FCE13D0061F816,
-				AA3FD61C07FCE13D0061F816,
 				AA3FD6ED07FCE13D0061F816,
 				AA3FD6EE07FCE13D0061F816,
 				AA3FD6F007FCE13D0061F816,
@@ -717,13 +675,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD4F307FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = file;
-			path = gmon.out;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD5D207FCE13D0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -806,171 +757,28 @@
 		};
 		AA3FD5E107FCE13D0061F816 = {
 			children = (
-				AA3FD5E207FCE13D0061F816,
 				AA3FD5F007FCE13D0061F816,
 				AA3FD5F107FCE13D0061F816,
-				AA3FD5F207FCE13D0061F816,
 				AA3FD5F307FCE13D0061F816,
 				AA3FD5F407FCE13D0061F816,
-				AA3FD5F507FCE13D0061F816,
 				AA3FD5F607FCE13D0061F816,
 				AA3FD5F707FCE13D0061F816,
-				AA3FD5F807FCE13D0061F816,
 				AA3FD5F907FCE13D0061F816,
-				AA3FD5FA07FCE13D0061F816,
 				AA3FD5FB07FCE13D0061F816,
-				AA3FD5FC07FCE13D0061F816,
 				AA3FD5FD07FCE13D0061F816,
-				AA3FD5FE07FCE13D0061F816,
-				AA3FD5FF07FCE13D0061F816,
-				AA3FD60007FCE13D0061F816,
-				AA3FD60107FCE13D0061F816,
-				AA3FD60207FCE13D0061F816,
 				AA3FD60307FCE13D0061F816,
-				AA3FD60407FCE13D0061F816,
 				AA3FD60507FCE13D0061F816,
-				AA3FD60607FCE13D0061F816,
 				AA3FD60707FCE13D0061F816,
-				AA3FD60807FCE13D0061F816,
 				AA3FD60907FCE13D0061F816,
 				AA3FD60A07FCE13D0061F816,
 				AA3FD60B07FCE13D0061F816,
-				AA3FD60C07FCE13D0061F816,
 				AA3FD60D07FCE13D0061F816,
-				AA3FD60E07FCE13D0061F816,
 				AA3FD60F07FCE13D0061F816,
 				AA3FD61007FCE13D0061F816,
-				AA3FD61107FCE13D0061F816,
 				AA3FD61207FCE13D0061F816,
-				AA3FD61307FCE13D0061F816,
 			);
 			isa = PBXGroup;
 			path = libmpeg;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD5E207FCE13D0061F816 = {
-			children = (
-				AA3FD5E307FCE13D0061F816,
-				AA3FD5E407FCE13D0061F816,
-				AA3FD5E507FCE13D0061F816,
-				AA3FD5E607FCE13D0061F816,
-				AA3FD5E707FCE13D0061F816,
-				AA3FD5E807FCE13D0061F816,
-				AA3FD5E907FCE13D0061F816,
-				AA3FD5EA07FCE13D0061F816,
-				AA3FD5EB07FCE13D0061F816,
-				AA3FD5EC07FCE13D0061F816,
-				AA3FD5ED07FCE13D0061F816,
-				AA3FD5EE07FCE13D0061F816,
-				AA3FD5EF07FCE13D0061F816,
-			);
-			isa = PBXGroup;
-			path = .deps;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD5E307FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = bitwindow.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD5E407FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = fileinput.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD5E507FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = filter.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD5E607FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = filter_2.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD5E707FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = httpinput.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD5E807FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = huffmantable.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD5E907FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = mpeglayer1.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD5EA07FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = mpeglayer2.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD5EB07FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = mpeglayer3.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD5EC07FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = mpegtable.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD5ED07FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = mpegtoraw.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD5EE07FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = soundinputstream.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD5EF07FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = soundplayer.Po;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -990,13 +798,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD5F207FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = bitwindow.o;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD5F307FCE13D0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -1010,13 +811,6 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.cpp.cpp;
 			path = fileinput.cc;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD5F507FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = fileinput.o;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -1036,25 +830,11 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD5F807FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = filter.o;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD5F907FCE13D0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.cpp.cpp;
 			path = filter_2.cc;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD5FA07FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = filter_2.o;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -1066,56 +846,11 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD5FC07FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = httpinput.o;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD5FD07FCE13D0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.cpp.cpp;
 			path = huffmantable.cc;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD5FE07FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = huffmantable.o;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD5FF07FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = archive.ar;
-			path = libmpeg.a;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD60007FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.make;
-			path = Makefile;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD60107FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = Makefile.am;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD60207FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = Makefile.in;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -1127,13 +862,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD60407FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = mpeglayer1.o;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD60507FCE13D0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -1142,25 +870,11 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD60607FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = mpeglayer2.o;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD60707FCE13D0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.cpp.cpp;
 			path = mpeglayer3.cc;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD60807FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = mpeglayer3.o;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -1188,25 +902,11 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD60C07FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = mpegtable.o;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD60D07FCE13D0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.cpp.cpp;
 			path = mpegtoraw.cc;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD60E07FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = mpegtoraw.o;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -1226,25 +926,11 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD61107FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = soundinputstream.o;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD61207FCE13D0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.cpp.cpp;
 			path = soundplayer.cc;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD61307FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = soundplayer.o;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -1264,27 +950,11 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD61907FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = Makefile.in;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD61B07FCE13D0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.cpp.cpp;
 			path = muse.cpp;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD61C07FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = muse.log;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -1370,147 +1040,27 @@
 		};
 		AA3FD6FD07FCE13D0061F816 = {
 			children = (
-				AA3FD6FE07FCE13D0061F816,
-				AA3FD70907FCE13D0061F816,
 				AA3FD70A07FCE13D0061F816,
-				AA3FD70B07FCE13D0061F816,
 				AA3FD70C07FCE13D0061F816,
 				AA3FD70D07FCE13D0061F816,
 				AA3FD70E07FCE13D0061F816,
-				AA3FD70F07FCE13D0061F816,
 				AA3FD71007FCE13D0061F816,
 				AA3FD71107FCE13D0061F816,
-				AA3FD71207FCE13D0061F816,
 				AA3FD71307FCE13D0061F816,
-				AA3FD71407FCE13D0061F816,
 				AA3FD71507FCE13D0061F816,
-				AA3FD71607FCE13D0061F816,
 				AA3FD71707FCE13D0061F816,
 				AA3FD71807FCE13D0061F816,
-				AA3FD71907FCE13D0061F816,
 				AA3FD71A07FCE13D0061F816,
 				AA3FD71B07FCE13D0061F816,
-				AA3FD71C07FCE13D0061F816,
 				AA3FD71D07FCE13D0061F816,
-				AA3FD71E07FCE13D0061F816,
 				AA3FD71F07FCE13D0061F816,
-				AA3FD72007FCE13D0061F816,
-				AA3FD72107FCE13D0061F816,
-				AA3FD72207FCE13D0061F816,
-				AA3FD72307FCE13D0061F816,
 				AA3FD72407FCE13D0061F816,
 				AA3FD72507FCE13E0061F816,
 				AA3FD72607FCE13E0061F816,
 				AA3FD72707FCE13E0061F816,
-				AA3FD72807FCE13E0061F816,
 			);
 			isa = PBXGroup;
 			path = portaudio;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD6FE07FCE13D0061F816 = {
-			children = (
-				AA3FD6FF07FCE13D0061F816,
-				AA3FD70007FCE13D0061F816,
-				AA3FD70107FCE13D0061F816,
-				AA3FD70207FCE13D0061F816,
-				AA3FD70307FCE13D0061F816,
-				AA3FD70407FCE13D0061F816,
-				AA3FD70507FCE13D0061F816,
-				AA3FD70607FCE13D0061F816,
-				AA3FD70707FCE13D0061F816,
-				AA3FD70807FCE13D0061F816,
-			);
-			isa = PBXGroup;
-			path = .deps;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD6FF07FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = pa_convert.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD70007FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = pa_lib.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD70107FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = pa_mac.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD70207FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = pa_mac_core.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD70307FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = pa_trace.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD70407FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = pa_unix.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD70507FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = pa_unix_oss.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD70607FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = pa_unix_solaris.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD70707FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = pablio.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD70807FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = ringbuffer.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD70907FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = archive.ar;
-			path = libportaudio.a;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -1519,14 +1069,6 @@
 			isa = PBXFileReference;
 			lastKnownFileType = text;
 			path = LICENSE;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD70B07FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.make;
-			path = Makefile;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -1554,13 +1096,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD70F07FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = pa_convert.o;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD71007FCE13D0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -1577,13 +1112,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD71207FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = pa_lib.o;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD71307FCE13D0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -1592,25 +1120,11 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD71407FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = pa_mac.o;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD71507FCE13D0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.c;
 			path = pa_mac_core.c;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD71607FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = pa_mac_core.o;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -1630,13 +1144,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD71907FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = pa_trace.o;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD71A07FCE13D0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -1653,13 +1160,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD71C07FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = pa_unix.o;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD71D07FCE13D0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -1668,48 +1168,11 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD71E07FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = pa_unix_oss.o;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD71F07FCE13D0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.c;
 			path = pa_unix_solaris.c;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD72007FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = pa_unix_solaris.o;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD72107FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.c;
-			path = pablio.c;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD72207FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			path = pablio.h;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD72307FCE13D0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = pablio.o;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -1742,13 +1205,6 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
 			path = ringbuffer.h;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD72807FCE13E0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = ringbuffer.o;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -1786,75 +1242,21 @@
 		};
 		AA3FD72E07FCE13E0061F816 = {
 			children = (
-				AA3FD72F07FCE13E0061F816,
 				AA3FD73407FCE13E0061F816,
 				AA3FD73507FCE13E0061F816,
 				AA3FD73607FCE13E0061F816,
 				AA3FD73707FCE13E0061F816,
 				AA3FD73807FCE13E0061F816,
 				AA3FD73907FCE13E0061F816,
-				AA3FD73A07FCE13E0061F816,
-				AA3FD73B07FCE13E0061F816,
-				AA3FD73C07FCE13E0061F816,
-				AA3FD73D07FCE13E0061F816,
 				AA3FD73E07FCE13E0061F816,
-				AA3FD73F07FCE13E0061F816,
 				AA3FD74007FCE13E0061F816,
 				AA3FD74107FCE13E0061F816,
-				AA3FD74207FCE13E0061F816,
 				AA3FD74307FCE13E0061F816,
-				AA3FD74407FCE13E0061F816,
 				AA3FD74507FCE13E0061F816,
-				AA3FD74607FCE13E0061F816,
 				AA3FD74707FCE13E0061F816,
-				AA3FD74807FCE13E0061F816,
 			);
 			isa = PBXGroup;
 			path = resample;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD72F07FCE13E0061F816 = {
-			children = (
-				AA3FD73007FCE13E0061F816,
-				AA3FD73107FCE13E0061F816,
-				AA3FD73207FCE13E0061F816,
-				AA3FD73307FCE13E0061F816,
-			);
-			isa = PBXGroup;
-			path = .deps;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD73007FCE13E0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = samplerate.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD73107FCE13E0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = src_linear.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD73207FCE13E0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = src_sinc.Po;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD73307FCE13E0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = src_zoh.Po;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -1906,50 +1308,11 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD73A07FCE13E0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = archive.ar;
-			path = libresample.a;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD73B07FCE13E0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.make;
-			path = Makefile;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD73C07FCE13E0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = Makefile.am;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD73D07FCE13E0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = Makefile.in;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD73E07FCE13E0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
 			path = mid_qual_coeffs.h;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD73F07FCE13E0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = README;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -1969,25 +1332,11 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD74207FCE13E0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = samplerate.o;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD74307FCE13E0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.c;
 			path = src_linear.c;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD74407FCE13E0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = src_linear.o;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -1999,25 +1348,11 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD74607FCE13E0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = src_sinc.o;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD74707FCE13E0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.c;
 			path = src_zoh.c;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD74807FCE13E0061F816 = {
-			isa = PBXFileReference;
-			lastKnownFileType = "compiled.mach-o.objfile";
-			path = src_zoh.o;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -2041,14 +1376,9 @@
 			children = (
 				AA3FD75807FCE13E0061F816,
 				AA3FD75907FCE13E0061F816,
-				AA3FD75B07FCE13E0061F816,
-				AA3FD75C07FCE13E0061F816,
 				AA3FD75D07FCE13E0061F816,
 				AA3FD75E07FCE13E0061F816,
-				AA3FD76207FCE13E0061F816,
-				AA3FD76307FCE13E0061F816,
 				AA3FD76407FCE13E0061F816,
-				AA3FD76607FCE13E0061F816,
 				AA3FD76707FCE13E0061F816,
 				AA3FD76807FCE13E0061F816,
 				AA3FD76A07FCE13E0061F816,
@@ -2085,22 +1415,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD75B07FCE13E0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = COPYING;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD75C07FCE13E0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = HACKING;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD75D07FCE13E0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -2117,35 +1431,11 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		AA3FD76207FCE13E0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = Makefile.am;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD76307FCE13E0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = Makefile.in;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		AA3FD76407FCE13E0061F816 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.c;
 			path = mp3.c;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD76607FCE13E0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text;
-			path = README;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -2375,12 +1665,6 @@
 			settings = {
 			};
 		};
-		AA3FD7AE07FCE13E0061F816 = {
-			fileRef = AA3FD4F307FCE13D0061F816;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		AA3FD88507FCE1400061F816 = {
 			fileRef = AA3FD5D207FCE13D0061F816;
 			isa = PBXBuildFile;
@@ -2555,12 +1839,6 @@
 			settings = {
 			};
 		};
-		AA3FD8CD07FCE1400061F816 = {
-			fileRef = AA3FD61C07FCE13D0061F816;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		AA3FD99907FCE1410061F816 = {
 			fileRef = AA3FD6ED07FCE13D0061F816;
 			isa = PBXBuildFile;
@@ -2683,18 +1961,6 @@
 		};
 		AA3FD9C907FCE1410061F816 = {
 			fileRef = AA3FD71F07FCE13D0061F816;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		AA3FD9CB07FCE1410061F816 = {
-			fileRef = AA3FD72107FCE13D0061F816;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		AA3FD9CC07FCE1410061F816 = {
-			fileRef = AA3FD72207FCE13D0061F816;
 			isa = PBXBuildFile;
 			settings = {
 			};
