@@ -42,6 +42,25 @@ class Url: public Entry {
   
   char *path;
   ///< the full path (or url scheme) to the playlist entry
+  
+#ifdef HAVE_SCHEDULER
+/*
+ * Schedule record chain.  @see radiosched.h for details. 
+ * Format might change in the future, as scheduler gets more mature. 
+ */
+  const char  *mn;       ///< start minute - see crontab(5)
+  const char  *hr;       ///< start hour
+  const char  *day;      ///< start day
+  const char  *mon;      ///< start month
+  const char  *wkd;      ///< start day_of_week
+  const char  *cmnplay;  ///< duration in minutes
+  unsigned    mnplay;
+  unsigned    mnleft;    ///< minutes left of playing, if playing
+  unsigned    port;      ///< 
+  const char  *comment;
+  const char  *csecs;    ///< seconds - for future use
+  unsigned    secs;
+#endif
 };
 
 /**
@@ -61,6 +80,14 @@ class Playlist : public Linklist {
   
   char *addurl(const char *file, int pos);
   ///< add a new url at a certain position of the playlist queue
+
+#ifdef HAVE_SCHEDULER
+  void addurl(Url *url);
+  Url *addurl(const char *file, const char *mn, const char *hr, 
+          const char *day, const char *mon, const char *wkd, 
+		  const char *cmnplay, const char *comment );
+  ///< add a new @see Url and fill the scheduler-specific fields
+#endif
 
   /**
      @param pos position in playlist (starts from 1)

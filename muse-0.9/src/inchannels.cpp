@@ -549,9 +549,14 @@ void Channel::report() {
       (playmode==PLAYMODE_LOOP) ? "LOOP" :
       (playmode==PLAYMODE_CONT) ? "CONT" :
       "ERROR");
-  act("time: %i:%i:%i framepos %i frametot %i",
-      time.h, time.m, time.s, dec->framepos,dec->frametot);
-  act("samplerate %i channels %i bitrate %i",
-      dec->samplerate,dec->channels,dec->bitrate);
-  act("frames %i samples %i",dec->frames,samples);
+  if (dec) {
+    act("time: %i:%i:%i framepos %i frametot %i",
+        time.h, time.m, time.s, dec->framepos,dec->frametot);
+    act("samplerate %i channels %i bitrate %i",
+        dec->samplerate,dec->channels,dec->bitrate);
+    act("frames %i samples %i",dec->frames,samples);
+  } else {
+    act("time: %i:%i:%i ", time.h, time.m, time.s);
+  }
 }
+

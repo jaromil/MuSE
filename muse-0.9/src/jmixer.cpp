@@ -37,13 +37,13 @@
 #include <termios.h>
 #include <sys/time.h>
 
+#include <config.h>
+
 #include <jutils.h>
 #include <audioproc.h>
 #include <jmixer.h>
 #include <playlist.h>
 #include <inchannels.h>
-
-#include <config.h>
 
 #ifdef HAVE_VORBIS
 #include <out_vorbis.h>
@@ -74,6 +74,9 @@ Stream_mixer::Stream_mixer() {
   int i;
   for(i=0;i<MAX_CHANNELS;i++)
     chan[i] = NULL;
+#ifdef HAVE_SCHEDULER
+  register_sched(NULL); 
+#endif
 
   /* here memset takes byte num */
   memset(process_buffer,0,PROCBUF_SIZE*sizeof(int32_t));
@@ -98,7 +101,7 @@ Stream_mixer::Stream_mixer() {
     error("error initializing POSIX thread mutex");
   if(pthread_cond_init (&_cond, NULL) == -1)
     error("error initializing POSIX thread condtition"); 
-  //unlock();
+  unlock();
 }
 
 Stream_mixer::~Stream_mixer() {
@@ -264,6 +267,12 @@ void Stream_mixer::cafudda()
     // max = (max<ires) ? ires : max;
   }
   
+#ifdef HAVE_SCHEDULER
+  if (rsched && rsched->channel->opened) {
+	c += rsched->channel->erbapipa->mix16stereo(MIX_CHUNK,process_buffer);
+  }
+#endif
+
   /* here: max = number of 32bit samples in process_buffer
      number of single 16bit stereo samples (max<<1)
      number of bytes (max<<2)

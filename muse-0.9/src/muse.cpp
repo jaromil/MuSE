@@ -84,14 +84,14 @@
 #include <signal.h>
 #include <assert.h>
 
+#include <config.h>
+
 #include <jutils.h>
 #include <generic.h>
 #include <jmixer.h>
 #include <gui.h>
 #include <out_lame.h>
 #include <out_vorbis.h>
-
-#include <config.h>
 
 #ifdef GUI_NIGHTOLO
 #include <gtkgui/gtk_gui.h>
@@ -107,6 +107,10 @@
 
 #ifdef UI_XMLRPC
 #include <xmlrpc/xmlrpc_ui.h>
+#endif
+
+#ifdef HAVE_SCHEDULER
+#include "radiosched.h"
 #endif
 
 
@@ -654,6 +658,16 @@ int main(int argc, char **argv) {
   }
   
   mix = new Stream_mixer();
+#ifdef HAVE_SCHEDULER
+  rscheduler = new Scheduler_xml( sched_file_path() );
+  mix->register_sched( rscheduler );
+  rscheduler->register_mixer(mix);
+  rscheduler->lock();
+  rscheduler->start();
+  rscheduler->wait();
+  rscheduler->unlock();
+  rscheduler->play();
+#endif
     
   if( !take_args(argc, argv) ) goto QUIT;
 
@@ -792,6 +806,12 @@ int main(int argc, char **argv) {
 
   set_guimsg(NULL);
   
+#ifdef HAVE_SCHEDULER
+  rscheduler->stop(); 
+  rscheduler->quit = true; 
+  jsleep(0,50);
+  delete rscheduler; rscheduler = NULL;
+#endif
   if(mix) {
     act("stopping mixer...");  
   /* piglia o'tiemp e sputa in terra

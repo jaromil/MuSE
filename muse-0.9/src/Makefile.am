@@ -1,8 +1,8 @@
 SUBDIRS = resample @LIBSHOUT_DIR@ libmpeg @GUI_DIRS@
 
-INCLUDES = -I@LIBSHOUT_DIR@ -I/usr/X11R6/include -Incursesgui
+INCLUDES = -I@LIBSHOUT_DIR@ -I/usr/X11R6/include -Incursesgui @GLIB2_CFLAGS@
 
-CFLAGS = @GUI_FLAGS@
+CFLAGS = @GUI_FLAGS@  
 
 bin_PROGRAMS = muse
 
@@ -23,6 +23,7 @@ muse_SOURCES =  \
     linklist.cpp        \
     playlist.cpp        \
     jutils.cpp      \
+    radiosched.cpp      \
     gui.cpp
 
 muse_DEPENDENCIES = @GUI_DEPS@ resample/libresample.a libmpeg/libmpeg.a shout/libshout.a
@@ -37,5 +38,6 @@ muse_LDADD = \
 	@OGG_LIBS@ \
 	@VORBIS_LIBS@ \
 	@GUI_LIBS@ \
-	@SNDFILE_LIBS@
+	@SNDFILE_LIBS@ \
+	@GLIB2_LIBS@
 

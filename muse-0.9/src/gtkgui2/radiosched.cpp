@@ -26,9 +26,25 @@
 #include <gen.h>
 #include <config.h>
 
+#include <../radiosched.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdlib.h>
+
+
+void write_schedule_file(GtkWidget *w, gpointer data); 
+gboolean read_schedule_file(GtkListStore *list); 
+gboolean add_record_a(GtkListStore *list, 
+    const char *src, const char *comment, const char *wkd, const char *stime,
+	const char *etime );
+
+
 enum {
 	SOURCE,
 	COMMENT,
+	WEEKDAY,
 	START_TIME,
 	END_TIME,
 	COLUMN_EDITABLE,
@@ -46,6 +62,8 @@ void rsched_new(GtkWidget *w)
 	GtkCellRenderer *renderer;
 	GtkTreeIter iter;
 	GtkTreeSelection *select;
+	
+	create_xml_schedule_file();
 
 	winsched = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(winsched), _("MuSE - Radio Scheduler") );
@@ -58,25 +76,9 @@ void rsched_new(GtkWidget *w)
 	gtk_container_add(GTK_CONTAINER(winsched), tmpvbox);
 	
 	store = gtk_list_store_new(NUM_COLUMNS, G_TYPE_STRING, 
-				G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN);
+				G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN);
 	
-	gtk_list_store_append(store, &iter);
-	gtk_list_store_set(store, &iter,
-			SOURCE, "http://muse.dyne.org:8000/lasurchi.mp3",
-			COMMENT, "We got it!",
-			START_TIME, "08:00",
-			END_TIME, "10:00",
-			COLUMN_EDITABLE, TRUE,
-			-1);
-	
-	gtk_list_store_append(store, &iter);
-	gtk_list_store_set(store, &iter,
-			SOURCE, "http://papuasia.org:8000/rcyb.ogg",
-			COMMENT, "Radio Cybernet",
-			START_TIME, "10:00",
-			END_TIME, "12:00",
-			COLUMN_EDITABLE, TRUE,
-			-1);
+	read_schedule_file(store); 
 	
 	tree = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
 	scroll = gtk_scrolled_window_new(NULL, NULL);
@@ -103,6 +105,14 @@ void rsched_new(GtkWidget *w)
 	g_object_set_data(G_OBJECT(renderer), "column", GINT_TO_POINTER(COMMENT));
 	column = gtk_tree_view_column_new_with_attributes(_("Comment"), renderer, 
 			"text", COMMENT, "editable", COLUMN_EDITABLE, NULL);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(tree), column);
+	
+	renderer = gtk_cell_renderer_text_new();
+	g_signal_connect(G_OBJECT(renderer), "edited",
+			G_CALLBACK(cell_edited), (gpointer) store);
+	g_object_set_data(G_OBJECT(renderer), "column", GINT_TO_POINTER(WEEKDAY));
+	column = gtk_tree_view_column_new_with_attributes(_("Weekday"), renderer, 
+			"text", WEEKDAY, "editable", COLUMN_EDITABLE, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(tree), column);
 	
 	renderer = gtk_cell_renderer_text_new();
@@ -166,7 +176,9 @@ void rsched_new(GtkWidget *w)
 	gtk_box_pack_start(GTK_BOX(tmpwid1), tmpwid, FALSE, FALSE, 0);
 	button = gtk_button_new();
 	gtk_container_add(GTK_CONTAINER(button), tmpwid1);
-	tmpwid = gtk_label_new("Reload");
+	tmpwid = gtk_label_new("Save");
+	g_signal_connect(G_OBJECT(button), "clicked",
+			G_CALLBACK(write_schedule_file), (gpointer) store);
 	gtk_box_pack_start(GTK_BOX(tmpwid1), tmpwid, FALSE, FALSE, 0);
 
 	//gtk_box_pack_start(GTK_BOX(tmphbox), button, FALSE, FALSE, 0);
@@ -192,16 +204,8 @@ void rsched_new(GtkWidget *w)
 void rsched_add(GtkWidget *w, gpointer data)
 {
 	GtkTreeModel *model = (GtkTreeModel *) data;
-	GtkTreeIter iter;
-
-	gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-	gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-			SOURCE, "Insert Source",
-			COMMENT, "Insert Comment",
-			START_TIME, "XX:XX",
-			END_TIME, "XX:XX",
-			COLUMN_EDITABLE, TRUE,
-			-1);
+	
+	add_record_a(GTK_LIST_STORE(model), "Insert Source", "Insert Comment", "*", "XX:XX", "XX:XX");
 }
 
 void rsched_remove(GtkWidget *w, gpointer data)
@@ -238,5 +242,71 @@ void cell_edited(GtkCellRendererText *cell, const gchar *path_string,
 
 	gtk_tree_path_free(path);
 
+}
+
+gboolean 
+add_record(void *udata, sched_rec *sr)
+{
+    GtkListStore *list = (GtkListStore*)udata;
+    return add_record_a(list, sr->src, sr->comment, sr->wkd, sr->stime, sr->etime);
+}
+ 
+gboolean 
+add_record_a(GtkListStore *list, 
+    const char *src, const char *comment, const char *wkd, const char *stime,
+	const char *etime )
+{
+	GtkTreeIter iter;
+
+	gtk_list_store_append(list, &iter);
+	gtk_list_store_set(list, &iter,
+			SOURCE, src,
+			COMMENT, comment,
+			WEEKDAY, wkd,
+			START_TIME, stime,
+			END_TIME, etime,
+			COLUMN_EDITABLE, TRUE,
+			-1);
+    return TRUE;
+}
+
+void
+write_schedule_file(GtkWidget *w, gpointer data)
+{
+	GtkTreeModel *model = (GtkTreeModel *) data;
+	GtkTreeIter iter;
+	gboolean valid;
+	gchar *xml = NULL;
+	int ret;
+	
+	valid = gtk_tree_model_get_iter_first(model, &iter);
+	while (valid) {
+	    sched_rec rec;
+		gchar *tmp1=NULL, *tmp2=NULL;
+		
+		gtk_tree_model_get(model, &iter,
+				SOURCE, &rec.src,
+				COMMENT, &rec.comment,
+				WEEKDAY, &rec.wkd,
+				START_TIME, &rec.stime,
+				END_TIME, &rec.etime,
+				-1);
+		tmp1 = format_xml_sched_rec(&rec);
+		tmp2 = g_strconcat(tmp1, xml, NULL);
+		free(tmp1); tmp1 = NULL;
+		free(xml); xml = NULL; 
+		xml = tmp2; tmp2 = NULL; //swap
+
+	    valid = gtk_tree_model_iter_next(model, &iter);
+	}
+	ret = write_xml_schedule_file(xml);
+	free(xml);
+}
+
+gboolean
+read_schedule_file(GtkListStore *list)
+{
+    sched_rec sr = {0};
+	return parse_xml_sched_file( add_record, list, &sr );
 }
 

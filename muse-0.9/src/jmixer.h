@@ -38,6 +38,10 @@
 
 #include <generic.h>
 
+#ifdef HAVE_SCHEDULER
+#include "radiosched.h"
+#endif
+
 /**
    @class Stream_mixer
 
@@ -349,6 +353,10 @@ class Stream_mixer {
   pthread_mutex_t _mutex;
   pthread_cond_t _cond;
 
+#ifdef HAVE_SCHEDULER
+  Basic_scheduler *rsched;
+  public:  void register_sched(Basic_scheduler *s) {rsched=s;};
+#endif
 };
 
 #endif
