@@ -187,7 +187,8 @@ bool gtkgui_add_into_pl(unsigned int chan, char *file)
 	if(!c) return false;
 	
 	fileutf8 = g_filename_to_utf8(file, -1, NULL, NULL, NULL);
-	
+	func(_("I'm adding %s"), fileutf8);
+
 	model = gtk_tree_view_get_model(GTK_TREE_VIEW(c->tree));
 	
 	gtk_list_store_append(GTK_LIST_STORE(model), &iter);

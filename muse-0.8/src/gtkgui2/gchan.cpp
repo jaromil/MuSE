@@ -331,7 +331,7 @@ void spawnfilew(GtkWidget *button, struct gchan *o)
 	GtkWidget *filew;
 
 /*#if GTK_CHECK_VERSION(2,4,0)
-	notice("provola");
+	notice("use file chooser");
 #else*/
 	func(_("GTK_GUI::spawnfilew : filebrowser for chan[%u]"), o->idx);
 
@@ -343,12 +343,15 @@ void spawnfilew(GtkWidget *button, struct gchan *o)
 	g_signal_connect(G_OBJECT(GTK_FILE_SELECTION(filew)->ok_button),
 			"clicked", G_CALLBACK(gcb_add_file), filew);
 	
+	gtk_file_selection_set_select_multiple(GTK_FILE_SELECTION(filew), TRUE);
+	
 	g_signal_connect(G_OBJECT(GTK_WIDGET(filew)), "destroy",
 			G_CALLBACK(gtk_widget_destroy), NULL);
 	g_signal_connect_swapped(G_OBJECT(
 				GTK_FILE_SELECTION(filew)->cancel_button),
 			"clicked", G_CALLBACK(gtk_widget_destroy), 
 			G_OBJECT(filew));
+	
 	gtk_widget_show(filew);
 /*#endif*/
 }
@@ -484,12 +487,27 @@ void gcb_set_channel(GtkWidget *w, struct gchan *o) {
 void gcb_play_channel(GtkWidget *w, struct gchan *o)
 {
 	guint res;
+	
+	GtkTreePath *path;
+	GtkTreeIter iter;
+	GtkTreeSelection *select;
+	GtkTreeModel *model;
+	gint index=0;
+	
 	if( mixer->chan[o->idx-1]->on) {
 	  gtk_toggle_button_set_active
 	    (GTK_TOGGLE_BUTTON(o->play), FALSE);
 	  return;
 	}
-
+	select = gtk_tree_view_get_selection(GTK_TREE_VIEW(o->tree));
+	gtk_tree_selection_set_mode(select, GTK_SELECTION_SINGLE);
+	if(!gtk_tree_selection_get_selected(select, &model, &iter))
+		return;
+	path = gtk_tree_model_get_path(model, &iter);
+	index = gtk_tree_path_get_indices(path)[0];
+	
+	func(_("selected index = %d"), index);
+	gtk_tree_path_free(path);
 	res = mixer->play_channel(o->idx-1);
 
 	switch(res) {
@@ -625,37 +643,47 @@ void gcb_add_file(GtkWidget *w, GtkFileSelection *fw)
 {
 	unsigned int idx = 0;
 	struct gchan *o;
-	const gchar *cist; 
+	gchar **cist; 
+	//const gchar *cist;
+	gint i;
+	GtkTreeSelection *select;
 	bool res=false;
 
 	cist=NULL;
 	
 	idx= *(unsigned int *) g_object_get_data(G_OBJECT(GTK_FILE_SELECTION(fw)->ok_button), "chan");
 	func(_("GTK_GUI::gcb_add_file : idx %u"), idx);
-	cist = gtk_file_selection_get_filename(GTK_FILE_SELECTION (fw));
+	cist = gtk_file_selection_get_selections(GTK_FILE_SELECTION(fw));
+	//cist = gtk_file_selection_get_filename(GTK_FILE_SELECTION(fw));
 
 	o = (struct gchan *) list_get_data(listachan, idx, 0);
-	if(!cist) {
+	/*if(!cist[0]) {
 		win_warning(_("You have to insert a filename!!"));
 		return;
-	}
+	}*/
 	
 	/* muse core'll add file into GtkTreeModel */
-	res = mixer->add_to_playlist(idx-1, cist);
-	if(!res) { 
-		func(_("gcb_add_file:: mixer->add_to_playlist(%u, %s) failed"),
-				idx-1, cist);
-		win_error(_("Problem adding file :\\"));
-	} else {
-		/* saves last directory visited */
-		if(pathfile) 
-		g_free(pathfile);
-		pathfile = g_strdup(cist);
-		int i = strlen(pathfile);
-		while(pathfile[i] != '/') i--;
-			pathfile[i+1]= '\0';
+	for(i = 0; cist[i] != NULL; i++) {
+		res = mixer->add_to_playlist(idx-1, cist[i]);
+		//res = mixer->add_to_playlist(idx-1, cist);
+		if(!res) { 
+			func(_("gcb_add_file:: mixer->add_to_playlist(%u, %s) failed"),
+					idx-1, cist[i]);
+			win_error(_("Problem adding file :\\"));
+		} else {
+			//func(_("Added %s"), cist[i]);
+			/* saves last directory visited */
+			if(pathfile) 
+				g_free(pathfile);
+			pathfile = g_strdup(cist[i]);
+			int i = strlen(pathfile);
+			while(pathfile[i] != '/') i--;
+				pathfile[i+1]= '\0';
+		}
 	}
-	
+	g_strfreev(cist);
+	select = gtk_tree_view_get_selection(GTK_TREE_VIEW(o->tree));
+	gtk_tree_selection_unselect_all(select);
 	gtk_widget_destroy((GtkWidget *)fw);
 
 }
