@@ -666,7 +666,7 @@ int main(int argc, char **argv) {
   rscheduler->start();
   rscheduler->wait();
   rscheduler->unlock();
-  rscheduler->play();
+  //rscheduler->play();
 #endif
     
   if( !take_args(argc, argv) ) goto QUIT;
