@@ -10,6 +10,9 @@
 #
 # Format of wrapper file ($CVSROOT/CVSROOT/cvswrappers or .cvswrappers)
 #
+
+
+
 #  wildcard	[option value][option value]...
 #  where option is one of
 #  -f		from cvs filter		value: path to filter
