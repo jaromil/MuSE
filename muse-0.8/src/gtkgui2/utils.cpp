@@ -25,6 +25,7 @@
 #include <listpack.h>
 #include <vumeters.h>
 #include <utils.h>
+#include <radiosched.h>
 
 #include <jmixer.h>
 
@@ -41,8 +42,9 @@
 
 GtkWidget *createbbox(GtkWidget *bbox)
 {
-	GtkWidget *ice, *clame, *addch, *help, *vumeters;
-	
+	GtkWidget *ice, *clame, *addch, *help, *vumeters, *scheduler;
+	GtkWidget *tmpwid;
+
 	ice = clame = addch = help = vumeters = NULL;
 
 	bbox=gtk_hbutton_box_new();
@@ -86,13 +88,20 @@ GtkWidget *createbbox(GtkWidget *bbox)
 	g_signal_connect(G_OBJECT(vumeters), "clicked",
 			G_CALLBACK(vumeters_new), NULL);
 	gtk_container_add(GTK_CONTAINER(bbox), vumeters);
+	
+	tmpwid = gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_BUTTON);
+	scheduler = gtk_button_new();
+	gtk_container_add(GTK_CONTAINER(scheduler), tmpwid);
+	set_tip(scheduler, "Radio Scheduler");
+	g_signal_connect(G_OBJECT(scheduler), "clicked",
+			G_CALLBACK(rsched_new), NULL);
+	gtk_container_add(GTK_CONTAINER(bbox), scheduler);
 
 	help = createpixmap(window, help, about_xpm, 
 			_("Hall of Fame"), FALSE);
 	g_signal_connect(G_OBJECT(help), "clicked",
 			G_CALLBACK(about_win), NULL);
 	gtk_container_add(GTK_CONTAINER(bbox), help);
-
 
 	return bbox;
 

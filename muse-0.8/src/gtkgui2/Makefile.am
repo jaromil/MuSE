@@ -19,4 +19,5 @@ libnightolo2_a_SOURCES =	\
 	vumeters.cpp \
 	about.cpp \
 	gtk2_gui.cpp \
-	xmlprofile.cpp
+	xmlprofile.cpp \
+	radiosched.cpp
