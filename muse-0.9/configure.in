@@ -419,7 +419,8 @@ AC_ARG_ENABLE(profiling,
 [ if test ! x$enableval = xyes; then
     have_profiling=no
   else
-    have_profiling=yes;
+      have_profiling=yes;
+    fi
   fi ],[ have_profiling=no ])
 if test x$have_profiling = xyes; then
   CFLAGS="$CFLAGS -pg"
@@ -439,7 +440,7 @@ if test x$have_lubrifications = xyes; then
 #  LUBRIFY_CFLAGS="-O4 -fomit-frame-pointer -march=${host_cpu} -finline-functions -ffast-math -funroll-loops"
    if test x$have_profiling = xyes -o x$debug = xtrue; then
      echo "cannot lubrify code if debug or profiling are enabled"
-     CFLAGS="$CFLAGS -O2 -ffast-math"
+     CFLAGS="$CFLAGS -ggdb"
    else
      CFLAGS="$CFLAGS -O3 -fomit-frame-pointer -march=${host_cpu} -ffast-math"
    fi
