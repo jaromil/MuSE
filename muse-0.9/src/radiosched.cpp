@@ -294,6 +294,11 @@ void Basic_scheduler::run() {
 	  left = (unsigned) (60 - clk % 60); 
 	  while (left--) {
           jsleep(1,0);
+		  // if channel not actually playing (ex.: http error) try restarting it
+		  if (playing && !play_code) {
+		      notice("Scheduler reloading %s", playing->path);
+			  play_code = start_channel(playing);
+		  }
 		  if (quit) break;
 	  }
     } else { // if(on)
@@ -375,13 +380,13 @@ void Basic_scheduler::on_wakeup( void )
               notice("==> Basic_scheduler: %02d/%02d-%02d:%02d  %s",
                    tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min,
                    this_entry->path);
-              start_channel(this_entry);
+              play_code = start_channel(this_entry);
         }
     }
 }
 
 
-void Basic_scheduler::start_inner_channel( Url *rec )
+bool Basic_scheduler::start_inner_channel( Url *rec )
 {
   stop_channel();
   func("Basic_scheduler::start_channel '%s'\r\n", rec->path);
@@ -389,7 +394,7 @@ void Basic_scheduler::start_inner_channel( Url *rec )
   playing->mnleft = playing->mnplay; 
   channel->playlist->addurl( playing->path );
   channel->playlist->sel(1); //FIXME: channel complaints no song selected 
-  channel->play();
+  return channel->play();
 }
 
 
@@ -407,23 +412,25 @@ void Basic_scheduler::stop_inner_channel(void)
 }
 
 #define MUSE_URL "muse://channel"
-void Basic_scheduler::start_mixer_channel( Url *rec )
+bool Basic_scheduler::start_mixer_channel( Url *rec )
 {
     char *p;
 	int  chan;
+	bool ret = false;
 	
-    if (!rec || !rec->path || !mixer) return;
+    if (!rec || !rec->path || !mixer) return false;
 	
 	p = strstr(rec->path,MUSE_URL); 
-	if (!p) return;
+	if (!p) return false;
 	p += strlen(MUSE_URL);
 	chan = atoi(p) - 1 ;
 	notice("Basic_scheduler::start_mixer_channel %d", chan);
 	
 	if (chan>=0 && chan<MAX_CHANNELS) {
         mixer->set_channel(chan, 1/*pos*/);
-        mixer->play_channel(chan);
+        ret = mixer->play_channel(chan);
     }
+	return ret;
 }
 
 void Basic_scheduler::stop_mixer_channel( Url *rec )
@@ -444,13 +451,15 @@ void Basic_scheduler::stop_mixer_channel( Url *rec )
     }
 }
 
-void Basic_scheduler::start_channel( Url *rec )
+bool Basic_scheduler::start_channel( Url *rec )
 {
+    bool ret = false;
     if (strstr(rec->path,MUSE_URL)) {
-        start_mixer_channel(rec);
+        ret = start_mixer_channel(rec);
     } else {
-        start_inner_channel(rec);
+        ret = start_inner_channel(rec);
     }
+	return ret;
 }
 
 void Basic_scheduler::stop_channel(void)

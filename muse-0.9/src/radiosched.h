@@ -109,7 +109,9 @@ class Basic_scheduler {
   /* Match the left string with the right number.  */
   bool match( const char *left, int right ); 
   void stop_channel(void);
-  void start_channel( Url *rec ); 
+  bool play_code; ///< last start_channel() return code
+  /** @return same error codes as Channel::play() */
+  bool start_channel( Url *rec ); 
   
   const void *_schedule; 
   Playlist *playlist;
@@ -120,11 +122,11 @@ class Basic_scheduler {
   Url  *playing; 
   
   void stop_inner_channel(void);
-  void start_inner_channel( Url *rec ); 
+  bool start_inner_channel( Url *rec ); 
   // start/stop mixer channels
   Stream_mixer *mixer;
   void stop_mixer_channel( Url *rec );
-  void start_mixer_channel( Url *rec ); 
+  bool start_mixer_channel( Url *rec ); 
 
  private:
   /* pthread stuff */
