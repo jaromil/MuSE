@@ -447,6 +447,7 @@ read_header( FILE *fd )
 		if (ch == '\n') crlf++;
 		else if (ch == '\r') /*nothing*/;
 		else crlf = 0;
+	    //printf("%c", ch);
 
 		header[used++] = ch;
 
@@ -479,8 +480,10 @@ stream_detect( const char *url )
 	if (!hdr) return HS_NONE;
 	
 	//FIXME: analyse header
-	if (strstr(hdr, "application/ogg")) 
+	if (strstr(hdr,"application/ogg")) 
 		ret = HS_OGG;
+	else if (strstr(hdr,"SHOUTcast") || strstr(hdr,"ICY 200")) 
+		ret = HS_MP3;
 	notice("stream_detect: '%d'", ret);
 
 	free(hdr);
