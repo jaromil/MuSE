@@ -59,8 +59,8 @@ ConnectBox::ConnectBox (Stream_mixer *m)
 	/* load default profiles */
 
 	/* nuova api
-	mixer->lame.load_profile("last_active");
 	mixer->ice.load_profile("last_active");
+	mixer->lame.load_profile("last_active");
 	*/
 }
 
@@ -72,11 +72,17 @@ void ConnectBox::setparm (void)
 	bottom.lrhook (ACS_BTEE);
 	bottom.setvalue ("<C>Connbox");
 
+
 	encsetbox.setparm(xbase, ybase);
 	streamsetbox.setparm(xbase, ybase);
 	//showcurrval();
 	enc->lameid = mixer->create_enc(MP3);
 	enc->oggid = mixer->create_enc(OGG);
+
+	enc->outchan=mixer->get_enc (enc->lameid);
+	enc->iceid[enc->numchan]=enc->outchan->create_ice();
+	enc->coreice=enc->outchan->get_ice(enc->iceid[enc->numchan]);
+	enc->outchan->start();
 }
 
 void ConnectBox::draw (void)
@@ -197,11 +203,14 @@ void ConnectBox::activate (void)
 									switch (k) {
 											case 'A':
 													enc->outchan=mixer->get_enc (enc->lameid);
-													enc->iceid[enc->numchan]=enc->outchan->create_ice();
-													enc->coreice=enc->outchan->get_ice(enc->iceid[enc->numchan]);
+													// enc->iceid[enc->numchan]=enc->outchan->create_ice();
+													// enc->coreice=enc->outchan->get_ice(enc->iceid[enc->numchan]);
+													// enc->outchan->start();
+
 													streamsetbox.setval(enc->numchan);
 													ice = enc->outchan->get_ice(enc->iceid[enc->numchan]);
 													enc->outchan->apply_ice(enc->iceid[enc->numchan]);
+													mixer->apply_enc(enc->lameid);
 													enc->outchan->connect_ice(enc->iceid[enc->numchan], true);
 													enc->numchan++;
 													k=999;
@@ -233,10 +242,16 @@ void ConnectBox::activate (void)
 									k=getch();
 									switch (k) {
 											case 'A':
-													enc->outchan=mixer->get_enc (enc->lameid);
-													enc->iceid[enc->numchan]=enc->outchan->create_ice();
-													enc->coreice=enc->outchan->get_ice(enc->iceid[enc->numchan]);
+													enc->outchan=mixer->get_enc (enc->oggid);
+													//enc->iceid[enc->numchan]=enc->outchan->create_ice();
+													//enc->coreice=enc->outchan->get_ice(enc->iceid[enc->numchan]);
+													// enc->outchan->start();
+													
 													streamsetbox.setval(enc->numchan);
+													ice = enc->outchan->get_ice(enc->iceid[enc->numchan]);
+													enc->outchan->apply_ice(enc->iceid[enc->numchan]);
+													mixer->apply_enc(enc->oggid);
+													enc->outchan->connect_ice(enc->iceid[enc->numchan], true);
 													enc->numchan++;
 													k=999;
 													break;
