@@ -728,7 +728,6 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
     strncpy(temp,&file[7],MAX_PATH_SIZE);
     func("QUAAA %s",temp);
   }
-    
   
   /* if it's not a stream, check if the file exists and it's readable */
   FILE *fd = NULL;
