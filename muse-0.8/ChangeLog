@@ -1,4 +1,4 @@
-MuSE 0.9 "COTURNIX" - 15 04 04
+MuSE 0.9 "COTURNIX" - 17 04 04
 /* This is a new milestone release adding many new functionalities
    developed in more than a year of silent coding activity.
    Spotlights on the revamped GTK-2 interface now featuring drag&drop,
@@ -15,6 +15,7 @@ MuSE 0.9 "COTURNIX" - 15 04 04
 	some relevant bugfixes improving overall stability
 	rewrite of decoder channels
 	GTK-2 GUI localization
+	updates and more info in the unix manual page
 	doxygen documentation of the engine's API
 
 MuSE 0.8.1 "Z0RZ0RZ" - 30 03 03
