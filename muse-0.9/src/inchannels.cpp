@@ -71,6 +71,7 @@ Channel::Channel() {
   update = false;
   running = false;
   quit = true;
+  idle = true;
 
   _thread_init();
   erbapipa = new Pipe(IN_PIPESIZE);
@@ -113,6 +114,7 @@ void Channel::run() {
   while(!quit) {
     
     if(on) {
+      idle = false;
       PARADEC
       dec->lock();
       /* now call get_audio() which
@@ -149,6 +151,7 @@ void Channel::run() {
     } else { // if(on)
 
       // just hang on
+      idle = true;
       jsleep(0,20);
       
     }
@@ -357,6 +360,7 @@ void Channel::clean() {
   //  dec->clean();
   //  dec->unlock();
   opened = false;
+  while(!idle) jsleep(0,20);
   if(dec) delete dec;
   dec = NULL;
 }

@@ -71,6 +71,9 @@ class Channel {
   IN_DATATYPE prev_smp[4];
   /* resample routine pointer */
   Resampler *munch;
+  /* AM: need this variable to safely call clean() - to delete the
+     decoder/buffers etc. when the run() loop is not using them.  */
+  bool idle;
 
   /* pthread stuff */
   void _thread_init();
