@@ -466,6 +466,7 @@ void Basic_scheduler::stop_channel(void)
     } else {
         stop_inner_channel();
     }
+	playing = NULL;
 }
 
 bool Basic_scheduler::match( const char *left, int right )
