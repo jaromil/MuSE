@@ -7,8 +7,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-05-01 10:54+0200\n"
+"POT-Creation-Date: 2004-05-10 14:23-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,15 +16,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #. gtk_widget_set_size_request(window1, 550, 300);
-#: ../src/gtkgui2/about.cpp:34
+#: ../src/gtkgui2/about.cpp:52
 msgid "about MuSE: the Multiple Streaming Engine"
 msgstr ""
 
-#: ../src/gtkgui2/about.cpp:39
+#: ../src/gtkgui2/about.cpp:57
 msgid "MuSE: Codename COTURNIX"
 msgstr ""
 
-#: ../src/gtkgui2/about.cpp:52
+#: ../src/gtkgui2/about.cpp:70
 msgid ""
 "development team for this release:\n"
 "\n"
@@ -35,7 +34,7 @@ msgid ""
 "pallotron aka Angelo Failla - more input channels\n"
 msgstr ""
 
-#: ../src/gtkgui2/about.cpp:77
+#: ../src/gtkgui2/about.cpp:95
 msgid ""
 "MuSE is an application for the mixing, encoding, and\n"
 "streaming of sound: is an engine that can simultaniously\n"
@@ -427,12 +426,12 @@ msgstr ""
 msgid "Add Url..."
 msgstr ""
 
-#. if(row) {
+#. 		if(row) {
 #: ../src/gtkgui2/gchan_events.cpp:240 ../src/gtkgui2/ice.cpp:321
 msgid "Delete"
 msgstr ""
 
-#. }
+#. 		}
 #: ../src/gtkgui2/gchan_events.cpp:247
 msgid "Cancel"
 msgstr ""
@@ -562,11 +561,11 @@ msgstr ""
 msgid "%d byte/s"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:53
+#: ../src/gtkgui2/utils.cpp:55
 msgid "Let's stream!"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:59
+#: ../src/gtkgui2/utils.cpp:61
 msgid "Add Channel"
 msgstr ""
 
@@ -578,51 +577,51 @@ msgstr ""
 #. G_CALLBACK(gcb_set_talk), NULL);
 #. gtk_container_add(GTK_CONTAINER(bbox), mic);
 #.
-#: ../src/gtkgui2/utils.cpp:73
+#: ../src/gtkgui2/utils.cpp:75
 msgid "Line In"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:79
+#: ../src/gtkgui2/utils.cpp:81
 msgid "Speaker"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:85
+#: ../src/gtkgui2/utils.cpp:87
 msgid "Vumeters"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:91
+#: ../src/gtkgui2/utils.cpp:101
 msgid "Hall of Fame"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:188
+#: ../src/gtkgui2/utils.cpp:197
 msgid "_The_ status bar"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:272
+#: ../src/gtkgui2/utils.cpp:275
 msgid "Save an Icecast profile"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:276
+#: ../src/gtkgui2/utils.cpp:279
 msgid "Save a Lame profile"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:278
+#: ../src/gtkgui2/utils.cpp:281
 msgid "Save an Ogg/Vorbis profile"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:302 ../src/gtkgui2/utils.cpp:368
+#: ../src/gtkgui2/utils.cpp:305 ../src/gtkgui2/utils.cpp:371
 msgid "Profile Name"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:338
+#: ../src/gtkgui2/utils.cpp:341
 msgid "Remove an Icecast profile"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:342
+#: ../src/gtkgui2/utils.cpp:345
 msgid "Remove a Lame profile"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:344
+#: ../src/gtkgui2/utils.cpp:347
 msgid "Remove a Ogg/Vorbis profile"
 msgstr ""
 
