@@ -20,7 +20,6 @@
  */
 
 #include <shouter.h>
-#include <profile.h>
 #include <jutils.h>
 #include <generic.h>
 #include <config.h>
@@ -28,7 +27,7 @@
 extern bool got_sigpipe;
 
 Shouter::Shouter()
-  : Profile("ice") {
+  : Entry() {
 
   /*
   int vermaj,vermin,verpat;
@@ -37,30 +36,24 @@ Shouter::Shouter()
   */
 
   ice = shout_new();
-  profile_changed = true;
 
-  struct settings ice_settings[] = {
-    { "host", (void*)&_host, cfgSTR, "localhost" },
-    { "ip_address", (void*)&_ip, cfgSTR, "127.0.0.1" },
-    { "port", (void*)&_port, cfgINT, "8000" },
-    { "pass", (void*)&_pass, cfgSTR, "hackme" },
-    { "mount", (void*)&_mount, cfgSTR, "live" },
-    //    { "bps", (void*)&_bps, cfgINT, "24" },
-    { "login", (void*)&_login, cfgINT, "1" },
-    { "name", (void*)&_name, cfgSTR, "Streaming with MuSE" },
-    { "url", (void*)&_url, cfgSTR, "http://muse.dyne.org" },
-    { "desc", (void*)&_desc, cfgSTR, "Free Software Multiple Streaming Engine" },
-    { NULL, NULL, cfgNULL, NULL }
-  };
-  setup(ice_settings);
 
   running = false;
   retry = 0;
-
-  if( !load_profile("default") )
-    create_default_profile();
-
   errors = 0;
+
+  /* setup defaults */
+  host("localhost");
+  ip("127.0.0.1");
+  port(8000);
+  pass("hackme");
+  mount("live");
+  login(1);
+  name("Streaming with MuSE");
+  url("http://muse.dyne.org");
+  desc("Free Software Multiple Streaming Engine");
+
+  profile_changed = true;
 }
 
 Shouter::~Shouter() {

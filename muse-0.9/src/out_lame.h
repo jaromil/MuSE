@@ -23,7 +23,6 @@
 #define __OUT_LAME_H__
 
 #include <outchannels.h>
-#include <profile.h>
 #include <config.h>
 #ifdef HAVE_LAME
 

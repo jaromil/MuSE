@@ -22,7 +22,6 @@
 #define __OUTCHANNELS_H__
 
 #include <pthread.h>
-#include <profile.h>
 #include <shouter.h>
 #include <pipe.h>
 #include <linklist.h>
@@ -34,7 +33,7 @@
 /* type of the encoder */
 enum codec { MP3, OGG };
 
-class OutChannel: public Entry, public Profile {
+class OutChannel: public Entry {
 
  private:
   /* pthread properties and private methods */
@@ -96,7 +95,7 @@ class OutChannel: public Entry, public Profile {
   virtual bool apply_profile() =0;
   bool profile_changed;
 
-
+  
 
   /* file dump */
   bool dump_start(char *file);

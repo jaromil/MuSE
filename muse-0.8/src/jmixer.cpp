@@ -442,7 +442,7 @@ int Stream_mixer::set_channel(int ch, int pos) {
   unlock();
 
   /* ok, we have the channel here, let's load the bitstream */
-  res = chan[ch]->set(sel);
+  res = chan[ch]->load(sel);
 
 
   if(!res) {  /* there is an error in opening the file */
@@ -467,14 +467,14 @@ int Stream_mixer::set_channel(int ch, int pos) {
   } else { /* file opened, everything ok */
 
     /* flush out the pipe */
-    chan[ch]->flush();
+    chan[ch]->erbapipa->flush();
 
     if(!chan[ch]->running) { /* startup separated thread */
       chan[ch]->lock();
       chan[ch]->start();
       func("waiting for thread to start");
       chan[ch]->wait();
-      /* wait locks when exits, so we unlock */
+      /* wait for the existance lock, then we unlock */
       chan[ch]->unlock();
     }
 
@@ -494,7 +494,9 @@ int Stream_mixer::set_channel(int ch, int pos) {
       break;
     }
     /* if have_gui select the choosen song */
-    if(have_gui) gui->sel_playlist(ch,playlist[ch].selected_pos());
+    if(have_gui)
+      gui->sel_playlist
+	( ch , playlist[ch].selected_pos() );
 
   }
   return(res);
@@ -597,18 +599,12 @@ bool Stream_mixer::set_position(int ch, float pos) {
 
   if(chan[ch]->seekable && chan[ch]->running) {
     lock();
-    chan[ch]->flush();
+    chan[ch]->erbapipa->flush();
     chan[ch]->lock();
     res = chan[ch]->pos(pos);
     chan[ch]->unlock();
-    if(!res)
-    error("can't seek position %f on channel %u",pos,ch);
-    /* here the set_position automatically plays the file
-       this means if the file is paused or stopped and you move the position
-       it starts playing.
-       i'm not sure that's the best logic to use, but it's simple
-       and it's fine to have it like that right now. // jaromil */
-    chan[ch]->play();
+    if(!res) error("can't seek position %f on channel %u",pos,ch);
+    // chan[ch]->play(); - this shouldn't be needed
     unlock();
   } else
     error("channel %u is not seekable",ch);
@@ -630,7 +626,7 @@ bool Stream_mixer::move_song(int ch, int pos, int nch, int npos) {
 
 bool Stream_mixer::set_live(bool stat) {
   if(dsp<1) {
-    warning("ignoring live-in: soundcard not initialized");
+    warning("ignoring live-in: soundcard not found");
     return(false);
   }
   
@@ -645,7 +641,7 @@ bool Stream_mixer::set_live(bool stat) {
 
 bool Stream_mixer::set_lineout(bool stat) {
   if(dsp<1) {
-    error("soundcard is not initialized",stat);
+    error("ignoring sound output: soundcard not found");
     return(false);
   }
 
@@ -658,6 +654,7 @@ bool Stream_mixer::set_lineout(bool stat) {
 }
 
 void Stream_mixer::close_soundcard() {
+  if(!dsp) return;
   ioctl(dsp, SNDCTL_DSP_RESET, 0);
   close(dsp);
 }
@@ -714,7 +711,7 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
   chomp(temp);
   
   /* if it's a url, just add it */
-  if(strncasecmp(file,"http://",7)==0) {
+  if(strncasecmp(temp,"http://",7)==0) {
     lock();
     path = playlist[ch].addurl(temp);
     unlock();
@@ -724,7 +721,7 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
   
   /* if it's a local file url (like gnome d&d)
      strip away the file:// and treat it normally */
-  if(strncasecmp(file,"file://",7)==0) {
+  if(strncasecmp(temp,"file://",7)==0) {
     strncpy(temp,&file[7],MAX_PATH_SIZE);
     func("QUAAA %s",temp);
   }
@@ -869,7 +866,7 @@ int Stream_mixer::create_enc(enum codec enc) {
 		     i bet you'll not reach it */
   outch->id = idseed;
   
-  notice("%s encoder succesfully initialized",outch->name);
+  notice("%s %s initialized",outch->name,outch->version);
   return outch->id;
 }
 

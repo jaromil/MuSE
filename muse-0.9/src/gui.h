@@ -44,18 +44,18 @@ class GUI {
   //  void destroy() { _thread_destroy(); };
   /* ------------- */
 
-  virtual void set_lcd(unsigned int chan, char *lcd) { };
-  virtual void set_pos(unsigned int chan, float pos) { };
+  virtual void set_lcd(unsigned int chan, char *lcd) =0;
+  virtual void set_pos(unsigned int chan, float pos) =0;
 
-  virtual void set_title(char *txt) { };
-  virtual void set_status(char *txt) { };
-  virtual void add_playlist(unsigned int ch, char *txt) { };
-  virtual void sel_playlist(unsigned int ch, int row) { };
+  virtual void set_title(char *txt) =0;
+  virtual void set_status(char *txt) =0;
+  virtual void add_playlist(unsigned int ch, char *txt) =0;
+  virtual void sel_playlist(unsigned int ch, int row) =0;
 
-  virtual void bpsmeter_set(int n) { };
-  virtual void vumeter_set(int n) { };
+  virtual void bpsmeter_set(int n) =0;
+  virtual void vumeter_set(int n) =0;
 
-  virtual bool meter_shown() { return false; };
+  virtual bool meter_shown() =0;
 
   virtual void lameversion(char *str) { };
 

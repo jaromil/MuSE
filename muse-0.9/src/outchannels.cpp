@@ -59,7 +59,7 @@
 
 
 OutChannel::OutChannel(char *myname)
-  : Profile(myname) {
+  : Entry() {
   func("OutChannel::OutChannel(%s) %p",myname,this);
 
   quit = false;
@@ -76,21 +76,15 @@ OutChannel::OutChannel(char *myname)
 
   erbapipa = new Pipe(OUT_PIPESIZE);
 
+  /* setup defaults */
+  bps(24);
+  freq(22050);
+  channels(1);
+  quality(4.0);
+  lowpass(0);
+  highpass(0);
+    
   profile_changed = true;
-
-  struct settings conf[6+1] = {
-    { "bitrate", (void*)&_bps, cfgINT, "24" },
-    { "frequency", (void*)&_freq, cfgINT, "22050" },
-    { "channels", (void*)&_channels, cfgINT, "1" },
-    { "quality", (void*)&_quality, cfgFLOAT, "2.0" },
-    { "lowpass", (void*)&_lowpass, cfgINT, "0" },
-    { "highpass", (void*)&_highpass, cfgINT, "0" },
-    { NULL, NULL, cfgNULL, NULL }
-  };
-  setup(conf);
-
-  if( !load_profile("default") )
-    create_default_profile();
 
   guess_bps();
 }
@@ -187,18 +181,18 @@ void OutChannel::run() {
     
 
     calc_bitrate(encoded);
-    func("===== encoded %i, bitrate: %i",encoded,bitrate);    
+    //    func("===== encoded %i, bitrate: %i",encoded,bitrate);    
 
     //    unlock();
 
     /* stream it to the net */
     //    func("calling shout()");
     res = shout();
-    func("shout returned %i",res);
+    //    func("shout returned %i",res);
     /* save it on the harddisk */
     //    func("calling dump()");
     res = dump();
-    func("dump returned %i",res);
+    //    func("dump returned %i",res);
 
     /* TODO: flush when erbapipa->read != OUT_CHUNK */
     

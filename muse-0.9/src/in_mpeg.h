@@ -41,7 +41,7 @@ class MpegChannel: public Channel {
   MpegChannel();
   ~MpegChannel();
   
-  int set(char *file);
+  int load(char *file);
   bool pos(float pos);
   void clean();
 

@@ -52,7 +52,7 @@ class OggChannel: public Channel {
   OggChannel();
   ~OggChannel();
 
-  int set(char *file);
+  int load(char *file);
   bool pos(float pos);
   void clean();
 };

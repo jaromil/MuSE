@@ -60,10 +60,6 @@
 #include <xmlrpc/xmlrpc_ui.h>
 #endif
 
-#define CLI 1
-#define GTK1 2
-#define GTK2 3
-#define NCURSES 4
 
 /* command line stuff */
 
@@ -76,19 +72,23 @@ char *help =
 " -h --help         this help\n"
 " -v --version      version information\n"
 " -D --debug [1-3]  debug verbosity level       - default 1\n"
-" -i --live         mix soundcard live input\n"
-" -o --dspout       disable souncard output\n"
+" -o --dspout       disable souncard output     - default on\n"
 " -C --cli          command line input (no GUI)\n"
 " -g --gui          specify GUI to use (-g list)\n"
+":: input channels options\n"
+" -i --live         mix soundcard live input    - default off\n"
+" -N --number       channel number              - default 1\n"
+" -V --volume       channel volume              - default 1.0\n"
+" -S --position     channel starting position   - default 0.0\n"
 " -P --playmode     playmode: play, cont, loop  - default cont\n"
-":: encoder options:\n"
+":: output encoders options:\n"
 " -e --encoder      codec to use [ogg|mp3]      - default ogg\n"
 " -b --bitrate      codec bitrate in Kbit/s     - default 24\n"
 " -r --frequency    encoding frequency          - default auto\n"
-" -q --quality      encoding quality (0.1-9.0)  - default 1.0\n"
+" -q --quality      encoding quality (0.1-9.0)  - default 4.0\n"
 " -c --channels     number of audio channels    - default 1\n"
 " -f --filedump     dump stream to file\n"
-":: stream options:\n"
+":: broadcast stream options:\n"
 " -s --server       stream to server[:port]     - default port 8000\n"
 " -m --mount        mounpoint on server         - default live\n"
 " -p --pass         encoder password on server\n"
@@ -104,8 +104,11 @@ static const struct option long_options[] = {
   { "live", no_argument, NULL, 'i' },
   { "dspout", no_argument, NULL, 'o' },
   { "cli", no_argument, NULL, 'C' },
+  { "number", required_argument, NULL, 'N' },
+  { "volume", required_argument, NULL, 'V' },
+  { "position", required_argument, NULL, 'S' },
   { "playmode", required_argument, NULL, 'P' },
-  { "encoder", no_argument, NULL, 'e' },
+  { "encoder", required_argument, NULL, 'e' },
   { "bitrate", required_argument, NULL, 'b' },
   { "frequency", required_argument, NULL, 'r' },
   { "quality", required_argument, NULL, 'q' },
@@ -122,7 +125,7 @@ static const struct option long_options[] = {
   { 0, 0, 0, 0 }
 };
 
-char *short_options = "-hvD:ioCP:e:b:r:q:c:f:g:s:m:p:n:u:d:";
+char *short_options = "-hvD:ioCN:V:S:P:e:b:r:q:c:f:g:s:m:p:n:u:d:";
 
 /* misc settings */
 #define MAX_CLI_CHARS 9182
@@ -135,13 +138,16 @@ float quality = 1.0f;
 int channels = 1;
 
 int thegui = -1; /* no gui */
+enum interface { CLI, GTK1, GTK2, NCURSES };
+
+// channel options
+int number = 1;
 int playmode = PLAYMODE_CONT;
-bool live = false;
+
 bool has_playlist = false;
 bool dspout = true;
+bool micrec = false;
 bool snddev = false;
-char files[MAX_CLI_CHARS];
-int cli_chars = 0;
 
 Stream_mixer *mix = NULL;
 GUI *gui = NULL;
@@ -160,8 +166,6 @@ bool got_sigpipe;
 
 bool take_args(int argc, char **argv) {
   int res;
-  memset(files,0,MAX_CLI_CHARS);
-  char *fp = files;
   
   MuseSetDebug(1);
   
@@ -203,11 +207,21 @@ bool take_args(int argc, char **argv) {
       break;
 
     case 'o':
-      dspout = false;
+      if( !mix->set_lineout(false) )
+	error("soundcard not present");
+      else {
+	act("CLI: soundcard disabled");
+	dspout = false;
+      }
       break;
 
     case 'i':
-      live = true;
+      if( !mix->set_live(true) )
+	error("soundcard not present");
+      else {
+	act("CLI: recording from mic/linein");
+	micrec = true;
+      }
       break; 
 
     case 'e':
@@ -216,12 +230,14 @@ bool take_args(int argc, char **argv) {
 #ifdef HAVE_VORBIS
       if (strncasecmp("ogg",optarg,3) == 0) {
 	encid = mix->create_enc(OGG);
+	notice("CLI: created Ogg encoder");
       }
 #endif
       
 #ifdef HAVE_LAME
       if (strncasecmp("mp3",optarg,3) == 0) {
 	encid = mix->create_enc(MP3);
+	notice("CLI: created Mp3 encoder");
       }
 #endif
 
@@ -245,7 +261,7 @@ bool take_args(int argc, char **argv) {
 	break;
       }
       outch->bps( atoi(optarg) );
-      act("bitrate set to %iKbit/s",outch->bps());
+      act("CLI: bitrate set to %iKbit/s",outch->bps());
       break;
 
     case 'r':
@@ -263,11 +279,11 @@ bool take_args(int argc, char **argv) {
 	 lfreq != 44100) {
 	error("invalid frequency %i",lfreq);
         error("must be 0, 11000, 16000, 22050, 32000 or 44100 Hz!");
-        act("falling back to auto");
+        act("CLI: falling back to auto");
         lfreq = 0;
       }
       outch->freq(lfreq);
-      act("frequency set to %iKhz",outch->freq());
+      act("CLI: frequency set to %iKhz",outch->freq());
       break; 
 
     case 'q':
@@ -282,7 +298,7 @@ bool take_args(int argc, char **argv) {
       if(quality>9.0f) quality = 9.0f;
       */
       outch->quality(quality);
-      act("quality set to %.1f",outch->quality());
+      act("CLI: quality set to %.1f",outch->quality());
       break;
       
     case 'c':
@@ -295,10 +311,11 @@ bool take_args(int argc, char **argv) {
       channels = atoi(optarg);
       if(channels>2 | channels<1) {
 	error("audio channels can be only 1 (mono) or 2 (stereo)");
-	act("falling back to 1 channel default");
+	act("falling back to default: 1 (mono)");
 	channels = 1;
       }
       outch->channels(channels);
+      act("CLI: encoding %i channel(s)",channels);
       break;
 
     case 'f':
@@ -308,17 +325,53 @@ bool take_args(int argc, char **argv) {
 	break;
       }
       outch->dump_start( optarg );
-      act("file saving set to %s",optarg);
+      act("CLI: file saving to %s",optarg);
       break;
 
     case 'C':
       thegui = 0;
       break;
+
+    case 'N':
+      number = atoi(optarg);
+      number = (number<1) ? 1 : (number>MAX_CHANNELS) ? number = MAX_CHANNELS : number;
+      if(!mix->create_channel(number-1))
+      	error("got problems creating channel %i",number);
+      else
+	notice("CLI: created channel %i",number);
+      break;
+
+    case 'V':
+      float vol;
+      if(sscanf(optarg,"%f",&vol)==EOF)
+	error("CLI: invalid volume for channel %i",number);
+      else {
+	vol = (vol>1.0) ? 1.0 : (vol < 0.0) ? 0.0 : vol;
+	mix->set_volume(number,vol);
+	act("CLI: volume set to %.2f",vol);
+      }
+      break;
       
+    case 'S':
+      float pos;
+      if(sscanf(optarg,"%f",&pos)==EOF)
+	error("CLI: invalid position for channel %i",number);
+      else {
+	pos = (pos>1.0) ? 1.0 : (pos < 0.0) ? 0.0 : pos;
+	mix->set_position(number,pos);
+	act("CLI: starting from position %.2f",pos);
+      }
+      break;
+
     case 'P':
-      if(strcasecmp(optarg,"play")==0) playmode=PLAYMODE_PLAY;
-      if(strcasecmp(optarg,"cont")==0) playmode=PLAYMODE_CONT;
-      if(strcasecmp(optarg,"loop")==0) playmode=PLAYMODE_LOOP;
+      playmode = 0;
+      if(strncasecmp(optarg,"play",4)==0) playmode=PLAYMODE_PLAY;
+      if(strncasecmp(optarg,"cont",4)==0) playmode=PLAYMODE_CONT;
+      if(strncasecmp(optarg,"loop",4)==0) playmode=PLAYMODE_LOOP;
+      if(!playmode)
+	error("invalid playmode %s",optarg);
+      else
+	act("queue playmode \"%s\"",optarg);
       break;
 
     case 'g':
@@ -369,6 +422,9 @@ bool take_args(int argc, char **argv) {
 	*p = '\0';
       } else ice->port(8000);
       ice->host(optarg);
+      notice("CLI: created streamer to %s %i",
+	     ice->host(), ice->port());
+      
       break;
 
     case 'p':
@@ -384,6 +440,7 @@ bool take_args(int argc, char **argv) {
       }
       ice = outch->get_ice(iceid);
       ice->pass(optarg);
+      act("CLI: stream password set");
       break;
 
     case 'm':
@@ -399,6 +456,7 @@ bool take_args(int argc, char **argv) {
       }
       ice = outch->get_ice(iceid);
       ice->mount(optarg);
+      act("CLI: stream mountpoint %s",ice->mount());
       break;
 
     case 'n':
@@ -414,52 +472,48 @@ bool take_args(int argc, char **argv) {
       }
       ice = outch->get_ice(iceid);
       ice->name(optarg);
+      act("CLI: stream descriptive name: %s",ice->name());
       break;
 
     case 'u':
       if(!outch) {
-        error("invalid command line argument: stream url");
+        error("CLI: invalid command line argument: stream url");
         error("you must specify a codec first with the -e option");
         break;
       }
       if(!iceid) {
-        error("invalid command line argument: stream url");
+        error("CLI: invalid command line argument: stream url");
         error("you must specify a server first with the -s option");
         break;
       }
       ice = outch->get_ice(iceid);
       ice->url(optarg);
+      act("CLI: stream descriptive: url %s",ice->url());
       break;
 
     case 'd':
       if(!outch) {
-        error("invalid command line argument: stream description");
+        error("CLI: invalid command line argument: stream description");
         error("you must specify a codec first with the -e option");
         break;
       }
       if(!iceid) {
-        error("invalid command line argument: stream description");
+        error("CLI: invalid command line argument: stream description");
         error("you must specify a server first with the -s option");
         break;
       }
       ice = outch->get_ice(iceid);
       ice->desc(optarg);
+      act("CLI: stream description: %s",ice->desc());
       break;
 
     case 1:
-      {
-	int optlen = strlen(optarg);
-	has_playlist = true;
-	if( (cli_chars+optlen) < MAX_CLI_CHARS ) {
-	  sprintf(fp,"%s#",optarg);
-	  cli_chars+=optlen+1;
-	  fp+=optlen+1;
-	} else {
-	  warning("too much files on commandline to insert in a playlist");
-	  warning("list truncated, consider including them into a .pls file");
-	}
-      }
+      if(!mix->add_to_playlist(number,optarg))
+	error("CLI: can't add %s to channel %1",optarg,number);
+      else
+	act("CLI: queue %s on channel %i",optarg,number);
       break;
+
     default:
       break;
     }
@@ -501,12 +555,13 @@ int main(int argc, char **argv) {
   }
   
   mix = new Stream_mixer();
+  if(dspout||micrec)
+    snddev = mix->open_soundcard();
 
   if( !take_args(argc, argv) ) goto QUIT;
 
   check_config();
 
-  if(dspout||live) snddev = mix->open_soundcard();
   if(!snddev) {
     warning("no soundcard found");
     act("line-in and speaker out deactivated");
@@ -569,13 +624,6 @@ int main(int argc, char **argv) {
     thegui=CLI;
   }
 
-  if((!has_playlist && !live) && (thegui==CLI)) {
-    warning("nothing to play, you must specify at least songs or live input");
-    act("see --help switch for more information");
-    goto QUIT;
-  }
-
-
   if(thegui<0) error("no interface selected, this should never happen");
  
   if(thegui!=CLI) {
@@ -583,11 +631,11 @@ int main(int argc, char **argv) {
     mix->register_gui(gui);
     set_guimsg(gui);
     notice("%s version %s",PACKAGE,VERSION);
-  } else {
-    if(!mix->create_channel(0))
-      error("CLI: strange! i got problems creating a channel");
-  }
-  
+  }// else {
+    //    if(!mix->create_channel(0))
+  //      error("CLI: strange! i got problems creating a channel");
+  //  }
+  /*
   has_playlist = false;
   if(cli_chars>0) {
     char *p, *pp = files;
@@ -601,13 +649,13 @@ int main(int argc, char **argv) {
       pp = p+1;
     }
   }
-
-  if((!has_playlist && !live) && (thegui==CLI)) {
+ 
+  if((!has_playlist && !micrec) && (thegui==CLI)) {
     warning("nothing to play, you must specify at least songs or live input");
     act("see --help switch for more information");
     goto QUIT;
   }
-
+  */
 
   /* apply configuration and startup all registered encoders */
   outch = (OutChannel*)mix->outchans.begin();
@@ -635,31 +683,23 @@ int main(int argc, char **argv) {
 
   if(thegui==CLI) { /* CLI interface logics ======================= */
   
-    /* lame guesses for best frequency
-       hardcoded mono channel (mode 3)
-       lame guesses for best low/highpass filtering
-    */
-
-    if(snddev) {
-      mix->set_lineout(false); /* linein has priority */
-      if( mix->set_live(live) ) notice("CLI: recording from mic/linein");
-      if( mix->set_lineout(dspout) ) notice("CLI: playing on soundcard");
-    }
-
-
-    if(!mix->set_channel(0,1)) {
-      error("CLI: fatal error setting channel!");
-      goto QUIT;
-    }
-    mix->set_playmode(0,playmode); /* CONTINUOUS playing mode, cycle thru playlist */
-    if(!mix->play_channel(0)) {
-      error("CLI: some error playing on channel");
-      goto QUIT;
-    }
-	 
+    int c;
+    for(c=0;c<MAX_CHANNELS;c++)
+      if(mix->chan[c])
+	if(!mix->set_channel(c,1))
+	  error("CLI: error in set_channel(%i,1)",c);	  
+	else
+	  if(!mix->play_channel(c))
+	    error("CLI: error in play_channel(%i)",c);
+	  else
+	    has_playlist = true;
   } /* === END CLI === */
 
-
+  if((!has_playlist && !micrec) && (thegui==CLI)) {
+    warning("nothing to play, you must specify at least songs or live input");
+    act("see --help switch for more information");
+    goto QUIT;
+  }
 
 
   /* MAIN LOOP */

@@ -36,6 +36,7 @@ MpegChannel::MpegChannel() : Channel() {
 MpegChannel::~MpegChannel() {
   func("MpegChannel::~MpegChannel()");
   if(on) stop();
+  clean();
 }
 
 /* cleans decoder memory but does'nt kills the thread */
@@ -51,7 +52,7 @@ void MpegChannel::clean() {
   }
 }
 
-int MpegChannel::set(char *file) {
+int MpegChannel::load(char *file) {
   func("MpegChannel::set(%s)",file);
   int res = 0;
   lock();

@@ -78,7 +78,7 @@ Channel::~Channel() {
   while(running) jsleep(0,100);
 
   /* clean up specific channel implementation */
-  if(opened) clean();
+
   opened = false;
   
   delete erbapipa;
@@ -102,8 +102,6 @@ void Channel::run() {
     warning("InChanThread! Channel::run() : channel uninitialized, thread won't start");
     return;
   }
-
-
 
 
   while(!quit) {

@@ -14,6 +14,9 @@
  * You should have received a copy of the GNU Public License along with
  * this source code; if not, write to:
  * Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ * "$Id$"
+ *
  -------------------------------------------------------------------------
    linked list container class
    
@@ -70,8 +73,8 @@ void Linklist::prepend(Entry *addr) {
   
   if(!first) { /* that's the first entry */
     first = addr;
-    last->next = NULL;
-    last->prev = NULL;
+    first->next = NULL;
+    first->prev = NULL;
     last = first;
   } else { /* add an entry to the beginning */
     ptr = first;
@@ -84,7 +87,12 @@ void Linklist::prepend(Entry *addr) {
   length++;
   unlock();
 }
-  
+
+/* adds an element at the position specified
+   if pos is out of bounds adds it at the beginning or the end
+   the element occupying allready the position slides down 
+   THIS FUNCTION IS NOT YET RELIABLE
+*/
 void Linklist::insert(Entry *addr, int pos) {
   if(length<=pos) { /* adds it at the end */
     append(addr);
@@ -94,13 +102,9 @@ void Linklist::insert(Entry *addr, int pos) {
     return;
   }
 
-  Entry *ptr = pick(pos);
-  if(!ptr) {
-    append(addr);
-    return;
-  }
+  if(addr->list) addr->rem();
 
-  if(addr->list) addr->rem();  
+  Entry *ptr = pick(pos);
 
   lock();
   ptr->prev->next = addr;

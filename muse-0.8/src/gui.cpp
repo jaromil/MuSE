@@ -28,10 +28,10 @@
 #endif
 
 GUI::GUI(int argc, char **argv, Stream_mixer *mix) {
-  char temp[512];
+  //  char temp[512];
 
-  sprintf(temp,"%s %s",PACKAGE,VERSION);
-  set_title(temp);
+  //  sprintf(temp,"%s %s",PACKAGE,VERSION);
+  //  set_title(temp);
 
   if(pthread_mutex_init (&_mutex,NULL) == -1)
     error("error initializing POSIX thread mutex");

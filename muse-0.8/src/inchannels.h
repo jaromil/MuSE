@@ -86,9 +86,9 @@ class Channel {
      1 = stream is seakable
      2 = stream is not seekable
   */
-  virtual int set(char *file) = 0;
+  virtual int load(char *file) = 0;
   virtual bool pos(float pos) = 0;
-  virtual void clean() { };
+  virtual void clean() =0;
 
   bool play();
   bool stop();
@@ -96,10 +96,6 @@ class Channel {
   bool set_resampler();
 
   Pipe *erbapipa;
-  int read(int num, void *data) {
-    lock(); int res = erbapipa->read(num,data); unlock(); return(res); }
-  void flush() {
-    lock(); erbapipa->flush(); unlock(); }
 
   float volume;
   float position;

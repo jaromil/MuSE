@@ -74,4 +74,9 @@
 #define MOP_RESAMP    1
 //#define WITH_SPEED 1
 
+/* string buffer sizes */
+#define MAX_OPTION_SIZE 256 // configuration strings
+#define MAX_PATH_SIZE 512 // path strings
+
+
 #endif

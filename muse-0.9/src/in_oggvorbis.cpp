@@ -40,6 +40,7 @@ OggChannel::OggChannel() : Channel() {
 OggChannel::~OggChannel() {
   func("OggChannel::~OggChannel()");
   if(on) stop();
+  clean();
 }
 
 void OggChannel::clean() {
@@ -80,7 +81,7 @@ IN_DATATYPE *OggChannel::_get_audio() {
   return((IN_DATATYPE *)_inbuf);
 }
 
-int OggChannel::set(char *file) {
+int OggChannel::load(char *file) {
   int res = 0;
 
   lock();

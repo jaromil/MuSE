@@ -74,6 +74,14 @@ class NCURSES_GUI : public GUI {
 		void set_status(char *txt); 
 		void add_playlist(unsigned int ch, char *txt);
 		void sel_playlist(unsigned int ch, int row);
+		
+		/* da istanziare anche se non fanno nulla
+		   perche' ora sono funzioni pure virtuali
+		   nella classe parente: cio' evita di risolvere
+		   la funzione a runtime, velocizzando l'esecuzione */
+		void bpsmeter_set(int n) { return; };
+		void vumeter_set(int n) { return; };
+		bool meter_shown() { return false; };
 };
 
 #endif

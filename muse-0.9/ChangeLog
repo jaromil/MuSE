@@ -1,11 +1,11 @@
-MuSE 0.8.2 " " - 
+MuSE 0.8.2 "COTURNIX"
         new resampling for ogg/vorbis encoding
-	fine tuning of encoder channels
+	fine tune of encoder channels
 	icy-login back to stream to shoutcast
-	added the new GTK+-2 graphical interface
+	new GTK+-2 graphical interface
 	reorganization of codebase, localization
 	new commandline switches for playmode and device
-	code cleanup gaining speed and stability
+	code cleanup gaining overall speed and stability
 
 MuSE 0.8.1 "Z0RZ0RZ" - 30 03 03
 /* mainly a bugfix release, also introducing usage assestments

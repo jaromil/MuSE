@@ -27,13 +27,13 @@ extern "C" {
 }
 
 #include <linklist.h>
-#include <profile.h>
 #include <jutils.h>
 
 #define ERRORMSG 128
 #define RETRY_DELAY 600 /* time to retry connect on broken icecasts, in seconds */
+#define MAX_VALUE_SIZE 512
 
-class Shouter : public Profile, public Entry {
+class Shouter : public Entry {
  private:
   shout_t *ice;
 

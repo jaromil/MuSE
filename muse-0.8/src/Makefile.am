@@ -19,8 +19,7 @@ muse_SOURCES =  \
     linklist.cpp        \
     playlist.cpp        \
     jutils.cpp      \
-    gui.cpp         \
-    profile.cpp
+    gui.cpp
 
 muse_DEPENDENCIES = @GUI_DEPS@
 

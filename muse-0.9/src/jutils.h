@@ -26,7 +26,6 @@ extern "C" {
 #include <stdio.h>
 #include <string.h>
 
-#define MAX_PATH_SIZE 512
 
 #define MAX_DEBUG 2
 

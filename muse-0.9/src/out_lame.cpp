@@ -104,23 +104,7 @@ void OutLame::flush() {
 }
 
 bool OutLame::init() {
-  act("initializing %s %s",name,version);
-
-  /*
-  enc_flags = lame_init();
-
-  lame_set_errorf(enc_flags,(void (*)(const char*, va_list))error);
-  lame_set_debugf(enc_flags,(void (*)(const char*, va_list))func);
-  lame_set_msgf(enc_flags,(void (*)(const char*, va_list))act);
-  
-  lame_set_num_samples(enc_flags,OUT_CHUNK);
-  lame_set_num_channels(enc_flags,2); // the mixed input stream is stereo
-  lame_set_in_samplerate(enc_flags,SAMPLE_RATE); // the mixed input stream is 44khz
-  lame_set_error_protection(enc_flags,1); // 2 bytes per frame for a CRC checksum
-  lame_set_compression_ratio(enc_flags,0);
-  lame_set_quality(enc_flags,2); // 1..9 1=best 9=worst (suggested: 2, 5, 7)
-  //  lame_set_VBR(enc_flags,vbr_abr);
-  */
+  func("initializing %s %s",name,version);
 
   if(!apply_profile()) {
     error("problems in setting up codec parameters");
