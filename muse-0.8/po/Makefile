@@ -3,7 +3,7 @@ INSTALLNLSDIR=$(BASEDIR)/usr/local/share/locale
 
 PACKAGE = muse
 
-CATALOGS = it.mo
+CATALOGS = it.mo es.mo
 
 POTFILES=../src/gtkgui2/about.cpp \
 	 ../src/gtkgui2/docking.cpp \
