@@ -308,7 +308,7 @@ void profile_lame_write(void)
 	}
 	while(listrunner) {
 		tmp = (struct encprof *) listrunner->data;
-		/*
+		
 		  fprintf(fp, "<profile name=%s>\n"
 		  "\t<quality>%f</quality>\n"
 		  "\t<mode>%s</mode>\n"
@@ -321,7 +321,7 @@ void profile_lame_write(void)
 		  tmp->name, tmp->quality, tmp->mode, tmp->bitrate,
 		  tmp->frequency, tmp->freqfil, tmp->lowpass,
 		  tmp->highpass);
-		*/
+		
 		listrunner = g_list_next(listrunner);
 	}
 	fclose(fp);
@@ -347,7 +347,7 @@ void profile_vorbis_write(void)
 	}
 	while(listrunner) {
 		tmp = (struct encprof *) listrunner->data;
-		/*
+		
 		  fprintf(fp, "<profile name=\"%s\">\n"
 		  "\t<quality>%f</quality>\n"
 		  "\t<mode>%s</mode>\n"
@@ -360,7 +360,7 @@ void profile_vorbis_write(void)
 		  tmp->name, tmp->quality, tmp->mode, tmp->bitrate,
 		  tmp->frequency, tmp->freqfil, tmp->lowpass,
 		  tmp->highpass);
-		*/
+		
 		listrunner = g_list_next(listrunner);
 	}
 	fclose(fp);
@@ -386,7 +386,7 @@ void profile_ice_write(void)
 
 	while(listrunner) {
 		tmp = (struct iceprof *) listrunner->data;
-		/*
+		
 		  fprintf(fp, "<profile name=\"%s\">\n"
 		  "\t<host>%s</host>\n"
 		  "\t<port>%s</port>\n"
@@ -400,7 +400,7 @@ void profile_ice_write(void)
 		  tmp->name, tmp->host, tmp->port, tmp->mnt,
 		  tmp->stream_name, tmp->url, tmp->desc,
 		  tmp->logintype, tmp->password);
-		*/
+		
 		listrunner = g_list_next(listrunner);
 	}
 	fclose(fp);	

@@ -26,7 +26,6 @@ void pack_new(void);
 void cfade_set(GtkWidget *, struct pack *);
 
 void putstatusbar(void);
-void status_window(GtkWidget *, GdkEventButton *);
 GtkWidget* create_pixmap(GtkWidget *widget, const gchar *filename);
 GtkWidget *createpixmap(GtkWidget *, GtkWidget *, gchar **, gchar *, bool);
 void win_error(gchar *);

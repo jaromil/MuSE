@@ -195,16 +195,10 @@ void putstatusbar(void)
 	statusbar = gtk_statusbar_new();
 	contextid = gtk_statusbar_get_context_id(GTK_STATUSBAR(statusbar),
 			_("_The_ status bar"));
-	g_signal_connect(GTK_OBJECT(statusbar), "button_press_event",
-			(GtkSignalFunc) status_window, NULL);
+/*	g_signal_connect(GTK_OBJECT(statusbar), "button_press_event",
+			(GtkSignalFunc) status_window, NULL);*/
 	gtk_box_pack_start(GTK_BOX(vbox),  statusbar, FALSE, FALSE, 0);
 	
-}
-
-void status_window(GtkWidget *w, GdkEventButton *s)
-{
-	func("PROVAAAAAAAAAAAAAAAAAAAAAAAA");
-
 }
 
 GtkWidget *createpixmap(GtkWidget *w, GtkWidget *but, 
