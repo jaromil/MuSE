@@ -12,7 +12,7 @@ class SoundDevice {
   ///< the SoundDevice class destructor
 
   /**
-     This tries to open the sound device for read and/or write
+     Tries to open the sound device for read and/or write
      if full-duplex is requested but not supported, it returns error
      and must be called again to fallback on half-duplex mode
      

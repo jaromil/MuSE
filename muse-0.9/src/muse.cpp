@@ -29,15 +29,17 @@
    to be operated in realtime and a slick commandline interface.
    This documentation is useful to who wants to reuse or tweak MuSE's code,
    if you are not a programmer (and you don't want to become one) you are
-   not really interested in all the details of the code, alltough to read
-   thru here it might give you a better idea about the yet unexplored
-   possibilities of network audio streaming ;)
+   not really interested in all the details documented here.
+   Nevertless, reading here might give you a picture about some unexplored
+   possibility of audio streaming ;)
 
-   Useful implementation examples can be found in muse.cpp
-   (commandline interface), in the gtkgui2 directory containing the
-   whole code of the GTK-2 interface, in the ncurses directory which
-   implements the Ncurses text based interface.
+   A good place to start from is the Stream_mixer class, which is the main
+   interface to interact and send asynchronous commands to the engine while
+   its running. In fact the API declared in the jmixer.h file is the one
+   used by the interactive user interfaces.
 
+   A useful implementation example can be found in muse.cpp
+   
    MuSE engine is being developed and hereby documented in the hope to
    provide the Free Software community with user friendly tool for
    network audio streaming and a high level interface for programming
@@ -117,7 +119,7 @@
 /* command line stuff */
 
 char *version =
-"%s version %s [ http://muse.dyne.org ]";
+"%s version %s  [ muse.dyne.org ]";
 
 char *help =
 "Usage: muse [generic options] [-e [encoder options] [stream options] ] [files]\n"
@@ -129,7 +131,8 @@ char *help =
 " -C --cli          command line input (no GUI)\n"
 " -g --gui          specify GUI to use (-g list)\n"
 ":: input channels options\n"
-" -i --live         mix soundcard live input    - default off\n"
+" -i --live         mic/line soundcard input    - default off\n"
+" -I --liveamp      mic/line volume (1 - 32)    - default 16\n"
 " -N --number       channel number              - default 1\n"
 " -V --volume       channel volume              - default 1.0\n"
 " -S --position     channel starting position   - default 0.0\n"
@@ -156,6 +159,7 @@ static const struct option long_options[] = {
   { "version", no_argument, NULL, 'v' },
   { "debug", required_argument, NULL, 'D' },
   { "live", no_argument, NULL, 'i' },
+  { "liveamp", required_argument, NULL, 'I' },
   { "dspout", no_argument, NULL, 'o' },
   { "cli", no_argument, NULL, 'C' },
   { "number", required_argument, NULL, 'N' },
@@ -202,6 +206,7 @@ int playmode = PLAYMODE_CONT;
 bool has_playlist = false;
 bool dspout = true;
 bool micrec = false;
+int micvol = 16;
 bool snddev = false;
 
 Stream_mixer *mix = NULL;
@@ -234,9 +239,6 @@ bool take_args(int argc, char **argv) {
       exit(0);
 
     case 'v':
-      act("MuSE is copyright (c) 2000-2003 by jaromil");
-      act("MuSE's GTK+ GUI is copyright (c) 2001, 2002 by nightolo");
-      act("MuSE's NCURSES GUI is copyright (c) 2002 by rubik");
       act(" ");
       act("part of the redistributed code is copyright by the respective authors,");
       act("please refer to the AUTHORS file and to the sourcecode for complete");
@@ -279,6 +281,18 @@ bool take_args(int argc, char **argv) {
 	micrec = true;
 	} */
       micrec = true;
+      mix->set_mic_volume(micvol);
+      notice("CLI: recording from mic/linein");
+      break;
+      
+    case 'I':
+      micvol = atoi(optarg);
+      if(micvol < 1 || micvol > 32)
+	error("invalid mic/line volume value, must be a approx between 1 and 32");
+      else {
+	mix->set_mic_volume(micvol);
+	act("CLI: mic/linein volume gain %i",micvol);
+      }
       break;
 
     case 'e':
@@ -351,15 +365,17 @@ bool take_args(int argc, char **argv) {
 	error("you must specify a codec first with the -e option");
 	break;
       }
-      sscanf(optarg,"%f",&quality);
-      /*
-      if(quality<0.1f) quality = 0.1f;
-      if(quality>9.0f) quality = 9.0f;
-      */
-      outch->quality(quality);
-      act("CLI: quality set to %.1f",outch->quality());
+      if( sscanf(optarg,"%f",&quality) ) {
+	
+	/*
+	  if(quality<0.1f) quality = 0.1f;
+	  if(quality>9.0f) quality = 9.0f;
+	*/
+	outch->quality(quality);
+	act("CLI: quality set to %.1f",outch->quality());
+      } else error("invalid quality value");
       break;
-      
+	
     case 'c':
       if(!outch) {
         error("invalid command line argument: channels");
@@ -637,7 +653,7 @@ bool check_config() {
 int main(int argc, char **argv) {
 
   notice(version,PACKAGE,VERSION);
-  act("by Denis Rojo aka jaromil http://rastasoft.org");
+  act("by Denis \"jaromil\" Rojo  [ rastasoft.org ]");
   act("--");
 
   /* register signal traps */

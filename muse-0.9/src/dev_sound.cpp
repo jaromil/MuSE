@@ -49,14 +49,14 @@ bool SoundDevice::input(bool state) {
       Pa_Terminate();
       error("error opening input sound device: %s",Pa_GetErrorText( err ) );
       return false;
-    }
-    info_input = Pa_GetDeviceInfo( Pa_GetDefaultInputDeviceID() );
-    func("input device: %s",info_input->name);
+    } else
+      info_input = Pa_GetDeviceInfo( Pa_GetDefaultInputDeviceID() );
 
   } else if(!state && aInStream) {
 
     CloseAudioStream(aInStream);
     aInStream = NULL;
+    info_input = NULL;
 
   }
   return true;
@@ -70,34 +70,36 @@ bool SoundDevice::output(bool state) {
       Pa_Terminate();
       error("error opening output sound device: %s",Pa_GetErrorText( err ) );
       return false;
-    }
-    info_output = Pa_GetDeviceInfo( Pa_GetDefaultOutputDeviceID() );
-    func("output device: %s",info_output->name);
+    } else
+      info_output = Pa_GetDeviceInfo( Pa_GetDefaultOutputDeviceID() );
 
   } else if(!state && aOutStream) {
-
+    
     CloseAudioStream(aOutStream);
     aOutStream = NULL;
+    info_output = NULL;
 
   }
   return true;
 }
 
 bool SoundDevice::open(bool read, bool write) {
-  bool res;
+
   notice("detecting sound device");
   
-  res = output(write);
-  if(!res)
-    return false;
+  if( ! output(write) ) return false;
+  
+  if(info_input) 
+    func("input device: %s",info_input->name);
   else
-    act("output device: %s",info_output->name);  
+    error("information not available on input device");
+  
+  if( ! input(read) ) return false;
 
-  res = input(read);
-  if(!res)
-    return false;
-  else 
-    act("input device: %s",info_input->name);
+  if(info_output)
+    func("output device: %s",info_output->name);
+  else
+    error("information not available on output device");
 
   return true;
 }

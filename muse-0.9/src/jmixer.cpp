@@ -91,6 +91,7 @@ Stream_mixer::Stream_mixer() {
 
   dspout = false;
   linein = false;
+  linein_vol = 16;
   fileout = false;
   quit = false;
 
@@ -304,8 +305,12 @@ void Stream_mixer::cafudda()
     // max = (max<ires) ? ires : max;
 #else
     linein_samples = snddev->read(linein_buf,MIX_CHUNK);
-    for(cc=0; cc<linein_samples<<1; cc++)
-      process_buffer[cc] += (int32_t) (linein_buf[cc]);
+    for(cc=0; cc<linein_samples<<1; cc++) {
+      
+      // mix and multiply for the volume coefficient
+      process_buffer[cc] += (int32_t) (linein_buf[cc] * linein_vol);
+      
+    }
     c += linein_samples;
 #endif
   }
@@ -345,7 +350,6 @@ void Stream_mixer::cafudda()
 
     /* WRITE 2 DSP */
     if(dspout) {
-	 int ret;
       /* write out interleaved stereo 16bit pcm 
 	 dsp takes number of *BYTES*, the format
 	 is being setted with ioctls in initialization */
@@ -656,6 +660,14 @@ bool Stream_mixer::set_live(bool stat) {
 #endif
 }
 
+void Stream_mixer::set_mic_volume(int vol) {
+  lock();
+  linein_vol = vol;
+  unlock();
+}
+  
+  
+
 bool Stream_mixer::set_lineout(bool stat) {
 #ifndef PORTAUDIO
   if(dsp<1) {
@@ -835,13 +847,11 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
       warning("cannot stat %s : %s",temp,strerror(errno));
     } else if(prcd.st_mode & S_IFDIR) {
       func("it's a directory");
-
       struct dirent **filelist;
+      // this scandir had a problem browsing directories, now?
       int found = scandir(temp,&filelist,selector,alphasort);
-      if(found<0) {
-	error("file not found");
-	warning("Stream_mixer::add_to_playlist(%u,%s) : %s",ch,file,strerror(errno));
-      } else {
+      if(found<1) error("%i files found: %s",found,strerror(errno));
+      else {
 	int c;
 	for(c=0;c<found;c++) {
 	  char barakus[MAX_PATH_SIZE];
@@ -854,7 +864,7 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
       
     } else {
       error("file extension is not recognized");
-      warning("error adding %s (extension not recognized)",temp);
+      error("can't add to playlist %s",temp);
     }
   }
 

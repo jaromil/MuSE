@@ -132,6 +132,13 @@ class Stream_mixer {
   bool set_channel(int ch, int playlist_pos);
   ///< selects the entry at a certain position of a channel playlist
 
+  /**
+     Play the selected stream sound on the channel
+     the file/stream is physically loaded here.
+     takes only the channel number
+     @param ch channel number starting from 1
+     @return 0=error, 1=seekable 2=non-seekable
+  */
   int play_channel(int ch);
   ///< set the channel playing
 
@@ -167,6 +174,9 @@ class Stream_mixer {
   
   bool set_live(bool stat);
   ///< set the state of the live input from soundcard
+
+  void set_mic_volume(int vol);
+  ///< set the volume of the mic live input (sample multiplyer)
 
   bool set_lineout(bool stat);
   ///< set the state of the live output to soundcard
@@ -292,6 +302,7 @@ class Stream_mixer {
   /** live soundcard input */
   IN_DATATYPE linein_buf[PROCBUF_SIZE];
   int linein_samples;
+  int linein_vol;
 
   LiveIn livein;
 

@@ -1,5 +1,5 @@
 prefix = /usr/local
-INSTALL= /usr/bin/install -c
+INSTALL= /bin/install -c
 GMSGFMT = /usr/bin/msgfmt
 MSGFMT = /usr/bin/msgfmt
 MSGMERGE = /usr/bin/msgmerge
