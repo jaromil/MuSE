@@ -16,45 +16,64 @@
  * Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+/**
+   @file playlist.h Playlist class header
+   @desc the playlist class for input channels */
+
 #ifndef __playlist_h__
 #define __playlist_h__
 
 #include <linklist.h>
 
+/**
+   @brief Url class (Playlist entry)
+   */
 class Url: public Entry {
  public:
+
+  /** 
+     @param file full path or url scheme to the playlist entry
+    */ 
   Url(const char *file);
+  ///< the class constructor to the playlist entry
+
   ~Url();
+  ///< url destructor 
   
   char *path;
+  ///< the full path (or url scheme) to the playlist entry
 };
 
+/**
+   Playlist class serves the methods to add new files or urls, select
+   them and such. It basically adds some few functionalities on top of
+   the basic ones implemented by the Linklist parent class.
 
+   @brief Playlist queue 
+   */
 class Playlist : public Linklist {
  public:
   Playlist();
   ~Playlist();
 
-  /* makes a local copy of the path */
   char *addurl(const char *file);
+  ///< append a new url at the end of the playlist queue
+  
   char *addurl(const char *file, int pos);
+  ///< add a new url at a certain position of the playlist queue
 
-  /* returns the full path of the element
-     position starts from 1 */
+  /**
+     @param pos position in playlist (starts from 1)
+     @return string pointer to the playlist url at pos */
   char *song(int pos);
+  ///< return the url at a certain position of the playlist queue
+
+
   char *selection();
-  //  char *song() { return song( sel() ); };
-
-  /* sets and returns selection
-     now directly in linklist
-     bool sel(int pos);
-     void sel(Url *sel);
-     int sel();
-  */
+  ///< return the currently selected url in the playlist queue
+  
   void cleanup();
-
-  //  Url *selected;
-  //  char *filename;
+  ///< cleanup and release all playlist queue
 };
 
 

@@ -21,7 +21,7 @@
 
 /**
    @file dec_ogg.h Ogg/Vorbis decoder
-   @desc input channel: decoder implemenation
+   @desc Ogg/Vorbis input channel: MuseDec implemenation
 */
 
 #ifndef __IN_OGGVORBIS_H__

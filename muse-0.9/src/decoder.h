@@ -32,6 +32,20 @@
 #include <generic.h>
 
 /**
+   @defgroup decoder Input channel Decoder abstraction
+
+   This module defines the implementation details for input channels
+   in MuSE, read on if you are interested in making new file or
+   stream formats readable by Muse.
+
+   The way to proceed should be: implement a new MuseDec child class
+   and then add a parsing case in the Stream_mixer::add_to_playlist
+   method which is responsible of recognizing specific file extensions
+   and types.
+
+   @{ */
+
+/**
    This class should be inherited by every decoder implementation:
    it is the decoder parent class giving some common functionalities
    to its childs.
@@ -39,24 +53,31 @@
    Most important thing for making decoders is to implement the pure
    virtual functions of this class, inheriting all the rest.
    The pure virtual functions to be carefully implemented in a decoder are:
-   - MuseDec::load
-   - the destructor class for closing
+
+   - MuseDec::MuseDec (costructor)
+   - MuseDec::~MuseDec (destructor)
+   - MuseDec::load 
    - MuseDec::seek
    - MuseDec::get_audio
+
    Then the decoder must also take care to set properly the following
    variables inside the load function:
+   
    - MuseDec::samplerate
    - MuseDec::channels
    - MuseDec::bitrate
    - MuseDec::frametot
    - MuseDec::seekable
+   
    And the following variables in the get_audio function:
+
    - MuseDec::frames
    - MuseDec::fps
    - MuseDec::eos
    - MuseDec::err
 
    For example decoder implementations, please refer to:
+
    - MuseDecMp3 class implemented in dec_mp3.h and dec_mp3.cpp
    - MuseDecOgg class implemented in dec_ogg.h and dec_ogg.cpp
 
@@ -140,6 +161,8 @@ class MuseDec {
   bool seekable; ///< true if the channel audio is seekable
   bool eos; ///< true on end of stream reached
   bool err; ///< true when an error occurred during audio decoding
+
+  /// @}
   ///////////////////////////////////////////////////////////
 
   /* pthread stuff */

@@ -19,6 +19,12 @@
  *
  */
 
+/**
+   @file dec_mp3.h Mp3 decoder
+   @desc Mpeg-1 layer 1,2,3 and Mpeg-2 layer 3 input channel:
+         MuseDec implementation 
+	 */
+
 #ifndef __DEC_MP3_H__
 #define __DEC_MP3_H__
 
@@ -28,8 +34,14 @@
 /* mpeg lib (splay) */
 #include <libmpeg/mpegsound.h>
 
-/* Mpeg Channel // MPEG-1 layer 1,2,3 and MPEG-2 layer 3 */
+/**
+   Instances of the Mp3 codec (splay implementation) are created
+   internally by the Channel class, publicly available interface to
+   the creation is in Stream_mixer::add_to_playlist.
 
+   @class MuseDecMp3
+   @brief Mpeg-1 layer 1,2,3 and Mpeg-2 layer 3
+   */
 class MuseDecMp3: public MuseDec {
  private:
   Soundinputstream *loader;
