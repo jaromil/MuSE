@@ -88,7 +88,8 @@ GtkWidget *createbbox(GtkWidget *bbox)
 	g_signal_connect(G_OBJECT(vumeters), "clicked",
 			G_CALLBACK(vumeters_new), NULL);
 	gtk_container_add(GTK_CONTAINER(bbox), vumeters);
-	
+
+#ifdef MUSE_EXPERIMENTAL
 	tmpwid = gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_BUTTON);
 	scheduler = gtk_button_new();
 	gtk_container_add(GTK_CONTAINER(scheduler), tmpwid);
@@ -96,7 +97,8 @@ GtkWidget *createbbox(GtkWidget *bbox)
 	g_signal_connect(G_OBJECT(scheduler), "clicked",
 			G_CALLBACK(rsched_new), NULL);
 	gtk_container_add(GTK_CONTAINER(bbox), scheduler);
-
+#endif
+	
 	help = createpixmap(window, help, about_xpm, 
 			_("Hall of Fame"), FALSE);
 	g_signal_connect(G_OBJECT(help), "clicked",

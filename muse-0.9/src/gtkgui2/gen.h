@@ -59,6 +59,7 @@
 
 /* experimental */
 //#define WITH_SPEED
+//#define MUSE_EXPERIMENTAL
 
 /* FIXME: cleaning up */
 
