@@ -1,0 +1,16 @@
+MuSE for Debian
+---------------
+
+the name muse-streamer was selected to avoid stupid name conflicts with muse in
+the official debian archive. yes, i know -streamer is a repetion (Multiple
+ Streaming Engine) but..who cares?
+
+LAME installation
+-----------------
+
+lame isn't included in the official debian archive, anyway it's available for
+download at http://lame.sourceforge.net/download/download.html
+tarball is already debianized so type "fakeroot debian/rules binary" to build
+liblame0 and liblame0-dev.
+ 
+ -- Filippo Giunchedi <filippo@esaurito.net>, Sat, 20 Jul 2002 00:04:50 +0200

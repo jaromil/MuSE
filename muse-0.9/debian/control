@@ -1,0 +1,17 @@
+Source: muse-streamer
+Section: sound
+Priority: optional
+Maintainer: Filippo Giunchedi <filippo@esaurito.net> 
+Build-Depends: debhelper (>= 4), libogg-dev, libvorbis-dev, libgtk2.0-dev, libncurses5-dev
+Standards-Version: 3.6.0
+
+Package: muse-streamer
+Architecture: any 
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Multiple Streaming Engine streams your voice or music 
+ MuSE is written in C++ and is a multithreaded application.
+ It reads streams using the included libmpeg library (mp3 format) and it can
+ optionally link the OggVorbis library to read ogg files. For encoding the
+ sound into mp3 it links LAME as a shared library using it thru API calls.
+ MuSE also features much interactivity implementing two user interfaces: a
+ GTK+ one for XWin environment and a NCURSES for text console. 

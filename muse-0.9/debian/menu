@@ -1,0 +1,4 @@
+?package(muse-streamer):needs="X11" \
+        section="Apps/Sound" \
+        title="MuSE streamer" \
+        command="/usr/bin/muse-streamer"
