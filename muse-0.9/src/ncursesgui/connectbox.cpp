@@ -79,7 +79,13 @@ void ConnectBox::setparm (void)
 	enc->lameid = mixer->create_enc(MP3);
 	enc->oggid = mixer->create_enc(OGG);
 
+	//lame
 	enc->outchan=mixer->get_enc (enc->lameid);
+	enc->iceid[enc->numchan]=enc->outchan->create_ice();
+	enc->coreice=enc->outchan->get_ice(enc->iceid[enc->numchan]);
+	enc->outchan->start();
+	//ogg
+	enc->outchan=mixer->get_enc (enc->oggid);
 	enc->iceid[enc->numchan]=enc->outchan->create_ice();
 	enc->coreice=enc->outchan->get_ice(enc->iceid[enc->numchan]);
 	enc->outchan->start();
@@ -243,8 +249,8 @@ void ConnectBox::activate (void)
 									switch (k) {
 											case 'A':
 													enc->outchan=mixer->get_enc (enc->oggid);
-													//enc->iceid[enc->numchan]=enc->outchan->create_ice();
-													//enc->coreice=enc->outchan->get_ice(enc->iceid[enc->numchan]);
+													// enc->iceid[enc->numchan]=enc->outchan->create_ice();
+													// enc->coreice=enc->outchan->get_ice(enc->iceid[enc->numchan]);
 													// enc->outchan->start();
 													
 													streamsetbox.setval(enc->numchan);
