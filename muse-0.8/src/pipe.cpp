@@ -26,6 +26,7 @@ Boston, MA 02111-1307, USA.
 
 #include <iostream>
 #include <stdlib.h>
+#include <errno.h>
 #include <audioproc.h>
 #include <pipe.h>
 #include <jutils.h>

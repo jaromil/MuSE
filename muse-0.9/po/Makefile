@@ -1,5 +1,11 @@
+prefix = /usr/local
 INSTALL= /usr/bin/install -c
-INSTALLNLSDIR=$(BASEDIR)/usr/local/share/locale
+GMSGFMT = /usr/bin/msgfmt
+MSGFMT = /usr/bin/msgfmt
+MSGMERGE = /usr/bin/msgmerge
+XGETTEXT = /usr/bin/xgettext
+
+INSTALLNLSDIR=$(DESTDIR)${prefix}/share/locale
 
 PACKAGE = muse
 
@@ -19,7 +25,7 @@ POTFILES=../src/gtkgui2/about.cpp \
 all: $(PACKAGE).pot $(CATALOGS)
 
 $(PACKAGE).pot: $(POTFILES)
-	xgettext --default-domain=$(PACKAGE) \
+	${XGETTEXT} --default-domain=$(PACKAGE) \
        	  --add-comments --keyword=_ --keyword=N_ $(POTFILES)
 	if cmp -s $(PACKAGE).po $(PACKAGE).pot; then \
 	  rm -f $(PACKAGE).po; \
@@ -32,7 +38,7 @@ update-po: $(PACKAGE).pot
 	  lang=`echo $$cat | sed 's/.mo$$//'`; \
 	  mv $$lang.po $$lang.old.po; \
 	  echo "$$lang:"; \
-	  if msgmerge $$lang.old.po $(PACKAGE).pot -o $$lang.po; then \
+	  if ${MSGMERGE} $$lang.old.po $(PACKAGE).pot -o $$lang.po; then \
 	    rm -f $$lang.old.po; \
 	  else \
     	    echo "msgmerge for $$cat failed!"; \
@@ -41,7 +47,7 @@ update-po: $(PACKAGE).pot
 	done
 
 %.mo: %.po
-	msgfmt --statistics --check --verbose --output-file=$@ $<
+	${GMSGFMT} --statistics --check --verbose --output-file=$@ $<
 
 clean:
 	rm -f *.mo

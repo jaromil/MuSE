@@ -7,7 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2004-04-17 12:04+0200\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2004-05-01 10:54+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,15 +17,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #. gtk_widget_set_size_request(window1, 550, 300);
-#: ../src/gtkgui2/about.cpp:33
+#: ../src/gtkgui2/about.cpp:34
 msgid "about MuSE: the Multiple Streaming Engine"
 msgstr ""
 
-#: ../src/gtkgui2/about.cpp:38
+#: ../src/gtkgui2/about.cpp:39
 msgid "MuSE: Codename COTURNIX"
 msgstr ""
 
-#: ../src/gtkgui2/about.cpp:51
+#: ../src/gtkgui2/about.cpp:52
 msgid ""
 "development team for this release:\n"
 "\n"
@@ -32,7 +33,6 @@ msgid ""
 "nightolo aka Antonino Radici - GTK user interface\n"
 "rubik aka Luca Profico - console user interface\n"
 "pallotron aka Angelo Failla - more input channels\n"
-"godog aka Filippo Giunchedi - docu and organizer\n"
 msgstr ""
 
 #: ../src/gtkgui2/about.cpp:77
@@ -427,12 +427,12 @@ msgstr ""
 msgid "Add Url..."
 msgstr ""
 
-#. 		if(row) {
+#. if(row) {
 #: ../src/gtkgui2/gchan_events.cpp:240 ../src/gtkgui2/ice.cpp:321
 msgid "Delete"
 msgstr ""
 
-#. 		}
+#. }
 #: ../src/gtkgui2/gchan_events.cpp:247
 msgid "Cancel"
 msgstr ""
