@@ -668,9 +668,10 @@ int selector(const struct dirent *dir) {
       || strncasecmp(dir->d_name+strlen(dir->d_name)-4,".m3u",4)==0 )
     return(1);
 
-  struct stat prcd;
-  stat(dir->d_name,&prcd);
-  if(S_ISDIR(prcd.st_rdev)) return(1);
+// bugfix #0000052 http://bugs.dyne.org/bug_view_page.php?bug_id=0000052
+//  struct stat prcd;
+//  stat(dir->d_name,&prcd);
+//  if(S_ISDIR(prcd.st_rdev)) return(1);
   
   return(0);
 }
