@@ -1,5 +1,5 @@
 /* A Gui in gtk+ for MuSE - Multiple Streaming Engine
- * Copyright (C) 2002 nightolo <night@autistici.org>
+ * Copyright (C) 2002-2004 nightolo <night@autistici.org>
  *
  * This source code is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Public License as published 
