@@ -676,7 +676,7 @@ int main(int argc, char **argv) {
   if(dspout||micrec) {
     snddev = mix->open_soundcard(micrec,dspout);
   }
-
+  
   if(!snddev) {
     warning("no soundcard found");
     act("line-in and speaker out deactivated");

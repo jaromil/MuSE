@@ -42,6 +42,8 @@
 #include "radiosched.h"
 #endif
 
+class SoundDevice;
+
 /**
    @class Stream_mixer
 
@@ -253,9 +255,13 @@ class Stream_mixer {
   */
   void register_gui(GUI *reg_gui);
 
-  
+
+  SoundDevice *snddev;
   bool open_soundcard(bool in, bool out);
   void close_soundcard();
+
+  ///< SoundDevice class for soundcard handling
+
 
   /**
      @brief THIS IS THE MAIN MIXING PROCEDURE: CAFUDDA!
@@ -284,6 +290,9 @@ class Stream_mixer {
   Channel *chan[MAX_CHANNELS];
 
   /** live soundcard input */
+  IN_DATATYPE linein_buf[PROCBUF_SIZE];
+  int linein_samples;
+
   LiveIn livein;
 
   /** encoder outchannels */
@@ -341,8 +350,6 @@ class Stream_mixer {
 
   int32_t process_buffer[PROCBUF_SIZE]; ///< mixing buffer
   int16_t audio_buffer[PROCBUF_SIZE]; ///< clipped mixing buffer
-
-
 
 
   /** Stream_mixer thread controls */

@@ -1,3 +1,9 @@
+MuSE 0.9.1 "RASTAPASTA" - 23 07 04
+        New xml scheduler with GTK-2 interface (nightolo, Eugen)
+        Ogg http streams can be played as input (Eugen)        
+
+
+
 MuSE 0.9 "COTURNIX" - 17 04 04
 /* This is a new milestone release adding many new functionalities
    developed in more than a year of silent coding activity.

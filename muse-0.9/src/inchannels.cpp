@@ -549,26 +549,26 @@ void Channel::_thread_destroy() {
 /* here for debugging purposes */
 void Channel::report() {
 
-  warning("Channel | %s | %s | %s | %s |",
+  func("Channel | %s | %s | %s | %s |",
 	 (opened)?"opened":" ",
 	 (running)?"running":" ",
 	 (on)?"on":"off",
 	 (seekable)?"seekable":" ");
 
-  act("vol %.2f pos %.2f lcd[%s]",volume,position,lcd);
-  act("state %.2f playmode %s",state,
+  func("vol %.2f pos %.2f lcd[%s]",volume,position,lcd);
+  func("state %.2f playmode %s",state,
       (playmode==PLAYMODE_PLAY) ? "PLAY" :
       (playmode==PLAYMODE_LOOP) ? "LOOP" :
       (playmode==PLAYMODE_CONT) ? "CONT" :
       "ERROR");
   if (dec) {
-    act("time: %i:%i:%i framepos %i frametot %i",
+    func("time: %i:%i:%i framepos %i frametot %i",
         time.h, time.m, time.s, dec->framepos,dec->frametot);
-    act("samplerate %i channels %i bitrate %i",
+    func("samplerate %i channels %i bitrate %i",
         dec->samplerate,dec->channels,dec->bitrate);
-    act("frames %i samples %i",dec->frames,samples);
+    func("frames %i samples %i",dec->frames,samples);
   } else {
-    act("time: %i:%i:%i ", time.h, time.m, time.s);
+    func("time: %i:%i:%i ", time.h, time.m, time.s);
   }
 }
 

@@ -2,35 +2,37 @@
    the current MuSE development team is composed by:
    ------------------------------------------------
 
- = Denis Rojo aka jaromil
-   MuSE author and mantainer ( / )
+ = Denis "jaromil" Rojo
+   MuSE author and mantainer ( /* )
 
- = Antonino Radici aka nightolo
-   GTK+ graphic user interface ( /gtkgui/* )
+ = Antonino "nightolo" Radici
+   GTK+ GUI, xml profiles and scheduler ( /gtkgui/* )
 
- = Luca Profico aka rubik
+ = Luca "rubik" Profico
    NCURSES console user interface ( /ncurses/* )
 
- = Angelo Failla aka pallotron
+ = Angelo "pallotron" Failla
    Sound input channel ( /dec_snd.* )
 
+ = Eugen Melinte
+   scheduler, http player ( /radiosched.* httpstream.* )
+
  if you wish to collaborate, join us on irc.freenode.net #dyne
+ or on the mailinglist at http://lists.dyne.org/muse
 
 
 MuSE as it is now would have never existed without the contributions of:
 
+ = SERVUS.AT trusting in this project since its early stage and supporting it
+ = PUBLIC VOICE Lab ( pvl.at ) for further support and new horizons of use
  = Alex, Rasty and Martinez ( ! ) for the good vibes
  = August Black ( aug.ment.org ) for the original graphic user interface
- = Asbesto Molesto ( freaknet.org ) for testing and documentation
+ = Asbesto Molesto ( freaknet.org ) for testing, documentation and slack
  = Eric de Castro Lopo ( mega-nerd.com ) for libsnfile and secret rabbit code
  = Filippo "Godog" ( esaurito.net ) for docu, /debian and organization
  = Lobo for karma and herbivore which was a crucial tool for all developers
  = Markus Seidl ( funda.ment.org ) for his vision of such a tool
  = Matteo Nastasi for the first input channel resampling routines
- = PUBLIC VOICE Lab ( pvl.at ) for further support and new horizons of use
- = SERVUS.AT trusting in this project since its early stage and supporting it
-
-
 
 
 also waves and thanks to:
@@ -46,20 +48,19 @@ MuSE redistributes, linked statically, the following libraries:
  = libshout by Jack Moffit, Chad Armstrong, Scott Manley and OddSock
  = libcdk by Mike Glover
  = the secret rabbit code (libresample) by Eric de Castro Lopo
+ = portaudio by Ross Bencina and Phil Burk
 
 MuSE can link itself dinamically to the following libraries:
  = libogg, libvorbis, libvorbisfile - www.xiph.org
  = glib, libgdk, libgtk - www.gtk.org
  = liblame - www.mp3dev.org/mp3
  = libsndfile - www.mega-nerd.com/libsndfile
-
  = libX11, libXext - www.xfree86.org
- = other common GNU libraries
+ = other common GNU libraries - www.gnu.org
 
 MuSE sourcecode also got inspirations and code snippets from the
 stream mixer sourcecode by Scott Manley, the buffered FIFO pipe source
-by Charles Samuels, the GTK knob widget by Alexander Koenig, GNOME
-icons by Jakub Steiner
+by Charles Samuels. Included icons are made by Jakub Steiner.
 
 MuSE is copyleft (c) 2000-2004 by Denis "jaromil" Rojo
 MuSE's first GUI is copyleft (c) 2000-2001 by August Black

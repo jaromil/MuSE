@@ -78,5 +78,7 @@
 #define MAX_OPTION_SIZE 256 // configuration strings
 #define MAX_PATH_SIZE 512 // path strings
 
+// use Portaudio sound device interface
+#define PORTAUDIO 1
 
 #endif

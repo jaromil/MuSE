@@ -1,6 +1,6 @@
-SUBDIRS = resample @LIBSHOUT_DIR@ libmpeg @GUI_DIRS@
+SUBDIRS = resample shout libmpeg portaudio @GUI_DIRS@
 
-INCLUDES = -I@LIBSHOUT_DIR@ -I/usr/X11R6/include -Incursesgui @GLIB2_CFLAGS@
+INCLUDES = -Ishout -Iportaudio -I/usr/X11R6/include -Incursesgui @GLIB2_CFLAGS@
 
 CFLAGS = @GUI_FLAGS@  
 
@@ -24,16 +24,23 @@ muse_SOURCES =  \
     playlist.cpp        \
     jutils.cpp      \
     radiosched.cpp      \
-	httpstream.cpp  \
-    gui.cpp
+    httpstream.cpp  \
+    gui.cpp \
+    dev_sound.cpp
 
-muse_DEPENDENCIES = @GUI_DEPS@ resample/libresample.a libmpeg/libmpeg.a shout/libshout.a
+muse_DEPENDENCIES = \
+	@GUI_DEPS@ \
+	resample/libresample.a \
+	libmpeg/libmpeg.a \
+	shout/libshout.a \
+	portaudio/libportaudio.a
 
 muse_LDADD = \
 	$(top_srcdir)/src/resample/libresample.a \
 	$(top_srcdir)/src/libmpeg/libmpeg.a \
+	$(top_srcdir)/src/shout/libshout.a \
+	$(top_srcdir)/src/portaudio/libportaudio.a \
 	-lpthread \
-	@LIBSHOUT_LIB@ \
 	@M_LIBS@ \
 	@LAME_LIBS@ \
 	@OGG_LIBS@ \

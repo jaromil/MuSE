@@ -29,7 +29,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <sys/soundcard.h>
+
 #include <string.h>
 #include <signal.h>
 #include <sys/types.h>
@@ -44,6 +44,7 @@
 #include <jmixer.h>
 #include <playlist.h>
 #include <inchannels.h>
+#include <dev_sound.h>
 
 #ifdef HAVE_VORBIS
 #include <out_vorbis.h>
@@ -53,7 +54,9 @@
 #include <out_lame.h>
 #endif
 
-#define CODENAME "COTURNIX"
+#define CODENAME "RASTAPASTA"
+
+
 
 /* process_buffer BUF_SIZE is:
    BUF_SIZE of 32bit ints *2channels *8resampling_space
@@ -94,6 +97,9 @@ Stream_mixer::Stream_mixer() {
   for(i=0;i<8;i++) peak[i] = 0;
   cpeak = 0;
 
+  // create the Sound Device controller class
+  snddev = new SoundDevice();
+
   /* this is the base seed for new encoders id */
   idseed = 0; //abs(time(NULL) & getpid()) >> 2;
 
@@ -111,7 +117,8 @@ Stream_mixer::~Stream_mixer() {
   
   if(dsp>0) {
     act("closing soundcard");
-    close_soundcard();
+    snddev->close();
+    delete snddev;
   }
 
   act("deleting input channels");
@@ -142,6 +149,12 @@ void Stream_mixer::register_gui(GUI *reg_gui) {
   sprintf(temp,"%s %s codename \"%s\"",PACKAGE, VERSION, CODENAME);
   gui->set_title(temp);
 }
+
+#ifndef PORTAUDIO
+
+// old OSS UNIX code
+
+#include <sys/soundcard.h>
 
 bool Stream_mixer::open_soundcard(bool in, bool out) {
 
@@ -216,6 +229,28 @@ bool Stream_mixer::open_soundcard(bool in, bool out) {
   return(true);
 } /* open_soundcard */
 
+void Stream_mixer::close_soundcard() {
+  if(!dsp) return;
+  ioctl(dsp, SNDCTL_DSP_RESET, 0);
+  close(dsp);
+}
+
+#else
+
+
+bool Stream_mixer::open_soundcard(bool in, bool out) {
+  if( ! snddev->open(in,out) ) return false;
+  dsp = 1;
+  fullduplex = true;
+  return true;
+}
+
+void Stream_mixer::close_soundcard() {
+  snddev->close();
+}
+
+#endif
+
 void Stream_mixer::cafudda()
 {
   int i, c=0, cc;
@@ -260,12 +295,23 @@ void Stream_mixer::cafudda()
 
     } /* if(chan[i] != NULL) */
   } /* for(i=0;i<MAX_CHANNELS;i++) */
-  
+
+
   if(linein) {
+#ifndef PORTAUDIO
     // ires = livein.mix(process_buffer);
     c += livein.mix(process_buffer);
     // max = (max<ires) ? ires : max;
+#else
+    linein_samples = snddev->read(linein_buf,MIX_CHUNK);
+    for(cc=0; cc<linein_samples<<1; cc++)
+      process_buffer[cc] += (int32_t) (linein_buf[cc]);
+    c += linein_samples;
+#endif
   }
+
+
+
   
 #ifdef HAVE_SCHEDULER
   if (rsched && rsched->channel->opened) {
@@ -303,7 +349,13 @@ void Stream_mixer::cafudda()
       /* write out interleaved stereo 16bit pcm 
 	 dsp takes number of *BYTES*, the format
 	 is being setted with ioctls in initialization */
-      do {ret=write(dsp,audio_buffer,MIX_CHUNK<<2);} while (ret==-1 && errno==EINTR);
+#ifndef PORTAUDIO
+      write(dsp,audio_buffer,MIX_CHUNK<<2);
+#else
+      snddev->write(audio_buffer,MIX_CHUNK);
+#endif
+      //      do {ret=write(dsp,audio_buffer,MIX_CHUNK<<2);} while (ret==-1 && errno==EINTR);
+      // what was that? there shouldn't be a loop on the audiocard write -jrml
     }
     
     /* compute and draw levels */
@@ -580,6 +632,7 @@ bool Stream_mixer::move_song(int ch, int pos, int nch, int npos) {
 }
 
 bool Stream_mixer::set_live(bool stat) {
+#ifndef PORTAUDIO
   if(dsp<1) {
     warning("ignoring live-in: soundcard not found");
     return(false);
@@ -594,9 +647,17 @@ bool Stream_mixer::set_live(bool stat) {
   }
   
   return(livein.on);
+#else
+  lock();
+  if( snddev->input(stat) )
+    linein = stat;
+  unlock();
+  return linein;
+#endif
 }
 
 bool Stream_mixer::set_lineout(bool stat) {
+#ifndef PORTAUDIO
   if(dsp<1) {
     error("ignoring sound output: soundcard not found");
     return(false);
@@ -610,12 +671,13 @@ bool Stream_mixer::set_lineout(bool stat) {
     unlock();
   }
   return(dspout&stat);
-}
-
-void Stream_mixer::close_soundcard() {
-  if(!dsp) return;
-  ioctl(dsp, SNDCTL_DSP_RESET, 0);
-  close(dsp);
+#else
+  lock();
+  if( snddev->output(stat) )
+    dspout = stat;
+  unlock();
+  return dspout;
+#endif
 }
 
 bool Stream_mixer::set_playmode(int ch, int mode) {

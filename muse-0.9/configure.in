@@ -21,9 +21,46 @@ AM_MAINTAINER_MODE
 dnl ==============================================================
 dnl Get the operating system and version number...
 dnl ==============================================================
-
 uname=`uname`
 uversion=`uname -r | sed -e 's/-.*$//g;s/[\.]//g'`
+AC_MSG_CHECKING(for which platform we are compiling)
+case $uname in
+     Linux)
+     AC_MSG_RESULT(Linux)
+     AC_DEFINE(HAVE_LINUX,1,[define if compiling for Linux])
+     have_linux=yes
+     if test $host_cpu = powerpc; then
+       AC_DEFINE(ARCH_PPC,1,[define if compiling for Linux/PPC])
+     else
+       AC_DEFINE(ARCH_X86,1,[define if compiling for Linux/x86])
+     fi
+
+     CPUFLAGS=`cat /proc/cpuinfo | grep flags`
+     if grep "^flags.* mmx" /proc/cpuinfo > /dev/null; then
+       have_mmx=yes
+       AC_DEFINE(HAVE_MMX,1,[define if enabling MMX acceleration])
+     fi
+     if grep "^flags.* sse" /proc/cpuinfo > /dev/null; then
+       have_sse=yes
+       AC_DEFINE(HAVE_SSE,1,[define if enabling SSE acceleration])
+     fi
+     ;;
+
+     Darwin)
+     AC_MSG_RESULT(Darwin/OSX)
+     AC_DEFINE(HAVE_DARWIN,1,[define if compiling for Apple Darwin OSX])
+     have_darwin=yes
+     ;;
+     *)
+     echo "[!] Your system architecture is not supported by MuSE"
+     echo "[!] if you are interested in porting MuSE to your architecture"
+     echo "[!] you are very welcome to contact me <jaromil@dyne.org>"
+     exit 0
+     ;;
+esac
+
+
+
 
 dnl ==============================================================
 dnl Check for tools
@@ -488,6 +525,7 @@ src/gtkgui2/Makefile
 src/ncursesgui/Makefile
 src/ncursesgui/libcdk/Makefile
 src/resample/Makefile
+src/portaudio/Makefile
 intl/Makefile
 po/Makefile
 ])

@@ -115,8 +115,8 @@ and all playable formats inside will be added to the playlist queue.
 In order to make people able to tune in and listen to your stream, you
 should communicate your listeners the URL of your network radio. That
 is formed by elements of the options that you are using: the
-\FIserver\FP, the \FIport\FP (which defaults to 8000) and the
-\FImountpoint\FP.
+\fIserver\fP, the \fIport\fP (which defaults to 8000) and the
+\fImountpoint\fP.
 
 Therefore a muse commandline containing the options
 .br
@@ -134,7 +134,7 @@ The stream will be available at the url \fIhttp://stream.dyne.org:8000/muse-exam
 .br
 .B muse -C playlist.pls -e ogg -s stream.dyne.org:6969 -m my-music -l ice2 -p hackme
 .br
-The above (simplier) command plays continuously all files listed in the playlist.pls files, encoding them in Ogg/Vorbis and streaming them to stream.dyne.org (port 6969) icecast2 server on mountpoint my-music with password hackme. The listening URL for the stream will therefore be http://stream.dyne.org:6969/my-music - you can also avoid to listen the music being streamed on your computer by using the -o flag at the very beginning of the commandline.
+The above (simplier) command plays continuously all files listed in the 'playlist.pls', encoding them in Ogg/Vorbis and streaming them to stream.dyne.org (port 6969) icecast2 server on mountpoint 'my-music' with password 'hackme'. The listening URL for the stream will therefore be http://stream.dyne.org:6969/my-music - you can also avoid to listen the music being streamed on your computer by using the -o flag at the very beginning of the commandline.
 
 .SH SCHEDULER
 
