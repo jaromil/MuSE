@@ -111,7 +111,7 @@ void profile_vorbis_load(void)
 	mpc = g_markup_parse_context_new(&mp, (GMarkupParseFlags) 0, NULL, NULL);
 	g_markup_parse_context_parse(mpc, buf, -1, NULL);
 	g_markup_parse_context_free(mpc);
-	printf("finito il parsing");
+	func("finito il parsing");
 
 }	
 
@@ -129,7 +129,7 @@ void profile_ice_load(void)
 
 	filepath = g_strconcat(home, "/.muse/ice.xml", NULL);
 	g_file_get_contents(filepath, &buf, NULL, NULL);
-	printf(" testo del file %s %s\n", filepath, buf);
+	func("testo del file %s %s", filepath, buf);
 	g_free(filepath);
 	if(!buf)
 		return;
@@ -308,19 +308,20 @@ void profile_lame_write(void)
 	}
 	while(listrunner) {
 		tmp = (struct encprof *) listrunner->data;
-		fprintf(fp, "<profile name=%s>\n"
-			"\t<quality>%f</quality>\n"
-			"\t<mode>%s</mode>\n"
-			"\t<bitrate>%s</bitrate>\n"
-			"\t<frequency>%s</frequency>\n"
-			"\t<freqfil>%s</freqfil>\n"
-			"\t<lowpass>%s</lowpass>\n"
-			"\t<highpass>%s</highpass>\n"
-			"</profile>\n\n",
-			tmp->name, tmp->quality, tmp->mode, tmp->bitrate,
-			tmp->frequency, tmp->freqfil, tmp->lowpass,
-			tmp->highpass);
-	
+		/*
+		  fprintf(fp, "<profile name=%s>\n"
+		  "\t<quality>%f</quality>\n"
+		  "\t<mode>%s</mode>\n"
+		  "\t<bitrate>%s</bitrate>\n"
+		  "\t<frequency>%s</frequency>\n"
+		  "\t<freqfil>%s</freqfil>\n"
+		  "\t<lowpass>%s</lowpass>\n"
+		  "\t<highpass>%s</highpass>\n"
+		  "</profile>\n\n",
+		  tmp->name, tmp->quality, tmp->mode, tmp->bitrate,
+		  tmp->frequency, tmp->freqfil, tmp->lowpass,
+		  tmp->highpass);
+		*/
 		listrunner = g_list_next(listrunner);
 	}
 	fclose(fp);
@@ -346,19 +347,20 @@ void profile_vorbis_write(void)
 	}
 	while(listrunner) {
 		tmp = (struct encprof *) listrunner->data;
-		fprintf(fp, "<profile name=\"%s\">\n"
-			"\t<quality>%f</quality>\n"
-			"\t<mode>%s</mode>\n"
-			"\t<bitrate>%s</bitrate>\n"
-			"\t<frequency>%s</frequency>\n"
-			"\t<freqfil>%s</freqfil>\n"
-			"\t<lowpass>%s</lowpass>\n"
-			"\t<highpass>%s</highpass>\n"
-			"</profile>\n\n",
-			tmp->name, tmp->quality, tmp->mode, tmp->bitrate,
-			tmp->frequency, tmp->freqfil, tmp->lowpass,
-			tmp->highpass);
-	
+		/*
+		  fprintf(fp, "<profile name=\"%s\">\n"
+		  "\t<quality>%f</quality>\n"
+		  "\t<mode>%s</mode>\n"
+		  "\t<bitrate>%s</bitrate>\n"
+		  "\t<frequency>%s</frequency>\n"
+		  "\t<freqfil>%s</freqfil>\n"
+		  "\t<lowpass>%s</lowpass>\n"
+		  "\t<highpass>%s</highpass>\n"
+		  "</profile>\n\n",
+		  tmp->name, tmp->quality, tmp->mode, tmp->bitrate,
+		  tmp->frequency, tmp->freqfil, tmp->lowpass,
+		  tmp->highpass);
+		*/
 		listrunner = g_list_next(listrunner);
 	}
 	fclose(fp);
@@ -384,19 +386,21 @@ void profile_ice_write(void)
 
 	while(listrunner) {
 		tmp = (struct iceprof *) listrunner->data;
-		fprintf(fp, "<profile name=\"%s\">\n"
-			"\t<host>%s</host>\n"
-			"\t<port>%s</port>\n"
-			"\t<mnt>%s</mnt>\n"
-			"\t<name>%s</name>\n"
-			"\t<url>%s</url>\n"
-			"\t<desc>%s</desc>\n"
-			"\t<logintype>%s</logintype>\n"
-			"\t<password>%s</password>\n"
-			"</profile>\n\n",
-			tmp->name, tmp->host, tmp->port, tmp->mnt,
-			tmp->stream_name, tmp->url, tmp->desc,
-			tmp->logintype, tmp->password);
+		/*
+		  fprintf(fp, "<profile name=\"%s\">\n"
+		  "\t<host>%s</host>\n"
+		  "\t<port>%s</port>\n"
+		  "\t<mnt>%s</mnt>\n"
+		  "\t<name>%s</name>\n"
+		  "\t<url>%s</url>\n"
+		  "\t<desc>%s</desc>\n"
+		  "\t<logintype>%s</logintype>\n"
+		  "\t<password>%s</password>\n"
+		  "</profile>\n\n",
+		  tmp->name, tmp->host, tmp->port, tmp->mnt,
+		  tmp->stream_name, tmp->url, tmp->desc,
+		  tmp->logintype, tmp->password);
+		*/
 		listrunner = g_list_next(listrunner);
 	}
 	fclose(fp);	

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: es-iso\n"
 "POT-Creation-Date: 2004-03-29 13:52+0200\n"
-"PO-Revision-Date: 2004-04-07 10:56+0200\n"
+"PO-Revision-Date: 2004-04-15 15:22+0200\n"
 "Last-Translator: Quique <quique@sindominio.net>\n"
 "Language-Team: Castilian aka Spanish <es@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -24,21 +24,22 @@ msgstr "acerca de MuSE: el motor de reproducción por red múltiple"
 msgid "MuSE: Codename COTURNIX"
 msgstr "MuSE: Nombre en código COTURNIX"
 
-#: ../src/gtkgui2/about.cpp:51
-msgid ""
-"development team for this release:\n"
-"\n"
-"jaromil aka Denis Rojo - main coder and mantainer\n"
-"nightolo aka Antonino Radici - GTK user interface\n"
-"rubik aka Luca Profico - console user interface\n"
-"godog aka Filippo Giunchedi - docu and organizer\n"
-msgstr ""
-"Equipo de desarrollo para esta versión:\n"
-"\n"
-"jaromil aka Denis Rojo - programador principal y encargado del mantenimiento\n"
-"nightolo aka Antonino Radici - interfaz en gtk+\n"
-"rubik aka Luca Profico - interfaz ncurses (consola)\n"
-"godog aka Filippo Giunchedi - responsable de la documentación y autoconf/automake\n"
+#~ #: ../src/gtkgui2/about.cpp:51
+#~ #, fuzzy
+#~ msgid ""
+#~ "development team for this release:\n"
+#~ "\n"
+#~ "jaromil aka Denis Rojo - main coder and mantainer\n"
+#~ "nightolo aka Antonino Radici - GTK user interface\n"
+#~ "rubik aka Luca Profico - console user interface\n"
+#~ "godog aka Filippo Giunchedi - docu and organizer\n"
+#~ msgstr ""
+#~ "Equipo de desarrollo para esta versión:\n"
+#~ "\n"
+#~ "jaromil aka Denis Rojo - programador principal y encargado del mantenimiento\n"
+#~ "nightolo aka Antonino Radici - interfaz en gtk+\n"
+#~ "rubik aka Luca Profico - interfaz ncurses (consola)\n"
+#~ "godog aka Filippo Giunchedi - responsable de la documentación y autoconf/automake\n"
 
 #: ../src/gtkgui2/about.cpp:76
 msgid ""
@@ -242,7 +243,7 @@ msgstr "Desempotrar canal"
 
 #: ../src/gtkgui2/encoder.cpp:58
 msgid "Configure Lame Encoder"
-msgstr "Configura el codificador Lame"
+msgstr "Configura el codificador MP3"
 
 #: ../src/gtkgui2/encoder.cpp:62
 msgid "Configure Ogg/Vorbis Encoder"
@@ -698,7 +699,7 @@ msgstr "Guardar un perfil de Icacast"
 
 #: ../src/gtkgui2/utils.cpp:276
 msgid "Save a Lame profile"
-msgstr "Guardar un perfil de Lame"
+msgstr "Guardar un perfil de MP3"
 
 #: ../src/gtkgui2/utils.cpp:278
 msgid "Save an Ogg/Vorbis profile"

@@ -1,11 +1,5 @@
 
-/* $Id$
-
-   here command line is parsed
-   synchronous threads are launched depending on mode selection
-   signals are trapped for nice&clean exiting
-
-*/
+/* $Id$ */
 
 /**
    @mainpage MuSE :: Multiple Streaming Engine
@@ -54,13 +48,14 @@
 
    @section Authors
 
-   the MuSE Engine is Copyright (C) 2000-2004 Denis Rojo aka jaromil - http://rastasoft.org
+   the MuSE Engine is Copyright (C) 2000-2004
+   Denis Rojo aka jaromil - http://rastasoft.org
 
-   the GTK-2 MuSE application interface is
-   Copyright (C) 2002-2004 Antonio Radici aka nightolo - http://freaknet.org
+   the GTK-2 MuSE interface is Copyright (C) 2002-2004
+   Antonio Radici aka nightolo - http://freaknet.org
 
-   the Ncurses MuSE application interface is
-   Copyright (C) 2002-2004 Luca Profico aka rubik - http://olografix.org
+   the Ncurses MuSE interface is Copyright (C) 2002-2004
+   Luca Profico aka rubik - http://olografix.org
 
    MuSE and all its interface source code is free software; you can
    redistribute it and/or modify it under the terms of the GNU Public
@@ -737,31 +732,7 @@ int main(int argc, char **argv) {
     mix->register_gui(gui);
     set_guimsg(gui);
     notice("%s version %s",PACKAGE,VERSION);
-  }// else {
-    //    if(!mix->create_channel(0))
-  //      error("CLI: strange! i got problems creating a channel");
-  //  }
-  /*
-  has_playlist = false;
-  if(cli_chars>0) {
-    char *p, *pp = files;
-    while(cli_chars>0) {
-      p = pp; while(*p!='#' && cli_chars>0) { p++; cli_chars--; }
-      if(cli_chars<=0) break; *p='\0';
-      if(!mix->add_to_playlist(0,pp))
-	warning("can't add %s into playlist",pp);
-      else
-	has_playlist = true;
-      pp = p+1;
-    }
   }
- 
-  if((!has_playlist && !micrec) && (thegui==CLI)) {
-    warning("nothing to play, you must specify at least songs or live input");
-    act("see --help switch for more information");
-    goto QUIT;
-  }
-  */
 
   /* apply configuration and startup all registered encoders */
   outch = (OutChannel*)mix->outchans.begin();

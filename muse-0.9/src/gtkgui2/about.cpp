@@ -53,6 +53,7 @@ about_win(void)
 			  "jaromil aka Denis Rojo - main coder and mantainer\n"
 			  "nightolo aka Antonino Radici - GTK user interface\n"
 			  "rubik aka Luca Profico - console user interface\n"
+			  "pallotron aka Angelo Failla - more input channels\n"
 			  "godog aka Filippo Giunchedi - docu and organizer\n"));
 
 	//gtk_label_set_justify (GTK_LABEL (label1), GTK_JUSTIFY_LEFT);
@@ -85,15 +86,17 @@ about_win(void)
 		   "again by other muses... ;)\n"
 		   "\n"
 		   "MuSE as it is now would have never existed without\n"
-		   "the contributions of (in reverse chronological order):\n"
-		   "= Matteo Nastasi aka Mop ( alternativeoutput.it )\n"
-		   "= Lobo for herbivore and free open air open source\n"
-		   "= PUBLIC VOICE Lab ( pvl.at ) support for development\n"
-		   "= SERVUS.AT trusting this project since its beginning\n"
-		   "= Asbesto Molesto ( freaknet.org ) testing and docu\n"
+		   "the contributions of:\n"
 		   "= Alex, Rasty and Martinez ( maria libera! ) good vibes\n"
 		   "= August Black ( aug.ment.org ) original GUI scheme\n"
+		   "= Asbesto Molesto ( freaknet.org ) testing and docu\n"
+		   "= Eric de Castro Lopo ( mega-nerd.com )\n"
+		   "= Filippo \"Godog\" ( esaurito.net ) for documentation\n"
+		   "= Lobo for herbivore and free open air open source\n"
 		   "= Markus Seidl ( funda.ment.org ) vision of such a tool\n"
+		   "= Matteo Nastasi aka Mop ( alternativeoutput.it )\n"
+		   "= PUBLIC VOICE Lab ( pvl.at ) support for development\n"
+		   "= SERVUS.AT trusting this project since its beginning\n"
 		   "\n"
 		   "Also waves and thanks to:\n"
 		   "voyager, void, blicero, sandolo, eni,\n"
@@ -102,18 +105,32 @@ about_win(void)
 		   "the LOA hacklab, the TPO, bundes & didi,\n"
 		   "indymedia italy, neural.it, autistici.org,\n"
 		   "Mag-One, radio Ondarossa, bomboclat, newmark\n"
-		   "c1cc10, vanguardist, janki, godog, kysucix\n"
+		   "c1cc10, vanguardist, janki, kysucix, Adam\n"
 		   "and all the others i'm forgetting here!\n"
 		   "\n"
-		   "\nMuSE redistributes statically, the following libraries:\n= libmpeg by Woo-jae Jung and Mikael Hedin\n= libshout by Jack Moffit and others\n= libcdk by Mike Glover\n\n\nMuSE can link dinamically to the following libraries:\n= libogg, libvorbis, libvorbisfile - www.xiph.org\n= glib, libgdk, libgtk - www.gtk.org\n= liblame - www.mp3dev.org/mp3\n= libX11, libXext - www.xfree86.org\n= other common GNU libraries\n\n\nMuSE sourcecode also got inspirations and code\nsnippets from the stream mixer sourcecode by\nScott Manley, the buffered FIFO pipe source\nby Charles Samuels, the GTK knob widget by\nAlexander Koenig, GNOME icons by Jakub Steiner\n\n"
+		   "\nMuSE redistributes statically, the following libraries:\n"
+		   "= libmpeg by Woo-jae Jung and Mikael Hedin\n"
+		   "= libshout by Jack Moffit and others\n"
+		   "= libcdk by Mike Glover\n"
+		   "= the secret rabbit code by Eric de Castro Lopo\n"
+		   "\n\nMuSE can link dinamically to the following libraries:\n"
+		   "= libogg, libvorbis, libvorbisfile - www.xiph.org\n"
+		   "= glib, libgdk, libgtk - www.gtk.org\n"
+		   "= liblame - www.mp3dev.org/mp3\n"
+		   "= libX11, libXext - www.xfree86.org\n"
+		   "= other common GNU libraries\n\n\n"
+		   "MuSE sourcecode also got inspirations and code\n"
+		   "snippets from the stream mixer sourcecode by\n"
+		   "Scott Manley, the buffered FIFO pipe source\n"
+		   "by Charles Samuels, icons by Jakub Steiner\n\n"
 		   "MuSE Streamer is copyleft (c)\n"
-		   "2000-2003 by Denis \"jaromil\" Rojo\n"
+		   "2000-2004 by Denis \"jaromil\" Rojo\n"
 		   "\n"
 		   "MuSE's GTK+ GUI is copyleft (c)\n"
-		   "2001-2003 by Antonino \"nightolo\" Radici\n"
+		   "2001-2004 by Antonino \"nightolo\" Radici\n"
 		   "\n"
 		   "MuSE's NCURSES GUI is copyleft (c)\n"
-		   "2002-2003 by Luca \"rubik\" Profico\n"
+		   "2002-2004 by Luca \"rubik\" Profico\n"
 		   "\n"
 		   "DSP resampling routines are copyleft (c)\n"
 		   "2002 by Matteo \"MoP\" Nastasi\n"
@@ -129,7 +146,7 @@ about_win(void)
 	-1);
 	
 	
-	pixbuf = gdk_pixbuf_new_from_inline(-1, asbepallo, 0, NULL);
+	pixbuf = gdk_pixbuf_new_from_inline(-1, (guint8*)asbepallo, 0, NULL);
 	img = gtk_image_new_from_pixbuf(pixbuf);
 	gtk_box_pack_start(GTK_BOX(hbox1), img, FALSE, FALSE, 0);
 	
