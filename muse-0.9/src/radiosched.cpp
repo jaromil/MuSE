@@ -293,12 +293,12 @@ void Basic_scheduler::run() {
       (void) time(&clk);
 	  left = (unsigned) (60 - clk % 60); 
 	  while (left--) {
-          sleep(1);
+          jsleep(1,0);
 		  if (quit) break;
 	  }
     } else { // if(on)
       // just hang on
-      sleep(1);
+      jsleep(1,0);
     }
   } // while(!quit)
   running = false;

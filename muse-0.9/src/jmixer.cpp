@@ -299,10 +299,11 @@ void Stream_mixer::cafudda()
 
     /* WRITE 2 DSP */
     if(dspout) {
+	 int ret;
       /* write out interleaved stereo 16bit pcm 
 	 dsp takes number of *BYTES*, the format
 	 is being setted with ioctls in initialization */
-      write(dsp,audio_buffer,MIX_CHUNK<<2);
+      do {ret=write(dsp,audio_buffer,MIX_CHUNK<<2);} while (ret==-1 && errno==EINTR);
     }
     
     /* compute and draw levels */

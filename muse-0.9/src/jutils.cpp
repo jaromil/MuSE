@@ -146,10 +146,11 @@ void MuseCloseLog() {
 
 
 void jsleep(int sec, long nsec) {
+  int ret;
   struct timespec timelap;
   timelap.tv_sec = sec;
   timelap.tv_nsec = nsec;
-  nanosleep(&timelap,NULL);
+  do {ret = nanosleep(&timelap,NULL);} while (ret==-1 && errno==EINTR);
 }
 
 double dtime() {

@@ -504,7 +504,7 @@ int LiveIn::mix(int *mixpcm) {
 int LiveIn::get_audio() {
   int res;
 
-  res = read(*dsp,gotin,MIX_CHUNK<<2);
+  do {res = read(*dsp,gotin,MIX_CHUNK<<2);} while (res==-1 && errno==EINTR);
   return(res>>2);
 }
 

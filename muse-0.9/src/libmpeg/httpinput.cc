@@ -30,13 +30,24 @@
 
 static const char *httpstr="http://";
 
+static int  
+rwrite( int fd, const void *buf, int len )
+{
+    int ret;
+    
+    do {
+        ret = write(fd, buf, len);
+    } while (ret==-1 && errno==EINTR);
+    return ret;
+}
+
 bool Soundinputstreamfromhttp::writestring(int fd, char *string)
 {
   int result,bytes=strlen(string);
 
   while(bytes)
   {
-    if((result=write(fd,string,bytes))<0 && errno!=EINTR)
+    if((result=rwrite(fd,string,bytes))<0)
     {
       seterrorcode(SOUND_ERROR_HTTPWRITEFAIL);
       return false;
@@ -53,13 +64,35 @@ bool Soundinputstreamfromhttp::writestring(int fd, char *string)
   return true;
 }
 
+static int  
+rgetc( FILE *f )
+{
+    int ret;
+    
+    do {
+        ret = getc(f);
+    } while (ret==EOF && errno==EINTR);
+    return ret;
+}
+
+static char *  
+rfgets( char *s, int size, FILE *f )
+{
+    char *ret = s;
+    
+    for (; size>0; size--, s++) {
+        *s = rgetc(f);
+	    if (*s == '\n') break;
+    }
+    *s = '\0';
+    return ret;
+}
+
 bool Soundinputstreamfromhttp::readstring(char *string,int maxlen,FILE *f)
 {
   char *result;
 
-  do{
-    result=fgets(string,maxlen,f);
-  }while(!result  && errno==EINTR);
+  result=fgets(string,maxlen,f);
   if(!result)
   {
     seterrorcode(SOUND_ERROR_FILEREADFAIL);
@@ -114,6 +147,18 @@ static char *url2hostport(char *url,char **hname,
   *port=atoi(++cptr);
   while(*cptr && *cptr!='/')cptr++;
   return cptr;
+}
+
+static int
+rconnect( int sock, const struct sockaddr *saddr, socklen_t slen )
+{
+    int rc;
+    
+    do {
+        rc = connect( sock, saddr, slen );
+    } while ( rc == -1 && errno == EINTR );
+    
+    return rc;
 }
 
 char *proxyurl=NULL;
@@ -193,7 +238,7 @@ FILE *Soundinputstreamfromhttp::http_open(char *url)
       seterrorcode(SOUND_ERROR_SOCKET);
       return NULL;
     }
-    if(connect(sock,(struct sockaddr *)&server,sizeof(server)))
+    if(rconnect(sock,(struct sockaddr *)&server,sizeof(server)))
     {
       seterrorcode(SOUND_ERROR_CONNECT);
       return NULL;
@@ -270,7 +315,7 @@ int Soundinputstreamfromhttp::getbytedirect(void)
 {
   int c;
 
-  if((c=getc(fp))<0)
+  if((c=rgetc(fp))<0)
   {
     seterrorcode(SOUND_ERROR_FILEREADFAIL);
     return -1;
