@@ -27,9 +27,7 @@ muse_SOURCES =  \
     radiosched.cpp      \
     httpstream.cpp  \
     gui.cpp \
-    dev_sound.cpp \
-	pablio.cpp \
-	ringbuffer.cpp
+    dev_sound.cpp
 
 muse_DEPENDENCIES = \
 	@GUI_DEPS@ \
