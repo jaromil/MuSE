@@ -46,11 +46,13 @@ ConnectBox::ConnectBox (Stream_mixer *m)
 
 	enc = (encdata *) malloc (sizeof (encdata));
 	enc->numchan=0;
+	warning ("mixer = %p", mixer);
 	encsetbox.setmixer (mixer, enc);
 	encsetbox.setscreen (cdkscreen);
 	
 	streamsetbox.setmixer (mixer, enc);
 	streamsetbox.setscreen (cdkscreen);
+	warning ("mixer = %p", mixer);
 
 
 
