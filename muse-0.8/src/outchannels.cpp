@@ -146,12 +146,10 @@ void OutChannel::run() {
     encoding = false;
     if(fd) encoding = true;
     Shouter *ice = (Shouter*)icelist.begin();
-    //    lock_ice();
     while(ice) {
       if(ice->running) encoding = true;
       ice = (Shouter*)ice->next;
     }
-    //    unlock_ice();
     if(!initialized) encoding = false;
     
     if(!encoding) {
@@ -172,27 +170,15 @@ void OutChannel::run() {
     encode();
     unlock();
 
-    //    while(encode()<1) { 
-    //      func("encode returns -1, sleeping");
-    //      jsleep(0,10);
-    //    }
-
     if(encoded<1) continue;
     
 
     calc_bitrate(encoded);
-    //    func("===== encoded %i, bitrate: %i",encoded,bitrate);    
-
-    //    unlock();
-
     /* stream it to the net */
-    //    func("calling shout()");
     res = shout();
-    //    func("shout returned %i",res);
+
     /* save it on the harddisk */
-    //    func("calling dump()");
     res = dump();
-    //    func("dump returned %i",res);
 
     /* TODO: flush when erbapipa->read != OUT_CHUNK */
     
@@ -439,7 +425,7 @@ snprintf(quality_desc,256,"%uKbit/s %uHz",bps(),freq());
 }
 
 void OutChannel::push(void *data, int len) {
-  
+  int errors = 0;
   /* check out if encoders are configured */
   if(!encoding) return;
   if(!initialized) return;
@@ -452,7 +438,12 @@ void OutChannel::push(void *data, int len) {
   while( running && 
 	 erbapipa->write(len,data) < 0 ) {
     //    func("PID %i waits to push %i bytes in %s",getpid(),len,name);
-    jsleep(0,50);
+    jsleep(0,30);
+    errors++;
+    if(errors>20) {
+      warning("%s encoder is stuck, pipe is full",name);
+      return;
+    }
   }
   //  func("ok, %i bytes pushed succesfully in %s",len,name);
 }

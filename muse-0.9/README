@@ -1,15 +1,17 @@
  
 
-                    dyne.org productions
+      dyne.org autoproduzioni & the FreakNet Medialab
 
-                      proudly presents:
+                       proudly present:
 
-          __  __       ____  _____     ___   ___   _ 
-         |  \/  |_   _/ ___|| ____|   / _ \ ( _ ) / |
-         | |\/| | | | \___ \|  _|    | | | |/ _ \ | |
-         | |  | | |_| |___) | |___   | |_| | (_) || |
-         |_|  |_|\__,_|____/|_____|   \___(_)___(_)_|
-                                   codename "COTURNIX"
+            __  __       ____  _____    ___   ___  
+           |  \/  |_   _/ ___|| ____|  / _ \ / _ \ 
+           | |\/| | | | \___ \|  _|   | | | | (_) |
+           | |  | | |_| |___) | |___  | |_| |\__, |
+           |_|  |_|\__,_|____/|_____|  \___(_) /_/ 
+                               codename "COTURNIX"
+
+ this is RASTA SOFTWARE, Jah Rastafari Livity bless your freedom!
 
              :: the Multiple Streaming Engine ::
                     http://muse.dyne.org
@@ -21,19 +23,17 @@ stream via http on icecast servers.
 
 MuSE is an application for mixing, encoding, and network streaming of
 sound.  MuSE streams via http on icecast servers, it can serve and
-also listen its own stream, players are available on many platforms:
-xmms, freeamp, macamp are good ones.
+also listen its own stream, players are available on every computer:
+xmms, freeamp, winamp, itunes are good ones.
 
 MuSE can simultaneously mix up to 6 encoded audio bitstreams (from
-files or network, in ogg and mp3 format), plus a souncard input
-signal.
+files or network, ogg, mp3, wav and other common sound formats), plus
+an input signal from microphone.
 
-MuSE also offers an intuitive interface to be operated in realtime and
-can run in "slick" mode from commandline.
+MuSE offers an intuitive interface to be operated in realtime, while
+it can also run slick from the Unix commandline.
 
-for MuSE's development, jaromil has been supported by
-PUBLIC VOICE Lab ........ [ http://www.pvl.at ]
-SERVUS.AT ............... [ http://www.servus.at ]
+
 
 
 
@@ -76,9 +76,14 @@ use have a look at jmixer.h and gui.h files.
   compile the GTK+ graphic user interface for interactive use and
   additional fun.
 
-- NCURSES (optional) (currently under development)
-  if libncurses is present, MuSE will compile the l33t h4xor console
-  interface to be used into ASCII terminals with hotkeys.
+- NCURSES (optional)
+  if libncurses is present, MuSE will compile a text console
+  interactive interface to be used into ASCII terminals.
+
+- SNDFILE (optional)
+  if libsndfile is present then you'll be able to play uncompressed
+  sound files like wav, aiff, snd, voc, pvf, mat, au, sf etc.
+
 
 
 ***** Compile and install:
@@ -92,8 +97,7 @@ use have a look at jmixer.h and gui.h files.
 - install libogg and libvorbis:
   http://www.xiph.org/ogg/vorbis/index.html
 
-if you don't install any of the above, MuSE will be a simple mp3
-player.
+if you don't install any of the above, MuSE will be a simple player.
 
 - compile: cd MuSE-x.x.x ; ./configure (or try ./configure --help to
   have listed some compile options) ; make ; make install
@@ -106,19 +110,44 @@ this command will build debian packages for you!
 
 
 
-the website is http://muse.dyne.org
+
+KNOW MORE go to the website on http://muse.dyne.org
 
 BUG REPORTING is REALLY APPRECIATED! BUT TAKE CARE TO DO IT WELL:
 please ALWAYS REPORT the muse --version you are running and possibly
 run the binary with gdb giving us the backtrace of the error.
 
-go to http://savannah.nongnu.org/bugs/?func=addbug&group=muse
-and submit a BUG!!!
+if you understand the above, please go to http://bugs.dyne.org and
+submit a BUG!!!
 
-any MuSE (ab)user can join the mailing list, send a mail to
-muse-subscribe@dyne.org
+you have new ideas for MuSE? join the mailing list!
+ send a mail to muse-subscribe@dyne.org
+ or use the web interface on http://lists.dyne.org
+we are also on irc.freenode.net channel #dyne
 
-sometimes we are also on irc.freenode.net channel #muse
+
+
+
+===== AUTHORS
+
+MuSE is copyleft (c) 2000-2004 by Denis "jaromil" Rojo
+
+MuSE's GTK+ GUI is copyleft (c) 2001-2004 by Antonino "nightolo" Radici
+
+MuSE's NCURSES GUI is copyleft (c) 2002-2004 by Luca "rubik" Profico
+
+MuSE's first GUI is copyleft (c) 2000-2001 by August Black
+
+included resampling algos are copyleft (c) 2002 by Matteo "MoP" Nastasi
+
+part of the redistributed code is copyright by the respective authors,
+please refer to the AUTHORS file and to the supplied sourcecode for
+further information and to COPYING for the full license.
+
+for MuSE's development, the author and mantainer has been supported by
+PUBLIC VOICE Lab ........ [ http://www.pvl.at ]
+SERVUS.AT ............... [ http://www.servus.at ]
+
 
 
 
@@ -141,22 +170,8 @@ you can send a mail or make a phonecall to
 THANKS, a thousand flowers will blossom!
 
 
---
-
-MuSE is copyleft (c) 2000-2003 by Denis "jaromil" Rojo
-
-MuSE's GTK+ GUI is copyleft (c) 2001-2003 by Antonino "nightolo" Radici
-
-MuSE's NCURSES GUI is copyleft (c) 2002-2003 by Luca "rubik" Profico
-
-MuSE's first GUI is copyleft (c) 2000-2001 by August Black
-
-DSP resampling routines are copyleft (c) 2002 by Matteo "MoP" Nastasi
 
 
-part of the redistributed code is copyright by the respective authors,
-please refer to the AUTHORS file and to the supplied sourcecode for
-further information and to COPYING for the full license.
 
 == DISCLAIMER
 

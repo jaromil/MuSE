@@ -1,4 +1,12 @@
-MuSE 0.9 "COTURNIX"
+MuSE 0.9 "COTURNIX" - 15 04 04
+/* This is a new milestone release adding many new functionalities
+   developed in more than a year of silent coding activity.
+   Spotlights on the revamped GTK-2 interface now featuring drag&drop,
+   language translations and better playlist handling, the new libsnd
+   (wav player) input channel coded by Pallotron during the hackmeeting,
+   full support of icecast2 both with OGG and MP3, more CLI flexibility
+   and lots of speed and efficience improvements in the engine.
+   So as spring is coming is time to throw the peach and say COTURNIX! */
 	important engine optimization and speed improvements 
 	new GTK-2 graphical interface with improved usability (nightolo)
         new resampling for ogg/vorbis encoding (the secret rabbit code)
