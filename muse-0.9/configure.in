@@ -482,6 +482,7 @@ src/ncursesgui/Makefile
 src/ncursesgui/libcdk/Makefile
 src/resample/Makefile
 intl/Makefile
+po/Makefile
 ])
 
 echo
