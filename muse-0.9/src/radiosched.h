@@ -1,5 +1,5 @@
 /* MuSE - Multiple Streaming Engine
- * Copyright (C) 2000-2004 Denis Rojo aka jaromil <jaromil@dyne.org>
+ * (c) Copyright 2001 Eugen Melinte <ame01@gmx.net>
  *
  * This source code is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Public License as published 
