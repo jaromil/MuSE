@@ -91,7 +91,7 @@ dnl =================
 dnl CHECK FOR GETTEXT
 dnl =================
 AM_GNU_GETTEXT
-ALL_LINGUAS="it"
+ALL_LINGUAS="it es"
 
 dnl ====================
 dnl CHECK FOR LIBSNDFILE
