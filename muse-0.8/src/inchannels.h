@@ -95,6 +95,8 @@ class Channel {
   float upd_time();
   bool set_resampler();
 
+  void report(); // DEBUGGING PURPOSES: call it to print out channel state
+
   Pipe *erbapipa;
 
   float volume;
@@ -112,8 +114,8 @@ class Channel {
   int bitrate;
   int frames;
   int samples;
-
-  enum { PLAY, LOOP, CONT } playmode;
+  
+  uint8_t playmode;
 
   bool opened;
   bool on;
@@ -121,7 +123,6 @@ class Channel {
   bool update;
   bool seekable;
   bool running;
-  bool rewinding;
   bool quit;
   bool fill_prev_smp;
 

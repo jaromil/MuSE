@@ -66,11 +66,16 @@ IN_DATATYPE *OggChannel::_get_audio() {
     return(NULL);
   }
 
-  /*  if((res==0)||(old_section != current_section && old_section != -1)) {
-     with this we should check out entering into a new logical bitstream
-     left here, will manage later, maybe, one day, oh yes, should do */
+  if((res==0)||(old_section != current_section && old_section != -1)) {
+    /* with this we check when entering into a new logical bitstream */
+    func("%s %s %i",__FILE__,__FUNCTION__,__LINE__);
+    func("oggvorbis channel enters a new logical bitstream");
+    state = 2.0;
+    func("returning NULL with state %.1f",state);
+    return(NULL);
+  }    
 
-  if(res==0) { state = 2.0; return(NULL); }
+  //  if(res==0) { state = 2.0; return(NULL); }
 
   frames = res>>1;
 

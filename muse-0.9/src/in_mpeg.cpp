@@ -195,7 +195,7 @@ IN_DATATYPE *MpegChannel::_get_audio() {
     framesize is the number of frames of data in input
     frames stores how much data we have in
     for mp3 it's fixed coz the framesize never changes
-    (maybe with VBR does?) */
+    (maybe with VBR does? anyway VBR is no good for streaming) */
   frames = framesize;
   //  samples = frames / channels;
 
@@ -203,11 +203,6 @@ IN_DATATYPE *MpegChannel::_get_audio() {
     framepos = server->getcurrentframe();
     state = upd_time();
   } else state = 0.0;
-
-  /* resampling deactivated (speed)
-     if you are wondering: this is not enough for it.
-     in_smp = resample((short int *)&server->rawdata[0],in_smp,buffo,speed);
-  */
 
   /* returns a pointer to decoded buffer */
   return((IN_DATATYPE *)server->rawdata);

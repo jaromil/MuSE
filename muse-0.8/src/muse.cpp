@@ -335,10 +335,15 @@ bool take_args(int argc, char **argv) {
     case 'N':
       number = atoi(optarg);
       number = (number<1) ? 1 : (number>MAX_CHANNELS) ? number = MAX_CHANNELS : number;
-      if(!mix->create_channel(number-1))
-      	error("got problems creating channel %i",number);
-      else
-	notice("CLI: created channel %i",number);
+      number--;
+      if(!mix->chan[number]) {
+	if(!mix->create_channel(number)) {
+	  error("got problems creating channel %i",number);
+	} else {
+	  notice("CLI: created channel %i",number);
+	  mix->set_playmode(number,playmode);
+	}
+      }
       break;
 
     case 'V':
@@ -371,7 +376,8 @@ bool take_args(int argc, char **argv) {
       if(!playmode)
 	error("invalid playmode %s",optarg);
       else
-	act("queue playmode \"%s\"",optarg);
+	//	mix->set_playmode(number,playmode);
+	act("CLI: set playmode \"%s\" for following channels",optarg);
       break;
 
     case 'g':

@@ -66,7 +66,7 @@ char *Playlist::addurl(const char *file, int pos) {
   insert((Entry*)url,pos);
   return(url->path);
 }
-/*
+
 char *Playlist::song(int pos) {
   Url *sel = (Url*) pick(pos);
   
@@ -76,6 +76,7 @@ char *Playlist::song(int pos) {
   return NULL;
 }
 
+/*
 bool Playlist::sel(int pos) {
   Url *sel = (Url*)pick(pos);
 

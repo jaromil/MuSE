@@ -224,12 +224,25 @@ void Stream_mixer::cafudda()
   for(i=0;i<MAX_CHANNELS;i++) {
     if(chan[i] != NULL) {
       if(chan[i]->on) {
-	// OPTIMIZE: elimina l'azzeramento all'inizio e fallo nella prima passata di mix
-	cc = chan[i]->erbapipa->mix16stereo(MIX_CHUNK,process_buffer);
-	// if(cc!=MIX_CHUNK<<2) warning("hey! mix16stereo on ch[%u] returned %i",i,cc);
-	c+=cc;
-	updchan(i);
-	
+
+	if(!chan[i]->running) { /* startup thread */
+
+	  chan[i]->lock();
+	  chan[i]->start();
+	  func("waiting for channel %i thread to start",i);
+	  chan[i]->wait();
+	  /* wait for the existance lock, then we unlock */
+	  chan[i]->unlock();
+
+	} else { /* suck in data */
+
+	  // OPTIMIZE: elimina l'azzeramento all'inizio e fallo nella prima passata di mix
+	  cc = chan[i]->erbapipa->mix16stereo(MIX_CHUNK,process_buffer);
+	  // if(cc!=MIX_CHUNK<<2) warning("hey! mix16stereo on ch[%u] returned %i",i,cc);
+	  c+=cc;
+	  updchan(i);
+
+	}
       } /* if(chan[i].on) */
     } /* if(chan[i] != NULL) */
   } /* for(i=0;i<MAX_CHANNELS;i++) */
@@ -334,6 +347,9 @@ void Stream_mixer::delete_channel(int ch) {
     return;
   }
 
+    
+    
+
   lock();
   if(chan[ch]->on) chan[ch]->stop();
   /* quit the thread */
@@ -342,7 +358,7 @@ void Stream_mixer::delete_channel(int ch) {
     /* be sure it quitted */
     chan[ch]->signal();
     chan[ch]->lock(); chan[ch]->unlock();
-    jsleep(0,100);
+    jsleep(0,50);
   }
 
   /* clean internal allocated buffers */
@@ -418,8 +434,9 @@ int Stream_mixer::set_channel(int ch, int pos) {
       if(chan[ch]->type != OGGCHAN) {
 	func("deleting previous MpegChannel");
 	delete (OggChannel*)chan[ch];
-	/* better to wait a bit after deleting */
-	jsleep(0,100);
+	/* should we wait a bit after deleting?
+	   jsleep(0,100);	*/
+	func("speeding up in %s %s %i",__FILE__,__FUNCTION__,__LINE__);
 	chan[ch] = new OggChannel();
       }
     } else chan[ch] = new OggChannel();
@@ -433,7 +450,9 @@ int Stream_mixer::set_channel(int ch, int pos) {
       if(chan[ch]->type != MP3CHAN) {
 	func("deleting previous OggChannel");
 	delete (MpegChannel*)chan[ch];
-	jsleep(0,100);
+	/* should we wait a bit after deleting?
+	   jsleep(0,100);	*/
+	func("speeding up in %s %s %i",__FILE__,__FUNCTION__,__LINE__);
 	chan[ch] = new MpegChannel();
       }
     } else chan[ch] = new MpegChannel();
@@ -450,35 +469,40 @@ int Stream_mixer::set_channel(int ch, int pos) {
     chan[ch]->opened = false;
 
     switch(chan[ch]->playmode) {
-    case chan[ch]->LOOP: /* LOOP :::::::::::::::::::::::: */
+    case PLAYMODE_LOOP: /* LOOP :::::::::::::::::::::::: */
       return(0);
       break;
-    case chan[ch]->CONT: /* CONT :::::::::::::::::::::::: */
+    case PLAYMODE_CONT: /* CONT :::::::::::::::::::::::: */
       if(playlist[ch].len()<=1) return(0);
       if(pos>=playlist[ch].len()) pos=1; else pos++;
       /* recursion HERE! et voila' */
       return set_channel(ch,pos);
       break;
-    default: /* PLAY :::::::::::::::::::::::: */
+    case PLAYMODE_PLAY: /* PLAY :::::::::::::::::::::::: */
       return(0);
-      break;
+    default:
+      func("%s::%s playmode $i ERROR",
+	   __FILE__,__FUNCTION__,chan[ch]->playmode);
+      return(0);
     }
 
   } else { /* file opened, everything ok */
-
+    func("%s::%s(%i,%i) file opened ok",
+	 __FILE__,__FUNCTION__,ch,pos);
     /* flush out the pipe */
     chan[ch]->erbapipa->flush();
 
-    if(!chan[ch]->running) { /* startup separated thread */
+    /*
+    if(!chan[ch]->running) { // startup separated thread
       chan[ch]->lock();
       chan[ch]->start();
       func("waiting for thread to start");
       chan[ch]->wait();
-      /* wait for the existance lock, then we unlock */
+      // wait for the existance lock, then we unlock
       chan[ch]->unlock();
     }
+    */
 
-    func("SELECT ON PLAYLIST");
     playlist[ch].sel(pos);
     
     switch(chan[ch]->type) {
@@ -662,14 +686,14 @@ void Stream_mixer::close_soundcard() {
 void Stream_mixer::set_playmode(int ch, int mode) {
   
   switch(mode) {
-  case 0:
-    chan[ch]->playmode = chan[ch]->PLAY;
+  case PLAYMODE_PLAY:
+    chan[ch]->playmode = PLAYMODE_PLAY;
     break;
-  case 1:
-    chan[ch]->playmode = chan[ch]->LOOP;
+  case PLAYMODE_LOOP:
+    chan[ch]->playmode = PLAYMODE_LOOP;
     break;
-  case 2:
-    chan[ch]->playmode = chan[ch]->CONT;
+  case PLAYMODE_CONT:
+    chan[ch]->playmode = PLAYMODE_CONT;
     break;
   }
 }
@@ -944,21 +968,35 @@ bool Stream_mixer::apply_enc(int id) {
    this is called only by cafudda while the mixer is locked, so no need to lock
 */
 void Stream_mixer::updchan(int ch) {
-  if(chan[ch]->state>1.0) {
+  //  func("%s::%s(%i)",__FILE__,__FUNCTION__,ch);
+
+  if(chan[ch]->state>=1.0) {
     if(chan[ch]->state==3.0)
       error("JMIX::updchan : channel %u reported errors",ch);
     
     chan[ch]->stop();
 
+    func("%s::%s(%i)",__FILE__,__FUNCTION__,ch);
+    chan[ch]->report();
     switch(chan[ch]->playmode) {
-    case chan[ch]->PLAY: /* PLAY :::::::::::::::::::::::: */
+    case PLAYMODE_PLAY: /* PLAY :::::::::::::::::::::::: */
       unlock();
-      if(!have_gui) quit = true;
+      if(!have_gui) { /* if there is no interface and
+			 nothing is running continuous
+			 we quit */
+	bool mustquit = true;
+	int i;
+	for(i=0;i<MAX_CHANNELS;i++)
+	  if(chan[ch])
+	    if( chan[ch]->playmode != PLAYMODE_PLAY )
+	      mustquit = false;
+	if(mustquit) quit = true;
+      }
       if(chan[ch]->seekable) set_channel(ch,playlist[ch].selected_pos());
       else if(have_gui) gui->sel_playlist(ch,playlist[ch].selected_pos());
       lock();
       break;
-    case chan[ch]->LOOP: /* LOOP :::::::::::::::::::::::: */     
+    case PLAYMODE_LOOP: /* LOOP :::::::::::::::::::::::: */     
       unlock();
       if(chan[ch]->seekable) {
 	set_channel(ch,playlist[ch].selected_pos());
@@ -966,7 +1004,7 @@ void Stream_mixer::updchan(int ch) {
       } else if(have_gui) gui->sel_playlist(ch,playlist[ch].selected_pos());
       lock();
       break;
-    case chan[ch]->CONT: /* CONT :::::::::::::::::::::::: */
+    case PLAYMODE_CONT: /* CONT :::::::::::::::::::::::: */
       int now = playlist[ch].selected_pos();
       int next =
 	(now < playlist[ch].len()) ? now+1 : 1;
@@ -992,7 +1030,7 @@ void Stream_mixer::updchan(int ch) {
       }
       if(gui->ch_pos[ch] != chan[ch]->state) { /* POSITION changed */
 	gui->ch_pos[ch] = chan[ch]->state;
-	gui->set_pos(ch, chan[ch]->state);
+	//	gui->set_pos(ch, chan[ch]->state);
       }
     }
   }

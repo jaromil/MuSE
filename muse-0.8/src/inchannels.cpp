@@ -51,18 +51,18 @@ Channel::Channel() {
   time.h = time.m = time.s = 0;
   position = time.f = 0.0;
   state = 0.0;
-  playmode = PLAY;
+  playmode = PLAYMODE_PLAY;
   opened = false;
   on = false;
   update = false;
   running = false;
   seekable = false;
-  rewinding = false;
   bitrate = samplerate = 0;
   quit = true;
   _thread_init();
   erbapipa = new Pipe(IN_PIPESIZE);
   fill_prev_smp = true;
+  lcd[0] = '\0';
   unlock();
 }
 
@@ -91,7 +91,6 @@ void Channel::run() {
 
 
   IN_DATATYPE *buff; // pointer to buffers to pass them around
-  running = true;
   lock();
   func("InChanThread! here i am");
   unlock();
@@ -103,6 +102,8 @@ void Channel::run() {
     return;
   }
 
+  running = true;
+  quit = false;
 
   while(!quit) {
     lock();
@@ -115,8 +116,9 @@ void Channel::run() {
     buff = _get_audio();
 
     if(state>1.0) {
-      unlock(); break; }/* end of stream */
-    
+      unlock(); jsleep(0,50); continue; } /* end of stream?
+					     wait that somebody updates the state */
+
     /* then call resample() which sets up:
        samples = number of 44khz stereo samples
        and returns *IN_DATATYPE pointing to the resampled buffer */
@@ -161,7 +163,7 @@ IN_DATATYPE *Channel::_resample(IN_DATATYPE *audio) {
 
 bool Channel::play() {
   if(on) return(true);
-  if(!opened||!running) {
+  if(!opened) { //||!running) {
     error("Channel::play() : error starting to play chan opened[%i] running[%i]",
 	  opened,running);
     on = false;
@@ -317,4 +319,30 @@ void Channel::_thread_destroy() {
     error("error destroying POSIX thread condition");
   if(pthread_attr_destroy(&_attr) == -1)
     error("error destroying POSIX thread attribute");
+}
+
+
+/* here for debugging purposes */
+void Channel::report() {
+
+  notice("Channel | %s | %s | %s | %s |",
+	 (opened)?"opened":" ",
+	 (running)?"running":" ",
+	 (on)?"on":"off",
+	 (seekable)?"seekable":" ");
+
+  act("is      | %s | %s | %s |",
+      (paused)?"paused":" ",
+      (quit)?"quitting":" ",
+      (update)?"updating":" ");
+  act("vol %.2f pos %.2f lcd[%s]",volume,position,lcd);
+  act("state %.2f playmode %s",state,
+      (playmode==PLAYMODE_PLAY) ? "PLAY" :
+      (playmode==PLAYMODE_LOOP) ? "LOOP" :
+      (playmode==PLAYMODE_CONT) ? "CONT" :
+      "ERROR");
+  act("framepos %i frametot %i fps %i type %i",
+      framepos,frametot,fps,type);
+  act("samplerate %i channels %i bitrate %i frames %i samples %i",
+      samplerate,channels,bitrate,frames,samples);
 }
