@@ -398,12 +398,14 @@ void Basic_scheduler::stop_inner_channel(void)
   func("Basic_scheduler::stop_channel\r\n");
   channel->lock();
   channel->stop();
-  channel->playlist->cleanup();
-  channel->unlock();
   //clean will delete the decoder, so wait for a while for channel's thread 
   //to finish.  Got some SIGSEGV
   jsleep(0,50);
+  channel->playlist->cleanup();
+  channel->unlock();
+  channel->lock();
   channel->clean(); 
+  channel->unlock();
   channel->report();
 }
 
