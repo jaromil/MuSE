@@ -372,7 +372,7 @@ void Basic_scheduler::on_wakeup( void )
           && match(this_entry->day, tm->tm_mday) 
           && match(this_entry->mon, tm->tm_mon + 1) 
           && match(this_entry->wkd, tm->tm_wday)) {
-              notice("==> Basic_scheduler: %02d/%02d-%02d:%02d  %s\n",
+              notice("==> Basic_scheduler: %02d/%02d-%02d:%02d  %s",
                    tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min,
                    this_entry->path);
               start_channel(this_entry);
@@ -398,12 +398,15 @@ void Basic_scheduler::stop_inner_channel(void)
   func("Basic_scheduler::stop_channel\r\n");
   channel->lock();
   channel->stop();
-  //clean will delete the decoder, so wait for a while for channel's thread 
-  //to finish.  Got some SIGSEGV
-  jsleep(0,50);
-  channel->playlist->cleanup();
   channel->unlock();
+  //FIXME: synchro bug
+  //channel->clean() will delete the decoder, which is used in the channel->run()
+  //function - wait a reasonable time for that loop to move off the decoder.
+  //Unfortunately I have to use clean() because the next thing to play might be
+  //in a different format. 
+  sleep(1);
   channel->lock();
+  channel->playlist->cleanup();
   channel->clean(); 
   channel->unlock();
   channel->report();
@@ -471,7 +474,7 @@ bool Basic_scheduler::match( const char *left, int right )
   register char c;
   char tok[16];
 
-  //notice("match '%s' %d \n", left, right);
+  //notice("match '%s' %d ", left, right);
   if (!left) return false;
 
   if (!strcmp(left, "*") || !strcmp(left, "any")) return true;
@@ -572,7 +575,7 @@ void Scheduler_text::on_load_schedule() {
  //     rec_ptr->mn = NULL;
  //     rec_ptr = rec_ptr->next;
  // }
-  dump(); //FIXME
+  dump(); //FIXME: comment out 
 }
 
 
@@ -804,7 +807,7 @@ void Scheduler_xml::on_load_schedule() {
   stop_channel();
   parse_xml_sched_file( addentry, this, &sr );
   
-  dump(); //FIXME
+  dump(); //FIXME: comment out
 }
 
 
