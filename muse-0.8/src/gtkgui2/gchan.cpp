@@ -493,6 +493,7 @@ void gcb_play_channel(GtkWidget *w, struct gchan *o)
 	GtkTreeSelection *select;
 	GtkTreeModel *model;
 	gint index=0;
+	GList *pathlist=NULL;
 	
 	if( mixer->chan[o->idx-1]->on) {
 	  gtk_toggle_button_set_active
@@ -500,17 +501,14 @@ void gcb_play_channel(GtkWidget *w, struct gchan *o)
 	  return;
 	}
 	select = gtk_tree_view_get_selection(GTK_TREE_VIEW(o->tree));
-	gtk_tree_selection_set_mode(select, GTK_SELECTION_SINGLE);
-	if(!gtk_tree_selection_get_selected(select, &model, &iter))
+	if( !(pathlist = gtk_tree_selection_get_selected_rows(select, &model)) )
 		return;
-	path = gtk_tree_model_get_path(model, &iter);
-	index = gtk_tree_path_get_indices(path)[0];
+	index = gtk_tree_path_get_indices((GtkTreePath *)pathlist->data)[0];
 	
 	func(_("selected index = %d"), index);
-	gtk_tree_path_free(path);
+	gtk_tree_path_free((GtkTreePath *)pathlist->data);
 	mixer->set_channel(o->idx-1, index+1);
 	res = mixer->play_channel(o->idx-1);
-	gtk_tree_selection_set_mode(select, GTK_SELECTION_MULTIPLE);
 
 	switch(res) {
 	case 0:

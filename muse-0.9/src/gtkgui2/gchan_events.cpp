@@ -86,29 +86,10 @@ gboolean DND_data_motion(GtkWidget *w, GdkDragContext *dc, gint x, gint y,
 gboolean DND_data_get(GtkWidget *w, GdkDragContext *dc, 
 				GtkSelectionData *selection, guint info, struct gchan *o)
 {
-	GtkTreeIter iter;
-	GtkTreeModel *model;
-	GtkTreeSelection *select;
-	gchar *title;
-	
-	
-	select = gtk_tree_view_get_selection(GTK_TREE_VIEW(w));
-	if(	gtk_tree_selection_get_selected(select, &model, &iter)) {
-		
-		gtk_tree_model_get(model, &iter, 
-				TITLE, &title, 
-				-1);
-
-		if(title) {
-			gtk_selection_data_set(selection, GDK_SELECTION_TYPE_STRING,
-					8, /* 8 bits per character */
-					(guchar *) title, strlen(title));
-		}
-		func("drag_data_get");
-		return TRUE;
-	}
-	
-	return FALSE;
+	func("DND_data_get, it isn't needed");
+	gtk_selection_data_set(selection, GDK_SELECTION_TYPE_STRING,
+					8, (guchar *) "fuco", strlen("fuco"));
+	return TRUE;
 }
 
 void DND_data_received(GtkWidget *w, GdkDragContext *dc, gint x, gint y,
@@ -117,28 +98,47 @@ void DND_data_received(GtkWidget *w, GdkDragContext *dc, gint x, gint y,
 {
 	GtkTreeIter iter, itersrc;
 	GtkTreeModel *model, *modelsrc;
-	GtkTreeSelection *select, *selectsrc;
 	GtkTreePath *path, *pathsrc;
+	GtkTreeSelection *selectsrc;
 	GtkWidget *source;
 	gint row=0, rowsrc=0;
 	gchar *title;
+	GList *rowlist, *titlelist;
 
-	if(selection == NULL)
-		return;
-	if(selection->length < 0)
-		return;
 	
 	/* <federico> nightolo: if gtk_drag_get_source_widget(drag_context) returns NULL, it comes from another process
 	 * tnx to #gtk+ :) 
 	 */
-	
-	source = gtk_drag_get_source_widget(dc);
+	func("DND_data_received");	
+	if( !(source = gtk_drag_get_source_widget(dc)) ) {
+		func("DND_data_received:error, no source");
+		return;
+	}
 	func("source = %p info %d", source, info);
 	
-	title = (gchar *) selection->data;
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(w));
+	modelsrc = gtk_tree_view_get_model(GTK_TREE_VIEW(source));
+	selectsrc = gtk_tree_view_get_selection(GTK_TREE_VIEW(source));
+	rowlist = gtk_tree_selection_get_selected_rows(selectsrc, &modelsrc);
+	titlelist = NULL;
+	
+	rowlist = g_list_first(rowlist);
+	if(rowlist->data) {
+		rowsrc = gtk_tree_path_get_indices((GtkTreePath *)rowlist->data)[0];
+		while(rowlist && rowlist->data) {
+			gtk_tree_model_get_iter(modelsrc, &itersrc, (GtkTreePath *)rowlist->data);
+			gtk_tree_model_get(modelsrc, &itersrc, TITLE, &title, -1);
+			
+			titlelist = g_list_append(titlelist, (void *) title);
+			rowlist = g_list_next(rowlist);
+	//		gtk_tree_path_free((GtkTreePath *)rowlist->data);
+
+		}
+		func("DND_data_received I part -> ok");
+	} else
+		return;
 	
 	
-	select = gtk_tree_view_get_selection(GTK_TREE_VIEW(w));
 	if(gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(w),
 				x, y, &path, NULL, NULL, NULL)) {
 		row = gtk_tree_path_get_indices(path)[0];
@@ -146,32 +146,23 @@ void DND_data_received(GtkWidget *w, GdkDragContext *dc, gint x, gint y,
 		gtk_tree_path_free(path);
 	}
 	
-	if(!source && (info == DRAG_TAR_INFO_1 || info == DRAG_TAR_INFO_0)) {
+/*	if(!source && (info == DRAG_TAR_INFO_1 || info == DRAG_TAR_INFO_0)) {
 		func("I got text/uri");
 		mixer->add_to_playlist(o->idx-1, title);
-	} else {
-		if(source) {
-			selectsrc = gtk_tree_view_get_selection(GTK_TREE_VIEW(source));
-			gtk_tree_selection_get_selected(selectsrc, &modelsrc, &itersrc);
-			pathsrc = gtk_tree_model_get_path(modelsrc, &itersrc);
-			rowsrc = gtk_tree_path_get_indices(pathsrc)[0];
-			
-			func("dndch = %d rowsrc = %d row = %d", dndch-1, rowsrc+1, row+1);
-			if(dndch >= 0 && rowsrc >= 0 && row >= 0) {
-				func("move_song called %d %d %d %d", dndch-1, rowsrc+1, o->idx-1, row+1);
-				mixer->move_song(dndch-1, rowsrc+1, o->idx-1, row+1);
-			}
-
-			gtk_tree_path_free(pathsrc);
-		}
-	}
+	} else {*/
+	func("dndch = %d rowsrc = %d row = %d", dndch-1, rowsrc+1, row+1);
 	
-	gtk_tree_selection_get_selected(select, &model, NULL);
-	gtk_list_store_insert(GTK_LIST_STORE(model), &iter, row);
+	rowlist = g_list_first(rowlist);
+	for(; titlelist != NULL; row++ && rowsrc++) {
+		func("riga %d", row);
+		gtk_list_store_insert(GTK_LIST_STORE(model), &iter, row);
+		gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+						TITLE, titlelist->data, -1);
 
-	gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-			TITLE, title,
-			-1);
+		mixer->move_song(dndch-1, rowsrc+1, o->idx-1, row+1);
+		titlelist = g_list_next(titlelist);		
+	}
+	//}
 	
 	func("drag_data_received");
 }
@@ -182,16 +173,30 @@ void DND_data_delete(GtkWidget *w, GdkDragContext *dc, struct gchan *o)
 	GtkTreeModel *model;
 	GtkTreeSelection *select;
 	GtkTreePath *path;
+	GtkTreeRowReference *ref;
 	gint row;
+	GList *pathlist, *reflist;
 	
 	select = gtk_tree_view_get_selection(GTK_TREE_VIEW(w));
-	if(	gtk_tree_selection_get_selected(select, &model, &iter)) {
-		path = gtk_tree_model_get_path(model, &iter);
-		row = gtk_tree_path_get_indices(path)[0];
-		mixer->rem_from_playlist(o->idx-1, row+1);
+	pathlist = gtk_tree_selection_get_selected_rows(select, &model);
+	reflist = NULL;
 	
-		gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+	while(pathlist) {
+		ref = gtk_tree_row_reference_new(model, (GtkTreePath *)pathlist->data);
+		reflist = g_list_append(reflist, (void *) ref);
+		pathlist = g_list_next(pathlist);
+	}
+	reflist = g_list_first(reflist);
+	while(reflist) {
+		path = gtk_tree_row_reference_get_path((GtkTreeRowReference *)reflist->data);
+		row = gtk_tree_path_get_indices(path)[0];
+		if(gtk_tree_model_get_iter(model, &iter, path)) {
+			notice("removed %d", row);
+			gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+		}
 		gtk_tree_path_free(path);
+		reflist = g_list_next(reflist);
+
 	}
 	
 	func("drag_data_delete");
