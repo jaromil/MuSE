@@ -15,6 +15,8 @@
 #undef UI_XMLRPC
 #undef WITH_DMALLOC
 #undef HAVE_SNDFILE
+/* Schedule in radio shows from other radio stations, MuSE channels, files, etc.  */
+#undef HAVE_SCHEDULER
 
 /* Define if you have the <dirent.h> header file. */
 #undef HAVE_DIRENT_H
