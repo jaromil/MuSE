@@ -1,0 +1,13 @@
+
+BUG REPORTING is REALLY APPRECIATED! BUT TAKE CARE TO DO IT WELL:
+please ALWAYS REPORT the muse --version you are running and possibly
+run the binary with gdb giving us the backtrace of the error.
+
+go to http://savannah.nongnu.org/bugs/?func=addbug&group=muse
+and submit a BUG!!!
+
+any MuSE (ab)user can join the mailing list, send a mail to
+muse-subscribe@dyne.org
+
+sometimes we are also on irc.freenode.net channel #muse
+

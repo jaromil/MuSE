@@ -1,0 +1,23 @@
+***************
+A gtk+ GUI for MuSE by nightolo <night@autistici.org>
+***************
+
+We are finally in beta part (coding, bug fixing, testing) of this
+project.
+The GUI now is integrated with MuSE and if you download a MuSE version
+from CVS you'll find this GUI and this readme (I think :)
+
+Compile it following README instruction in MuSE rootdir
+
+Compatibility between C and C++ is broken, now GUI has got elements in
+C++ (like calling of muse-core functions and bool type). 
+
+In this dir I wrote a TODO  in which you can see future changes.
+In this file you can see two part: the 0.7 one in which you'll find
+bugfixes, features, coding of MuSE 0.7.* and the 0.8 one that you
+could read if you are interested in future developing.
+
+If you want to contribute in coding or testing or you want to suggest
+some widget which you'd like to see in MuSE gtk+ GUI, feel free to
+write me. Head README to see my mail ;)
+

@@ -1,0 +1,763 @@
+# Traduzione di muse
+# This file is distributed under the same license as the MuSE package.
+# (C) Antonino Radici aka nightolo <night@dyne.org>, 2003
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: muse cvs-version\n"
+"POT-Creation-Date: 2003-07-13 19:52+0200\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Antonino Radici <night@dyne.org>\n"
+"Language-Team: Italian <it@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Report-Msgid-Bugs-To: night@dyne.org\n"
+
+#. gtk_widget_set_size_request(window1, 550, 300);
+#: ../src/gtkgui2/about.cpp:33
+msgid "about MuSE: the Multiple Streaming Engine"
+msgstr "Informazioni su MuSE"
+
+#: ../src/gtkgui2/about.cpp:38
+msgid "MuSE: Codename Z0rZ0rZ"
+msgstr ""
+
+#: ../src/gtkgui2/about.cpp:51
+msgid ""
+"development team for this release:\n"
+"\n"
+"jaromil aka Denis Rojo - main coder and mantainer\n"
+"nightolo aka Antonino Radici - GTK user interface\n"
+"rubik aka Luca Profico - console user interface\n"
+"godog aka Filippo Giunchedi - docu and organizer\n"
+msgstr ""
+"Team di sviluppo per questa versione:\n"
+"\n"
+"jaromil aka Denis Rojo - programmatore principale e mantainer\n"
+"nightolo aka Antonino Radici - interfacce in gtk+\n"
+"rubik aka Luca Profico - interfaccia ncurses (da console)\n"
+"godog aka Filippo Giunchedi - responsabile documentazione e autoconf/"
+"automake\n"
+
+#: ../src/gtkgui2/about.cpp:76
+msgid ""
+"MuSE is an application for the mixing, encoding, and\n"
+"streaming of sound: is an engine that can simultaniously\n"
+"mix up to 6 separate MP3 or OggVorbis audio files from\n"
+"the hard drive or the network, where each channel of\n"
+"audio can be dynamicly adjusted for speed and volume\n"
+"plus a soundcard line-in channel. The resulting stream\n"
+"can be played locally on the sound card and/or\n"
+"encoded as an mp3 network stream to an icecast or\n"
+"shoutcast server (ready to be mixed and played\n"
+"again by other muses... ;)\n"
+"\n"
+"MuSE as it is now would have never existed without\n"
+"the contributions of (in reverse chronological order):\n"
+"= Matteo Nastasi aka Mop ( alternativeoutput.it )\n"
+"= Lobo for herbivore and free open air open source\n"
+"= PUBLIC VOICE Lab ( pvl.at ) support for development\n"
+"= SERVUS.AT trusting this project since its beginning\n"
+"= Asbesto Molesto ( freaknet.org ) testing and docu\n"
+"= Alex, Rasty and Martinez ( maria libera! ) good vibes\n"
+"= August Black ( aug.ment.org ) original GUI scheme\n"
+"= Markus Seidl ( funda.ment.org ) vision of such a tool\n"
+"\n"
+"Also waves and thanks to:\n"
+"voyager, void, blicero, sandolo, eni,\n"
+"the Freaknet Medialab, the ASCII squat,\n"
+"henk, the imc-audio collective, jeff,\n"
+"the LOA hacklab, the TPO, bundes & didi,\n"
+"indymedia italy, neural.it, autistici.org,\n"
+"Mag-One, radio Ondarossa, bomboclat, newmark\n"
+"c1cc10, vanguardist, janki, godog, kysucix\n"
+"and all the others i'm forgetting here!\n"
+"\n"
+"\n"
+"MuSE redistributes statically, the following libraries:\n"
+"= libmpeg by Woo-jae Jung and Mikael Hedin\n"
+"= libshout by Jack Moffit and others\n"
+"= libcdk by Mike Glover\n"
+"\n"
+"\n"
+"MuSE can link dinamically to the following libraries:\n"
+"= libogg, libvorbis, libvorbisfile - www.xiph.org\n"
+"= glib, libgdk, libgtk - www.gtk.org\n"
+"= liblame - www.mp3dev.org/mp3\n"
+"= libX11, libXext - www.xfree86.org\n"
+"= other common GNU libraries\n"
+"\n"
+"\n"
+"MuSE sourcecode also got inspirations and code\n"
+"snippets from the stream mixer sourcecode by\n"
+"Scott Manley, the buffered FIFO pipe source\n"
+"by Charles Samuels, the GTK knob widget by\n"
+"Alexander Koenig, GNOME icons by Jakub Steiner\n"
+"\n"
+"MuSE Streamer is copyleft (c)\n"
+"2000-2003 by Denis \"jaromil\" Rojo\n"
+"\n"
+"MuSE's GTK+ GUI is copyleft (c)\n"
+"2001-2003 by Antonino \"nightolo\" Radici\n"
+"\n"
+"MuSE's NCURSES GUI is copyleft (c)\n"
+"2002-2003 by Luca \"rubik\" Profico\n"
+"\n"
+"DSP resampling routines are copyleft (c)\n"
+"2002 by Matteo \"MoP\" Nastasi\n"
+"\n"
+"MuSE's first GUI scheme is copyleft (c)\n"
+"2000-2001 by August Black\n"
+"\n"
+"part of the included code is copyright by the\n"
+"respective authors, please refer to the supplied\n"
+"sourcecode for further informations.\n"
+"\n"
+"-----------------------------------------------------------\n"
+"\n"
+"This source code is free software; you can redistribute\n"
+"it and/or modify it under the terms of the GNU Public\n"
+"License as published by the Free Software Foundation;\n"
+"either version 2 of the License, or (at your option) any\n"
+"later version.\n"
+"\n"
+"This source code is distributed in the hope that it will\n"
+"be useful, but WITHOUT ANY WARRANTY; without\n"
+"even the implied warranty of MERCHANTABILITY or\n"
+"FITNESS FOR A PARTICULAR PURPOSE.\n"
+"Please refer to the GNU Public License for more details.\n"
+"\n"
+"You should have received a copy of the GNU Public\n"
+"License along with this source code; if not, write to:\n"
+"Free Software Foundation, Inc., 675 Mass Ave,\n"
+"Cambridge, MA 02139, USA\n"
+"\n"
+"\n"
+msgstr ""
+"MuSE è un'applicazione per mixare, encodare e\n"
+"trasmettere in rete il suono; è costituito da un motore\n"
+"che può mixare, simultaneamente, fino a 6 diversi file MP3\n"
+"o OggVorbis dal proprio pc o dalla rete. Ogni canale può\n"
+"essere modificato indipendentemente dagli altri nella velocità\n"
+"e nel volume. Inoltre è possibile utilizzare l'uscita line-in\n"
+"della propria scheda audio. Lo stream che ne risulta\n"
+"può essere ascoltato normalmente o encodato come uno stream\n"
+"mp3 o Ogg/Vorbis verso un server icecast o shoutcast\n"
+"(pronto per essere mixato e ascoltato di nuovo da\n"
+"altri MuSE... ;)\n"
+"\n"
+"MuSE, così com'è adesso, non sarebbe mai esistito senza\n"
+"i contributi di (in ordine cronologico inverso):\n"
+"= Matteo Nastasi aka Mop (alternativeoutput.it )\n"
+"= Lobo per herbivore e per il free open air open source\n"
+"= PUBLIC VOICE Lab ( pvl.at ) per il supporto nello sviluppo\n"
+"= SERVUS.AT per la fiducia nel progetto sin dall'inizio\n"
+"= Asbesto Molesto ( freaknet.org ) per il testing e la documentazione\n"
+"= Alex, Rasty e Martinez ( maria libera! ) good vibes\n"
+"= August Black ( aug.ment.org ) per la prima GUI\n"
+"= Markus Seidl ( funda.ment.org ) per l'idea di questo programma\n"
+"\n"
+"Inoltre ringraziamo:voyager, void, blicero, sandolo, eni,\n"
+"il Freaknet Medialab, l'ASCII squat,\n"
+"henk, il collettivo imc-audio, jeff,\n"
+"il LOA hacklab, il TPO, bundes & didi,\n"
+"indymedia italy, neural.it, autistici.org,\n"
+"Mag-One, radio Ondarossa, bomboclat, newmark\n"
+"c1cc10, vanguardist, janki, godog, kysucix\n"
+"e tutti gli altri che sto dimenticando qui!\n"
+"\n"
+"\n"
+"MuSE redistribuisce, staticamente, le seguenti librerie:\n"
+"= libmpeg scritte da Woo-jae Jung e Mikael Hedin\n"
+"= libshout di Jack Moffit e altri\n"
+"= libcdk di Mike Glover\n"
+"\n"
+"\n"
+"MuSE puo' essere collegato dinamicamente alle seguenti librerie:\n"
+"= libogg, libvorbis, libvorbisfile - www.xiph.org\n"
+"= glib,  gdk, gtk+-1.2 - www.gtk.org\n"
+"= atk, glib, pango, gtk+-2.0 - www.gtk.org\n"
+"= liblame - www.mp3dev.org/mp3\n"
+"= libX11, libXext - www.xfree86.org\n"
+"= e altre librerie GNU comuni\n"
+"\n"
+"\n"
+"Il codice sorgente di MuSe ha anche preso ispirazione\n"
+"e attinto dal codice di Scott Manley, il sorgente del\n"
+"pipe FIFO bufferizzato di Charles Samuels, il widget knob\n"
+"di Alexander Koenig, le icone di GNOME di Jakub Steiner\n"
+"\n"
+"MuSE Streamer è copyleft (c)\n"
+"2000-2003 Denis \"jaromil\" Rojo\n"
+"\n"
+"Le GUI in gtk+ sono copyleft (c)\n"
+"2001-2003 Antonino \"nightolo\" Radici\n"
+"\n"
+"La GUI in NCURSES è copyleft (c)\n"
+"2002-2003 Luca \"rubik\" Profico\n"
+"\n"
+"Le funzioni di resampling sono copyleft (c)\n"
+"2002 Matteo \"MoP\" Nastasi\n"
+"\n"
+"Il primo schema della GUI è copyleft (c)\n"
+"2000-2001 August Black\n"
+"\n"
+"le parti di codice incluso appartengono ai\n"
+"rispettivi autori, ci si può riferire al codice per\n"
+"ulteriori informazioni.\n"
+"\n"
+"---------------------------------------------------\n"
+"Questo  programma è software libero; è lecito redistribuirlo\n"
+"o modificarlo secondo i termini  della Licenza Pubblica Generica\n"
+"GNU come è pubblicata dalla Free Software Foundation; o la versione 2\n"
+"della licenza o (a propria scelta) una versione successiva.\n"
+"\n"
+"Questo programma è distribuito nella speranza che sia utile, ma\n"
+"SENZA ALCUNA GARANZIA; senza neppure la garanzia implicita di\n"
+"NEGOZIABILITA' o di APPLICABILITA' PER UN PARTICOLARE SCOPO. Si\n"
+"veda la Licenza Pubblica Generica GNU per avere maggiori dettagli.\n"
+"\n"
+"Questo programma deve essere distribuito assieme ad una copia\n"
+"della Licenza Pubblica Generica GNU; in caso contrario, se ne può\n"
+"ottenere una scrivendo alla Free Software Foundation, Inc., 59\n"
+"Temple Place, Suite 330, Boston, MA 02111-1307 USA\n"
+"\n"
+
+#: ../src/gtkgui2/docking.cpp:51 ../src/gtkgui2/gchan.cpp:85
+#, c-format
+msgid "Channel[%u]"
+msgstr "Canale[%u]"
+
+#: ../src/gtkgui2/docking.cpp:58
+msgid "Dock Channel"
+msgstr ""
+
+#: ../src/gtkgui2/docking.cpp:85 ../src/gtkgui2/gchan.cpp:251
+msgid "Undock Channel"
+msgstr ""
+
+#: ../src/gtkgui2/encoder.cpp:58
+msgid "Configure Lame Encoder"
+msgstr "Configura l'encoder Lame"
+
+#: ../src/gtkgui2/encoder.cpp:62
+msgid "Configure Ogg/Vorbis Encoder"
+msgstr "Configura l'encoder Ogg/Vorbis"
+
+#: ../src/gtkgui2/encoder.cpp:83
+msgid "Quality: (low)"
+msgstr "Qualità: (bassa)"
+
+#: ../src/gtkgui2/encoder.cpp:96
+msgid "(high)"
+msgstr "(alta)"
+
+#: ../src/gtkgui2/encoder.cpp:99
+msgid "    Mode"
+msgstr "   Modo"
+
+#: ../src/gtkgui2/encoder.cpp:103 ../src/gtkgui2/encoder.cpp:317
+msgid "mono"
+msgstr ""
+
+#: ../src/gtkgui2/encoder.cpp:104 ../src/gtkgui2/encoder.cpp:320
+msgid "stereo"
+msgstr ""
+
+#: ../src/gtkgui2/encoder.cpp:126
+msgid "bitrate"
+msgstr ""
+
+#: ../src/gtkgui2/encoder.cpp:146
+msgid "frequency filtering"
+msgstr "filtro di frequenza"
+
+#: ../src/gtkgui2/encoder.cpp:150 ../src/gtkgui2/encoder.cpp:333
+#: ../src/gtkgui2/encoder.cpp:396
+msgid "auto"
+msgstr ""
+
+#: ../src/gtkgui2/encoder.cpp:151 ../src/gtkgui2/encoder.cpp:328
+#: ../src/gtkgui2/encoder.cpp:403 ../src/gtkgui2/encoder.cpp:406
+#: ../src/gtkgui2/encoder.cpp:407
+msgid "none"
+msgstr ""
+
+#: ../src/gtkgui2/encoder.cpp:152 ../src/gtkgui2/encoder.cpp:337
+msgid "manual"
+msgstr ""
+
+#: ../src/gtkgui2/encoder.cpp:164
+#, fuzzy
+msgid "frequency"
+msgstr "filtro di frequenza"
+
+#: ../src/gtkgui2/encoder.cpp:179
+msgid "lowpass Hz"
+msgstr ""
+
+#: ../src/gtkgui2/encoder.cpp:183 ../src/gtkgui2/encoder.cpp:191
+#: ../src/gtkgui2/encoder.cpp:399 ../src/gtkgui2/encoder.cpp:400
+msgid "guessed"
+msgstr ""
+
+#: ../src/gtkgui2/encoder.cpp:187
+msgid "highpass Hz"
+msgstr ""
+
+#: ../src/gtkgui2/encoder.cpp:199
+msgid "I'm Expert..."
+msgstr "Avanzato..."
+
+#. Add profile root menu
+#: ../src/gtkgui2/encoder.cpp:208 ../src/gtkgui2/ice.cpp:312
+#, fuzzy
+msgid "Profile..."
+msgstr "Salva il profilo"
+
+#. profile menu end
+#: ../src/gtkgui2/encoder.cpp:221
+msgid "Apply"
+msgstr "Applica"
+
+#: ../src/gtkgui2/encoder.cpp:247 ../src/gtkgui2/encoder.cpp:255
+#: ../src/gtkgui2/ice.cpp:347
+#, fuzzy
+msgid "Save..."
+msgstr "Salva il profilo Lame"
+
+#: ../src/gtkgui2/encoder.cpp:250 ../src/gtkgui2/encoder.cpp:258
+#: ../src/gtkgui2/ice.cpp:353
+msgid "Remove..."
+msgstr ""
+
+#: ../src/gtkgui2/encoder.cpp:271 ../src/gtkgui2/ice.cpp:359
+msgid "Load"
+msgstr ""
+
+#: ../src/gtkgui2/encoder.cpp:386
+msgid "enc_get finished"
+msgstr "enc_get finito!"
+
+#: ../src/gtkgui2/encoder.cpp:451 ../src/gtkgui2/ice.cpp:496
+msgid "You should insert a name for this profile"
+msgstr ""
+
+#: ../src/gtkgui2/filedump.cpp:50
+msgid "Record Lame Stream"
+msgstr "Registra uno stream mp3"
+
+#: ../src/gtkgui2/filedump.cpp:52
+msgid "Record Ogg/Vorbis Stream"
+msgstr "Registra uno stream Ogg/Vorbis"
+
+#: ../src/gtkgui2/filedump.cpp:59
+msgid "Enter filename"
+msgstr "Inserisci il nome di un file"
+
+#: ../src/gtkgui2/filedump.cpp:68
+msgid "Browse..."
+msgstr "Sfoglia..."
+
+#: ../src/gtkgui2/filedump.cpp:73
+msgid "Record now!"
+msgstr "Registra!"
+
+#: ../src/gtkgui2/filedump.cpp:89
+msgid "Create your mp3 file into a dir"
+msgstr "Crea il tuo file mp3 all'interno di una cartella"
+
+#: ../src/gtkgui2/filedump.cpp:127
+#, c-format
+msgid "enc->outchan->dump_start(%s)"
+msgstr ""
+
+#: ../src/gtkgui2/filedump.cpp:133
+msgid "gcb_set_filedump:: Not a valid filename"
+msgstr "gcb_set_filedump:: nome del file non valido"
+
+#: ../src/gtkgui2/filedump.cpp:134
+msgid "You have to insert a filename!!"
+msgstr "Devi inserire il nome di un file!!"
+
+#: ../src/gtkgui2/gchan.cpp:75
+#, c-format
+msgid "GTK_GUI::createch(%u)"
+msgstr ""
+
+#. nothing
+#: ../src/gtkgui2/gchan.cpp:81
+#, c-format
+msgid "GTK_GUI::createch : chan[%u] is at %p"
+msgstr ""
+
+#: ../src/gtkgui2/gchan.cpp:113
+msgid "Play Channel"
+msgstr "Play"
+
+#: ../src/gtkgui2/gchan.cpp:120
+msgid "Stop Channel"
+msgstr "Stop"
+
+#: ../src/gtkgui2/gchan.cpp:126
+msgid "Pause Channel"
+msgstr "Pausa"
+
+#: ../src/gtkgui2/gchan.cpp:133
+msgid "Rewind Channel"
+msgstr "Indietro"
+
+#: ../src/gtkgui2/gchan.cpp:139
+msgid "Forward Channel"
+msgstr "Avanti"
+
+#: ../src/gtkgui2/gchan.cpp:180
+msgid "VOL"
+msgstr ""
+
+#: ../src/gtkgui2/gchan.cpp:184 ../src/gtkgui2/gchan.cpp:194
+msgid "100"
+msgstr ""
+
+#: ../src/gtkgui2/gchan.cpp:192
+msgid "Speed"
+msgstr "Velocità"
+
+#: ../src/gtkgui2/gchan.cpp:227
+msgid "single play"
+msgstr "ascolto singolo"
+
+#: ../src/gtkgui2/gchan.cpp:230
+msgid "loop"
+msgstr "ascolto ciclico"
+
+#: ../src/gtkgui2/gchan.cpp:233
+msgid "continuous"
+msgstr "ascolto continuo"
+
+#: ../src/gtkgui2/gchan.cpp:282
+#, c-format
+msgid "GTK_GUI::spawnfilew : filebrowser for chan[%u]"
+msgstr ""
+
+#: ../src/gtkgui2/gchan.cpp:284
+msgid "Select a .mp3 file or a playlist (.pl)"
+msgstr "Seleziona un mp3, ogg o una playlist (.pl)"
+
+#: ../src/gtkgui2/gchan.cpp:309
+msgid "Listen to a network stream"
+msgstr "Ascolta uno stream in rete"
+
+#: ../src/gtkgui2/gchan.cpp:327
+msgid "Insert http source:"
+msgstr "Inserisci l'url"
+
+#: ../src/gtkgui2/gchan.cpp:357
+msgid "You have to insert an url!!"
+msgstr "Devi inserire un url!!"
+
+#: ../src/gtkgui2/gchan.cpp:361
+#, c-format
+msgid "httpinsert() url is %s"
+msgstr "httpinsert() url è %s"
+
+#: ../src/gtkgui2/gchan.cpp:363
+msgid "GTK_GUI:: httpinsert problem adding url"
+msgstr "GTK_GUI:: httpinsert problemi nell'aggiunta dell'url"
+
+#: ../src/gtkgui2/gchan.cpp:364
+msgid "Problem adding url"
+msgstr "Ho avuto un problema nell'aggiunta dell'url :|"
+
+#: ../src/gtkgui2/gchan.cpp:409
+msgid "called gcb_set_channel"
+msgstr "chiamo gcb_set_channel"
+
+#: ../src/gtkgui2/gchan.cpp:414
+#, c-format
+msgid "%d row"
+msgstr "riga %d"
+
+#: ../src/gtkgui2/gchan.cpp:419
+#, c-format
+msgid "GTK_GUI::gcb_set_channel : Stream_mixer::set_channel(%d,%d) returned %u"
+msgstr ""
+
+#: ../src/gtkgui2/gchan.cpp:425
+msgid "GTK_GUI::gcb_set_channel : can't open bitstream"
+msgstr ""
+
+#: ../src/gtkgui2/gchan.cpp:458
+msgid "ok for playing"
+msgstr "ok per la riproduzione"
+
+#: ../src/gtkgui2/gchan.cpp:460
+msgid "KO for playing :("
+msgstr "KO per la riproduzione"
+
+#: ../src/gtkgui2/gchan.cpp:480
+msgid "stream"
+msgstr ""
+
+#: ../src/gtkgui2/gchan.cpp:555
+#, c-format
+msgid "GTK_GUI::gcb_add_file : idx %u"
+msgstr ""
+
+#: ../src/gtkgui2/gchan.cpp:560
+msgid "You have to inser a filename!!"
+msgstr "Devi inserire il nome di un file!!"
+
+#: ../src/gtkgui2/gchan.cpp:566
+#, c-format
+msgid "gcb_add_file:: mixer->add_to_playlist(%u, %s) failed"
+msgstr ""
+
+#: ../src/gtkgui2/gchan.cpp:568
+msgid "Problem adding file :\\"
+msgstr "Problemi nell'inserimento del file :\\"
+
+#: ../src/gtkgui2/gchan_events.cpp:76
+#, c-format
+msgid "il row e' %d"
+msgstr ""
+
+#: ../src/gtkgui2/gchan_events.cpp:80
+msgid "Add File..."
+msgstr "Aggiungi un File"
+
+#: ../src/gtkgui2/gchan_events.cpp:85
+msgid "Add Url..."
+msgstr "Aggiungi un Url..."
+
+#: ../src/gtkgui2/gchan_events.cpp:91 ../src/gtkgui2/ice.cpp:321
+msgid "Delete"
+msgstr "Rimuovi"
+
+#: ../src/gtkgui2/gchan_events.cpp:98
+msgid "Cancel"
+msgstr "Annulla"
+
+#: ../src/gtkgui2/ice.cpp:50
+msgid "Icecast configuration"
+msgstr "Configurazione del server Icecast"
+
+#: ../src/gtkgui2/ice.cpp:66 ../src/gtkgui2/ice.cpp:94
+#: ../src/gtkgui2/ice.cpp:99 ../src/gtkgui2/ice.cpp:159
+msgid "Lame"
+msgstr ""
+
+#: ../src/gtkgui2/ice.cpp:73 ../src/gtkgui2/ice.cpp:122
+#: ../src/gtkgui2/ice.cpp:127
+msgid "Ogg/Vorbis"
+msgstr ""
+
+#: ../src/gtkgui2/ice.cpp:78
+msgid "Add Server"
+msgstr "Aggiungi un server"
+
+#: ../src/gtkgui2/ice.cpp:89
+msgid "Lame Streaming (MP3)"
+msgstr ""
+
+#: ../src/gtkgui2/ice.cpp:117
+msgid "Ogg/Vorbis Streaming"
+msgstr ""
+
+#: ../src/gtkgui2/ice.cpp:187
+msgid "this is a mp3 encoder"
+msgstr "questo e' un encoder mp3"
+
+#: ../src/gtkgui2/ice.cpp:192
+msgid "this is a ogg/vorbis encoder"
+msgstr "questo e' un encoder ogg/vorbis"
+
+#: ../src/gtkgui2/ice.cpp:195
+#, c-format
+msgid "GTK_GUI:: ice_new: i->outchan pointer is %p"
+msgstr ""
+
+#. end of packing zone
+#: ../src/gtkgui2/ice.cpp:214
+#, c-format
+msgid "GTK_GUI:: ice_new : idx for ice frame is %u"
+msgstr ""
+
+#: ../src/gtkgui2/ice.cpp:225
+#, c-format
+msgid "GTKGUI:: created new iceid= %d and coreice= %p"
+msgstr ""
+
+#: ../src/gtkgui2/ice.cpp:237
+msgid "Host"
+msgstr "Host"
+
+#: ../src/gtkgui2/ice.cpp:242
+msgid "Port"
+msgstr "Porta"
+
+#: ../src/gtkgui2/ice.cpp:248
+msgid "Mnt"
+msgstr "Punto di Mount"
+
+#: ../src/gtkgui2/ice.cpp:257
+msgid "Name"
+msgstr "Nome"
+
+#: ../src/gtkgui2/ice.cpp:263
+msgid "Url"
+msgstr ""
+
+#: ../src/gtkgui2/ice.cpp:271
+msgid "Description"
+msgstr "Descrizione"
+
+#: ../src/gtkgui2/ice.cpp:280
+msgid "Login Type"
+msgstr "Tipo di Login"
+
+#: ../src/gtkgui2/ice.cpp:291
+msgid "Pass"
+msgstr "Password"
+
+#: ../src/gtkgui2/ice.cpp:300
+msgid "Connect"
+msgstr ""
+
+#: ../src/gtkgui2/ice.cpp:334
+#, c-format
+msgid "inserted in POS = %d"
+msgstr ""
+
+#: ../src/gtkgui2/ice.cpp:364
+msgid "listrunner doesn't exist"
+msgstr ""
+
+#: ../src/gtkgui2/ice.cpp:405
+msgid "login() gtk error :("
+msgstr ""
+
+#: ../src/gtkgui2/ice.cpp:423
+#, c-format
+msgid "ice_fill:: logintype = %s"
+msgstr ""
+
+#: ../src/gtkgui2/ice.cpp:448
+msgid "wrong values in icecast configuration"
+msgstr ""
+
+#: ../src/gtkgui2/ice.cpp:453
+msgid "Connection failed"
+msgstr "Connessione non riuscita!"
+
+#: ../src/gtkgui2/musegtk.cpp:85
+msgid "profile initialization error"
+msgstr ""
+
+#: ../src/gtkgui2/musegtk.cpp:101
+msgid "MuSE-cvs Gtk+2"
+msgstr ""
+
+#: ../src/gtkgui2/musegtk.cpp:273
+#, c-format
+msgid "%d byte/s"
+msgstr ""
+
+#: ../src/gtkgui2/utils.cpp:53
+msgid "Let's stream!"
+msgstr "Configura lo stream"
+
+#: ../src/gtkgui2/utils.cpp:59
+msgid "Add Channel"
+msgstr "Aggiungi un canale"
+
+#.
+#. il talk sarebbe da mettere solo come hotkey
+#.
+#. mic = createpixmap(window, mic, stock_mic_xpm, _("Talk"), TRUE);
+#. g_signal_connect(G_OBJECT(mic), "clicked",
+#. G_CALLBACK(gcb_set_talk), NULL);
+#. gtk_container_add(GTK_CONTAINER(bbox), mic);
+#.
+#: ../src/gtkgui2/utils.cpp:73
+msgid "Line In"
+msgstr ""
+
+#: ../src/gtkgui2/utils.cpp:79
+msgid "Speaker"
+msgstr ""
+
+#: ../src/gtkgui2/utils.cpp:85
+msgid "Vumeters"
+msgstr ""
+
+#: ../src/gtkgui2/utils.cpp:91
+msgid "Hall of Fame"
+msgstr "Informazioni..."
+
+#: ../src/gtkgui2/utils.cpp:156
+#, c-format
+msgid "cfade_set get data for pos %u"
+msgstr ""
+
+#: ../src/gtkgui2/utils.cpp:188
+msgid "_The_ status bar"
+msgstr ""
+
+#: ../src/gtkgui2/utils.cpp:272
+#, fuzzy
+msgid "Save an Icecast profile"
+msgstr "Salva un profilo Icecast"
+
+#: ../src/gtkgui2/utils.cpp:276
+#, fuzzy
+msgid "Save a Lame profile"
+msgstr "Salva il profilo"
+
+#: ../src/gtkgui2/utils.cpp:278
+#, fuzzy
+msgid "Save an Ogg/Vorbis profile"
+msgstr "Salva un profilo Ogg/Vorbis"
+
+#: ../src/gtkgui2/utils.cpp:302 ../src/gtkgui2/utils.cpp:368
+msgid "Profile Name"
+msgstr "Nome del profilo"
+
+#: ../src/gtkgui2/utils.cpp:338
+#, fuzzy
+msgid "Remove an Icecast profile"
+msgstr "Salva un profilo Icecast"
+
+#: ../src/gtkgui2/utils.cpp:342
+msgid "Remove a Lame profile"
+msgstr ""
+
+#: ../src/gtkgui2/utils.cpp:344
+#, fuzzy
+msgid "Remove a Ogg/Vorbis profile"
+msgstr "Salva un profilo Ogg/Vorbis"
+
+#: ../src/gtkgui2/vumeters.cpp:44
+msgid "MuSE - Vumeters"
+msgstr ""
+
+#: ../src/gtkgui2/vumeters.cpp:58
+msgid "volume"
+msgstr ""
+
+#: ../src/gtkgui2/vumeters.cpp:68
+msgid "0 byte/s"
+msgstr ""
+
+#~ msgid "Save Ogg/Vorbis..."
+#~ msgstr "Salva il profilo Ogg/Vorbis"
+
+#~ msgid "gcb_enc_save:: you should insert a filename"
+#~ msgstr "gcb_enc_save:: dovresti inserire un file"
+
+#~ msgid "Save Icecast..."
+#~ msgstr "Salva il profilo Icecast"
+
+#~ msgid "Lame Profile Save"
+#~ msgstr "Salva un profilo Lame"

@@ -1,0 +1,24 @@
+
+== for the current source tree
+
+2 dovresti aggiungere il campo genere nel pannello sullo stream,
+che e' un po' piu' sbatta, mi rendo conto, pero' guarda che serve.
+
+== for the 0.9
+
+i'm doing libMuSE
+it is a library accessable thru an API, implementing a multithreaded
+and object oriented way to access streaming encoded media.
+it will be used by MuSE and Tamburine to implement streaming media 
+automatization
+you find it allready in the CVS on http://savannah.dyne.org/projects/muse
+
+- pre-listening over different soundcards
+- speed setting over single channels (?)
+- nifty single channel oscilloscopes (?)
+
+
+
+join the mailing list on muse@dyne.org
+we are sometimes on irc.freenode.net #muse 
+

@@ -1,0 +1,15 @@
+Host:			Port:		Mnt:
+Name: Streaming with MuSE		Url: http://muse.dyne.org
+Description:	FreeSoftware Multiple Streaming Engine
+Login type:	x-audiocast|icy		Pass:
+
+browse profiles - save profile - connect
+
+bitrate:	8|16|24|32|56|64|96|128
+frequency filtering:	auto|none|manual
+frequency:	auto|11000|16000|22050|44100
+lowpass Hz:	0	highpass Hz:	0
+channels:	mono 3 | stereo 0 | jstereo 1 | dual chan 2
+quality: (1= best) 1-9
+
+browse profiles - save profile - apply

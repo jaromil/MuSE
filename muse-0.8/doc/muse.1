@@ -1,0 +1,104 @@
+.\" Process this file with
+.\" groff -man -Tascii foo.1
+.\"
+.TH MUSE 1 "February 2003" UNIX "User Manuals"
+.SH NAME
+MuSE - stream your audio over the internet
+.SH SYNOPSIS
+.B muse [
+.I generic options
+.B ] [-e [
+.I encoder options
+.B ] [
+.I stream options
+.B ] ] [
+files
+.B ]
+
+.SH DESCRIPTION
+\fBMuSE\fP is an application for mixing, encoding, and network streaming of sound. MuSE can simultaniously mix up to 6 encoded audio bitstreams (from files or network) plus a souncard input signal. The resulting stream can be played locally on the sound card and/or encoded as an mp3 bitstream sent to a broadcast server. MuSE offers two intuitive interfaces (graphical and console) to be operated realtime and can also run in commandline mode.
+
+\fBMuSE\fP is being developed in the hope to provide the Free Software community with a user friendly tool for network audio streaming, making life easier for independent free speech radios.
+
+.SH COMMAND LINE USAGE
+Command line options in MuSE are position sensitive: all the encoder options affect the last encoder specified, all the servers are relative to the last encoding specified, all the server options affect the last server specified. In that way you can specify as much encoded streams you want and as much servers you need for each of them.
+
+In fact MuSE can stream at multiple bitrates and to multiple servers.
+
+
+.SH GENERIC OPTIONS
+.IP "-h --help"
+show help
+.IP "-v --version"
+show version information
+.IP "-D --debug [\fI num \fP]"
+set debug verbosity level to \fInum\fP between 1 and 3, useful to figure out where is the problem and to file good bug reports, default is 1
+.IP "-i"
+mix soundcard live input
+.IP "-o --dspout"
+disable souncard output
+.IP "-C --cli"
+command line input. cli GUI is selected (same as -g cli) 
+.IP "-g --gui \fIname\fP"
+specify GUI \fIname\fP to use. Use \fIlist\fP to get a list of available GUIs
+.IP \fIfiles\fP
+add \fIfiles\fP to MuSE playlist
+
+.SH ENCODER OPTIONS
+.IP "-e --encoder \fIenc\fP"
+select \fIenc\fP codec to use. Possible choices are ogg and mp3. default ogg
+.IP "Options below affect the last \fIenc\fP specified."
+.IP "-b --bitrate \fIrate\fP"
+set codec bitrate in Kbit/s. default 24
+.IP "-r --frequency \fIfreq\fP"
+set encoding frequency to \fIfreq\fP. Possible choices are 0, 11000, 16000,
+22050 or 44100. 0 means auto. default auto
+.IP "-q --quality \fIqual\fP"
+set encoding quality to \fIqual\fP between 0.1 and 9.0 . default 1.0
+.IP "-c --channels \fInum\fP"
+set number of audio channels to use. default 1
+.IP "-f --filedump \fIfile\fP"
+dump audio stream to \fIfile\fP
+
+.SH STREAM OPTIONS
+.IP "--server \fIserver\fP[:\fIport\fP]"
+send stream to \fIserver\fP on port \fIport\fP.
+.br
+default port is 8000
+.IP "Options below affect the last \fIserver\fP specified."
+.IP "-m --mount \fImountpoint\fP"
+use mounpoint \fImountpoint\fP on \fIserver\fP. default live
+.IP "-p --pass \fIpassword\fP"
+use encoder password \fIpassword\fP on \fIserver\fP
+.IP "-n --name \fIname\fP"
+set name of the stream to \fIname\fP
+.IP "-u --url \fIurl\fP"
+set descriptive url of the stream to \fIurl\fP
+.IP "-d --desc \fIdesc\fP"
+set description of the stream to \fIdesc\fP
+
+.SH BUGS
+.nf
+noone knows ;) submit bugs to muse@dyne.org
+.fi
+
+.SH AUTHORS
+.nf
+Denis "jaromil" Rojo - author and mantainer <\fIhttp://rastasoft.org\fR>
+Antonino "nightolo" Radici - GTK+ interface <\fInight@dyne.org\fR>
+Luca "rubik" Profico - NCURSES interface <\fIrubik@olografix.org\fR>
+
+a full list of developers can be found in the AUTHOR file 
+
+This manual page was written by
+Filippo Giunchedi <\fIfilippo@esaurito.net\fR> and
+and edited by <\fIjaromil@dyne.org\fR>.
+
+Write to the mailinglist <\fImuse@dyne.org\fR> to contact developers.
+.fi
+
+.SH COPYING
+Permission is granted to copy, distribute and/or modify this manual under the terms of the GNU Free Documentation License, Version 1.1 or any later version published by the Free Software Foundation; with the Invariant Sections being NAME, SYNOPSIS, DESCRIPTION, AUTHORS, AVAILABILITY and with the Front-Cover Texts including "MuSE - stream your audio over the internet - manual pages". Permission is granted to make and distribute verbatim copies of this manual page provided the above copyright notice and this permission notice are preserved on all copies.
+
+.SH AVAILABILITY
+The most recent version of \fIMuSE\fR can be attained from its homepage at \fIhttp://muse.dyne.org\fR.

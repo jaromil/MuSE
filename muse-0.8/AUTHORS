@@ -1,0 +1,59 @@
+
+   the actual MuSE development team is composed by:
+   ------------------------------------------------
+
+ = Denis Rojo aka jaromil <jaromil@dyne.org>
+   MuSE author and mantainer ( / )
+
+ = Antonino Radici aka nightolo <night@autistici.org>
+   GTK+ graphic user interface ( /gtkgui )
+
+ = Luca Profico aka rubik <rubik@olografix.org>
+   NCURSES console user interface ( /ncurses )
+
+ = Matteo Nastasi aka MatOfPenguins <matteo.nastasi@milug.org>
+   DSP, resampling ( audioproc.cpp )
+
+ if you wish to collaborate, join us on irc.openprojects.net #muse
+
+MuSE as it is now would have never existed without the contributions of:
+ = Markus Seidl ( funda.ment.org ) for his vision of such a tool
+ = August Black ( aug.ment.org ) for the original graphic user interface
+ = Asbesto Molesto ( freaknet.org ) for testing and documentation
+ = Alex, Rasty and Martinez ( ! ) for the good vibes 
+ = SERVUS.AT trusting in this project since its early stage and supporting it
+ = PUBLIC VOICE Lab ( pvl.at ) for further support and new horizons of use
+ = Lobo for herbivore and free open air open source
+
+also waves and thanks to:
+ voyager, void, blicero, sandolo, eni, the Freaknet Medialab, the ASCII
+ squat, henk, the imc-audio collective, jeff, the LOA hacklab, the TPO,
+ bundes & didi, indymedia italy, neural.it, autistici.org, Mag-One,
+ radio onda rossa, bomboclat, c1cc10, vanguardist, janki, godog, kysucix
+ and all the others i'm forgetting here!
+
+
+MuSE redistributes, linked statically, the following libraries:
+= libmpeg by Woo-jae Jung (now mantained by Mikael Hedin)
+= libshout by Jack Moffit, Chad Armstrong and Scott Manley
+= libcdk by Mike Glover
+
+MuSE can link itself dinamically to the following libraries:
+ = libogg, libvorbis, libvorbisfile - www.xiph.org
+ = glib, libgdk, libgtk - www.gtk.org
+ = liblame - www.mp3dev.org/mp3
+ = libX11, libXext - www.xfree86.org
+ = other common GNU libraries
+
+MuSE sourcecode also got inspirations and code snippets from the
+stream mixer sourcecode by Scott Manley, the buffered FIFO pipe source
+by Charles Samuels, the GTK knob widget by Alexander Koenig, GNOME
+icons by Jakub Steiner
+
+MuSE is copyleft (c) 2000-2003 by Denis "jaromil" Rojo
+MuSE's first GUI is copyleft (c) 2000-2001 by August Black
+MuSE's GTK+ GUI is copyleft (c) 2001-2003 by nightolo
+MuSE's NCURSES GUI is copyleft (c) 2002-2003 by Luca \"rubik\" Profico
+
+part of the included code is copyright by the respective authors,
+please refer to the distributed sourcecode for further details.

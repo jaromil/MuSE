@@ -1,0 +1,48 @@
+mpegsound README.LIB(International)
+
+MPEG player library
+
+This library have NO WARRANTY.  You can use this under Library GPL.
+This library uses part from vplay, maplay 1.2 for linux, maplay 1.2+ for Win95.
+
+This is a library which can make programs play MPEG-1/2 audio files easily.
+
+CAUTION
+  The current implementation was tested with little endian architecture.
+  Bigendian is implemented, but not tested.
+  Hackers... please help me!
+
+  What's the difference?  
+  For example;
+   unsigned char a[4]={0x11,0x22,0x33,0x44};
+   unsigned int *b=(unsigned int *)&a;
+
+	Little endian (Intel) : 0x44332211
+	Big    endian         : 0x11223344
+
+   The classes 'mpegtoraw' and 'bitwindow' are endian dependent.
+
+  OTHER ENDIAN PROBLEM
+    Some machines can access integer type variables when they are aligned
+  at 4-bytes. If endian problem is solved. It cause serious problem.
+
+  I have exploited the linear properties of 2 and 3 dimensional arrays.
+  like for example;
+
+    int a[4][4];
+
+    a[1][0]==a[0][4] is true.
+
+  Of course, It may occur boundary problem. But it may make player faster!
+
+PROBLEM?
+  Please send me bug report or patches.(Please comment where is changed)
+   to:
+	Mikael.Hedin@irf.se
+
+THANKS FOR this document.
+  Tommy Thorn
+
+
+
+

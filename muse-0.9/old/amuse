@@ -1,0 +1,529 @@
+#!/bin/sh
+# the next line restarts using wish \
+exec wish "$0" "$@"
+
+#####   PICS   ########################################################
+set twobildmime {
+R0lGODlhGQAOAKEAAMDAwP///zMzZv///yH5BAEKAAMALAAAAAAZAA4AAAIm
+lI+py+3vhpx0iIoNrndP7UldCJKhOHrpVqqntWZvy84xZ882BBUAOw==
+====
+}
+set fourbildmime {
+R0lGODlhGQAOAKEAAMDAwP///zMzZv///yH5BAEKAAMALAAAAAAZAA4AAAIm
+lI+py+3vhpx0iIoNrndP7UldCJKhCKWjt24le1ptFr9uPXO46hQAOw==
+====
+}
+set sixbildmime {
+R0lGODlhGQAOAKEAAMDAwP///zMzZv///yH5BAEKAAMALAAAAAAZAA4AAAIm
+lI+py+3vhpxD0GlvzZdTj4GSWGmbSabQmqJoq6lu/M5dTecd+xQAOw==
+====
+}
+set eightbildmime {
+R0lGODlhGQAOAKEAAMDAwP///zMzZv///yH5BAEKAAMALAAAAAAZAA4AAAIr
+lI+py+3vhpRiUjuqNVhPf21g1pWi+aEUxI6umr0bzM12et4h/sn8vmo5CgA7
+====
+}
+
+set cornerbildmime {
+R0lGODlhEAAOAKEAAP///ycnTycnTycnTyH+FUNyZWF0ZWQgd2l0aCBUaGUg
+R0lNUAAh+QQBCgACACwAAAAAEAAOAAACHIRueJIX+xxctNqLa9s4Cu9l4phx
+I0im6tWkUQEAOw==
+====
+}
+
+set peachbildmime {
+R0lGODlhQwAUAIQAAAICAuS8UqwsHY8cFIMeFa+Rc3oWEKB8YXQzILRcKm4S
+DmYZE5NeQq1CIO7RatGIRYQ/I+GhUM52O5E6GchHL/DdoNNhPno/JuO8hf//
+/////////////////////////yH5BAEAAB8ALAAAAABDABQAAAX+4CeOZGme
+aKqubOu6zxMFTl29eK4eiUzXNp1QxztEgI5fcMhUFRgJyQxoVKYAgCspu8Ji
+t18RAwI9SJWOyrL05bLd4StclA0fEOSEXuJDB0xtKGFeKnFcdW4XFw0TE3sx
+ETMBkREYbHQnhB9xgnRzJAWKEBANDQkWfDKqEhKWm4aZh5ssnLOgCBcQjQmm
+FqipFhQWrq91xbKItrKxniV3uY2ler7UFMLEiG5bs8gj2rC2oBd4E6SlDdbp
+1hbbr4DNnsuEc99c0NETpQIUAv39D97aeTtEz4vBN5g0fRijK1qDff76UXih
+TSCgg2BKFBjVaELEjxKaBBQpoiEBAgMqBnwURrIliTsnDaBMmXKfy5siDixY
+oKCngZQEGOAc+uEAA1EQDhBd6iIEADs=
+====}
+
+set playbildmime {
+R0lGODlhCQAOAMIAAAAAAImJicbGxltbW/Ly8qysrPS6RvS6RiH5BAEKAAcA
+LAAAAAAJAA4AAAMlCHDcB2S5R4ZsUIRLhShX5gmSOC6mhxIjyYggxm4OZE3A
+jXNNAgA7
+====
+}
+set pausebildmime {
+R0lGODlhCQAOAMIAAAAAAMbGxt/f3yMjI9fX1/T09PS6RvS6RiH5BAEKAAcA
+LAAAAAAJAA4AAAMjCDNwyoCEFico02Fwc+ebZoXfJ4LeZpak2lqCF3OBV3ML
+lScAOw==
+====
+}
+set stopbildmime {
+R0lGODlhCQAOAMIAAAAAAL+/v+Pj4yYmJvT09MfHx/S6RvS6RiH5BAEKAAcA
+LAAAAAAJAA4AAAMiCLM8AERIGR4pGFeYte3FdnUiWJIfyqljtgnmE8z01jBA
+AgA7
+====
+}
+set volbildmime {
+R0lGODlhBwAIAKEAAAAAAJmZmZmZmZmZmSH5BAEKAAEALAAAAAAHAAgAAAIN
+RH6guJYPmwtm0oUoKgA7
+====
+}
+set spdbildmime {
+R0lGODlhBgAIAIAAAAAAAJmZmSH5BAEKAAEALAAAAAAGAAgAAAINhB0Qq8qJ
+FkMu2XdQAQA7
+====
+}
+set lineinbildmime {
+R0lGODlhEwATAMIAAAAAAP///8HBwXd3d////////////////yH5BAEKAAMA
+LAAAAAATABMAAAMxOLrc/tCBOSOj2A66OPQd8FWKqJEbJqqpqb5vC8/lTNcZ
+m5Ua3qAPEGjE6hV7yOQjAQA7
+====
+}
+image create  photo playbild -data $playbildmime
+image create  photo pausebild -data $pausebildmime
+image create  photo stopbild -data $stopbildmime
+image create  photo peachbild -data $peachbildmime
+image create  photo cornerbild -data $cornerbildmime
+image create  photo volbild -data $volbildmime
+image create  photo spdbild -data $spdbildmime
+image create  photo lineinbild -data $lineinbildmime
+
+image create  photo twobild -data $twobildmime
+image create  photo fourbild -data $fourbildmime
+image create  photo sixbild -data $sixbildmime
+image create  photo eightbild -data $eightbildmime
+
+#####  END PICS  #######################################################
+
+
+
+#####   PROCS 4 buttons  #################################################
+
+proc pressed_play {num} {
+global  muse listvar0 listvar1 listvar2 listvar3 listvar4 listvar5 listvar6 listvar7 
+set playnumber [set listvar$num]
+#set spd [expr "double([.channel$num.scales.speed get]) / 100"]
+set spd 1.0
+set vol [expr "double([.channel$num.scales.volume get]) / 100"]
+		puts $muse 	"301\t$playnumber\t$num\t$spd\t$vol"
+		flush $muse
+}
+set pause0 0
+set pause1 0
+set pause2 0
+set pause3 0
+set pause4 0
+set pause5 0
+set pause6 0
+set pause7 0
+proc pressed_pause {num} {
+global muse pause0 pause1 pause2 pause3 pause4 pause5 pause6 pause7
+	set bol [set pause$num]
+	if {$bol == 0} {
+	puts $muse	"303\t$num"
+	flush $muse
+	set pause$num 1} else { 
+		puts $muse	"304\t$num"
+		flush $muse
+		.channel$num.lbl.buts.pause configure -state normal -image pausebild
+		set pause$num 0
+		} 
+}
+
+proc pressed_stop {num} {
+global muse pause0 pause1 pause2 pause3 pause4 pause5 pause6 pause7 
+	puts $muse "302\t$num"
+	flush $muse
+	.channel$num.lbl.buts.play configure -state normal
+	.channel$num.lbl.buts.pause configure -state normal -image pausebild
+	set pause$num 0
+}
+
+proc slide_volume {num} {
+global muse 
+	set vol [expr "double([.channel$num.scales.volume get]) / 100"]
+	puts $muse "306\t$num\t$vol"
+	flush $muse
+}
+proc slide_speed {num} {
+global muse
+	set spd [expr "double([.channel$num.scales.speed get]) / 100"]
+	puts $muse "305\t$num\t$spd"
+	flush $muse
+}
+ 
+set butvar0 1
+set butvar1 1
+set butvar2 1
+set butvar3 1
+set butvar4 1
+set butvar5 1
+set butvar6 1
+set butvar7 1
+proc load_list {num} {
+	global butvar0 butvar1 butvar2 butvar3 butvar4 butvar5 butvar6 butvar7
+	set imp [set butvar$num]
+	if {$imp==1} {.channel$num.frame.playlist configure -height 6
+		set butvar$num 0
+		pack .channel$num.frame -in .channel$num -fill x
+		} else {.channel$num.frame.playlist configure -height 1 -width 1
+			set butvar$num 1
+			place .channel$num.frame -in .channel$num -x 300 -y 17 -relwidth 0.0
+		}
+	}
+
+
+set listvar0 0
+set listvar1 0
+set listvar2 0
+set listvar3 0
+set listvar4 0
+set listvar5 0
+set listvar6 0
+set listvar7 0
+proc set_mp3label {num} {
+global listvar0 listvar1 listvar2 listvar3 listvar4 listvar5 listvar6 listvar7
+	.channel$num.txt configure -text  [selection get]
+	set listvar$num [.channel$num.frame.playlist curselection]
+	#puts [set listvar$num]
+	}
+
+set linebol 0
+proc linein_on_off {} {
+global linebol muse 
+	if {$linebol == 0} {
+		puts $muse "307\t1"
+		flush $muse
+		set linebol 1
+		.menubar.linein configure -bg red -bd 0 -activebackground  #FF6666
+	} else {
+		puts $muse "307\t0"
+		flush $muse
+		set linebol 0
+		.menubar.linein configure -bg grey85 -bd 1 -activebackground grey80
+	}
+}
+
+proc read_sock {sock} {
+  #global  eventLoop
+  set l [gets $sock]
+  if {[eof $sock]} {
+    close $sock             ;# close the socket client connection
+    #set eventLoop "done"     ;# terminate the vwait (eventloop)
+    } else {
+        #puts stdout "SeverReply:$l"
+        .status.msg configure -text $l        
+        }
+ 
+        if {$l == "PWD"} {.status.msg configure -text "thats our PWD"}
+        if {$l == 201} {.status.msg configure -text "thats our 201"}
+        if {$l == 202} {.status.msg configure -text "thats our 202"}
+        if {$l == 400} {.status.msg configure -text "nice one!"}
+	if {$l == 401} {.status.msg configure -text "aaaaaaai got a bad feeling."}
+	if {$l == 402} {.status.msg configure -text " need milk?"}
+}
+
+proc kill {} {
+global muse
+	puts $muse 999
+	flush $muse
+	close $muse
+}
+
+proc  disconnect {} {
+global muse
+	puts $muse 666
+	flush $muse
+	close $muse
+}
+
+proc  connect {} {
+global muse host port pass playlist
+        set muse [socket $host $port]
+	
+	fconfigure $muse -blocking 0			;#read_socket stuff
+	fileevent $muse readable "read_sock $muse"	;#read_socket stuff
+	fconfigure $muse -buffering line		;#read_socket stuff
+        
+	puts $muse $pass
+        flush $muse
+
+	set line [gets $muse] 
+	while {$line != 201} {  
+		set line [gets $muse]
+		}
+
+	set line [gets $muse] 
+	while {$line != 202} {
+		   set last [string last "/" $line]
+		   incr last
+		   set name [string range $line  $last end]
+		   lappend playlist $name
+	        set line [gets $muse]
+		}
+}
+
+proc rerun {i chans roww coll} {
+	#disconnect
+	for {set x 0} {$x<$i} {incr x} {
+	destroy .channel$x
+	}	
+	destroy .menubar
+	destroy .status
+
+	start_chans $chans
+	start_main $chans
+	gridme $chans $roww $coll
+	update_listboxes $chans
+	#connect
+}
+
+
+#####  END  PROCS 4 buttons  #############################################
+
+#####  ICECAST SERVER PROC  ##############################################
+set srvrbol 0
+proc set_icesrvr {} {
+global muse  icesrvr iceport icemount icepass icebit srvrbol
+	if {$srvrbol == 0} {
+		edit_icesrvr
+	} else {
+		set srvrbol 0
+		.menubar.srvrconnect configure -bg grey85 -bd 1 -activebackground grey80 -text connect
+		puts $muse 311 
+		flush $muse
+	}
+}
+
+proc edit_icesrvr {} {
+global srvrbol icebit
+set icebit 32
+	toplevel .w
+	wm title .w "Icecast Server Select"
+	label .w.intro -text "Connect to an Icecast Server"
+	frame .w.1
+		label .w.1.ip -text "IP #"
+		entry .w.1.ipvar -textvariable icesrvr -width 15
+		label .w.1.port -text "PORT"
+		entry .w.1.portvar -textvariable iceport -width 4
+		label .w.1.kbs -text "Bitrate"
+		tk_optionMenu .w.1.kbsvar icebit 8 16 24 32 64 128 196
+	frame .w.2
+		label .w.2.txt -text "the above must be an IP number not a DNS name"		
+	frame .w.3
+		label .w.3.mntpnt -text "MOUNTPOINT"
+		entry .w.3.mntpntvar -textvariable icemount -width 8
+		label .w.3.pass -text "PASS"  
+		entry .w.3.passvar -textvariable icepass -width 8 -bg #cccccc -fg #cccccc \
+			-highlightbackground #cccccc -highlightcolor #cccccc
+	frame .w.4
+	button .w.4.exitbutton -text "GO 4 IT!" -command {
+		set srvrbol 1
+		.menubar.srvrconnect configure -bg red -bd 0 -activebackground  #FF6666 -text disconnect
+		puts $muse "310\t$icesrvr\t$iceport\t$icemount\t$icepass\t$icebit" 
+		flush $muse; destroy .w}
+	button .w.4.cancel -text "forget it" -command {destroy .w}
+	
+	pack .w.1.ip .w.1.ipvar .w.1.port .w.1.portvar .w.1.kbs .w.1.kbsvar -side left -padx 2 -pady 2
+	pack .w.2.txt -padx 2 -pady 2
+	pack .w.3.mntpnt .w.3.mntpntvar .w.3.pass .w.3.passvar -side left -padx 2 -pady 2
+	pack .w.4.exitbutton .w.4.cancel -side left -padx 2 -pady 2
+	pack .w.intro .w.1 .w.2 .w.3 .w.4 -anchor n -padx 2 -pady 2
+
+}
+
+#####  END  ICE SERVER  ##################################################
+
+
+#####  PLAYLIST PROCS   ##################################################
+
+
+proc update_listboxes {i} {
+global playlist
+
+	for {set num 0} {$num<$i} {incr num} {
+		foreach element $playlist {.channel$num.frame.playlist insert end $element}
+	}
+
+        for {set num 0} {$num<$i} {incr num} {          
+        .channel$num.txt configure -text [.channel$num.frame.playlist get 0]
+        }
+
+}
+
+#####  END PLAY PROC   ###################################################
+
+
+#####  GRID SET   ########################################################
+
+proc gridme {chans roww coll} {
+
+	grid .menubar -row 0  -column 0 -rowspan 1 -columnspan 4 -sticky news
+
+	set co 0
+	set ro 1
+	for {set num 0} {$num<$chans} {incr num}  { 
+		grid .channel$num -row $ro -column $co -rowspan 1 -columnspan 1 -sticky nsew -padx 6 -pady 6  
+		if {$co < [expr "$coll - 1"]} then {incr co} else {set co 0; incr ro}
+	}
+	for {set num 1} {$num<$roww}  {incr num}  {
+		grid rowconfig    . $num -weight 1 -minsize 0
+	}
+	for {set num 0} {$num<$coll} {incr num} {
+		grid columnconfig . $num -weight 1 -minsize 0
+	}
+	grid .status -row [expr "$roww+1"]  -column 0 -rowspan 1 -columnspan $coll -sticky news
+}
+
+#####  END GRID   ########################################################
+
+
+#####  CHANNEL S   #######################################################
+
+proc start_chans {chans} {
+	set bgcolor #999999
+	set txtcolor gold
+	set txtbgcolor #666666
+	set lstcolor #000000
+	
+
+   for {set num 0} {$num<$chans} {incr num} {
+	frame .channel$num -bd 2 -relief groove -bg $bgcolor  -highlightthickness 2
+	frame .channel$num.lbl -bg $bgcolor
+	label .channel$num.lbl.x -text "CH [expr "$num + 1"]" \
+	        -bd 2  -highlightthickness 0  -bg $bgcolor
+	frame .channel$num.lbl.buts -bg $bgcolor
+	radiobutton .channel$num.lbl.buts.play  -image playbild \
+		-indicatoron 0 -selectcolor $bgcolor -variable play$num -value 1\
+		-bg $bgcolor -bd 0 -highlightthickness 0 -command "pressed_play $num" 
+	radiobutton .channel$num.lbl.buts.pause  -image pausebild \
+		-indicatoron 0  -variable play$num -value 2\
+		-bg $bgcolor -selectcolor  $bgcolor -bd 0 -highlightthickness 0 \
+		-command "pressed_pause $num"
+	radiobutton .channel$num.lbl.buts.stop  -image stopbild \
+		-indicatoron 0 -selectcolor $bgcolor -variable play$num -value 3\
+		-bg $bgcolor -bd 0 -highlightthickness 0 -command "pressed_stop $num"
+	pack .channel$num.lbl.buts.play .channel$num.lbl.buts.pause .channel$num.lbl.buts.stop \
+		-side left -padx 4
+
+	frame .channel$num.scales -bg $bgcolor
+	scale .channel$num.scales.volume   -from 0 -to 100  -orient horizontal  \
+		-length 130 -width 12 -bg $bgcolor -bd 0  -highlightthickness 0
+	.channel$num.scales.volume set 100 
+	#scale .channel$num.scales.speed  -from 0 -to 200  -orient horizontal   \
+	#	-length 130 -width 12 -bg $bgcolor -bd 0  -highlightthickness 0
+	#.channel$num.scales.speed set 100 
+	pack .channel$num.scales.volume -padx 6 
+	#.channel$num.scales.speed  
+	
+
+	button .channel$num.lbl.plsbut -relief flat -image cornerbild \
+		-bg $bgcolor -bd 0 -command "load_list $num"  -highlightthickness 0
+	#button .channel$num.lbl.plsedit -relief flat -text "pls" -command "edit_playlist $num"\
+	#	-font {-adobe-helvetica-medium-r-*-*-9-*-*-*-*-*-*-*} \
+	#	-bg $bgcolor -bd 0   -highlightthickness 0
+
+	frame .channel$num.frame -bg $bgcolor -highlightthickness 0
+
+	listbox .channel$num.frame.playlist -bd 0 -fg $lstcolor -height 1 \
+		-font {-adobe-helvetica-medium-r-*-*-9-*-*-*-*-*-*-*} \
+		-bg $bgcolor -highlightthickness 0 -yscroll ".channel$num.frame.scrolly set" \
+		-xscroll ".channel$num.frame.scrollx set" -selectmode browse
+	scrollbar .channel$num.frame.scrolly -orient vertical -highlightthickness 0 \
+		-command ".channel$num.frame.playlist yview" -width 8 -bg $bgcolor
+	scrollbar .channel$num.frame.scrollx -orient horizontal -highlightthickness 0 \
+		-command ".channel$num.frame.playlist xview" -width 8 -bg $bgcolor
+
+	label .channel$num.txt -bd 1 -fg $txtcolor  \
+		-font {-adobe-helvetica-medium-r-*-*-9-*-*-*-*-*-*-*} \
+		-bg $txtbgcolor -highlightthickness 0 -width 26
+
+
+	grid .channel$num.frame.playlist -row 0 -column 0 -rowspan 1 -columnspan 1 -sticky news 
+        grid .channel$num.frame.scrolly -row 0 -column 1 -rowspan 1 -columnspan 1 -sticky news
+        grid .channel$num.frame.scrollx -row 1 -column 0 -rowspan 1 -columnspan 1 -sticky news
+        grid rowconfig    .channel$num.frame 0 -weight 1 -minsize 0
+        grid columnconfig .channel$num.frame 0 -weight 1 -minsize 0
+
+	pack .channel$num.lbl.x -side left -anchor nw
+	pack .channel$num.lbl.plsbut  -side right -anchor n
+	pack .channel$num.lbl.buts -pady 4
+	pack .channel$num.lbl  -fill x  -anchor n
+	pack .channel$num.txt -anchor n 
+	pack .channel$num.scales -pady 6  -expand yes -fill both
+	pack .channel$num -expand yes -fill both  -padx 8 -pady 2 
+
+
+	label .channel$num.scales.volume.vol$num -image volbild -bg $bgcolor -highlightthickness 0
+	place .channel$num.scales.volume.vol$num -in .channel$num.scales.volume -x 0 -y 2
+	#label .channel$num.scales.speed.spd$num -image spdbild -bg $bgcolor -highlightthickness 0
+	#place .channel$num.scales.speed.spd$num -in .channel$num.scales.speed -x 0 -y 2
+	
+	#bind .channel$num.scales.speed <B1-Motion> "slide_speed $num"
+	#bind .channel$num.scales.speed <1> "slide_speed $num"
+	bind .channel$num.scales.volume <B1-Motion> "slide_volume $num"
+	bind .channel$num.scales.volume <1> "slide_volume $num"
+	bind .channel$num.frame.playlist <Double-1> "set_mp3label $num"
+   }
+}
+
+#####   END CHANS   ######################################################
+
+
+
+
+
+####   MAIN   ############################################################
+
+proc start_main {chans} {
+
+	frame .menubar -bd 2 -relief flat
+	set menufont "/{-adobe-helvetica-bold-r-*-*--12-*-*-*-*-*-*-*/}"
+	menubutton .menubar.file -underline 0 -text "File" -menu .menubar.file.menu 
+	menu .menubar.file.menu 
+	menu .menubar.file.channels 
+	button .menubar.linein  -text "line-in" -command linein_on_off\
+                 -bd 1 -highlightthickness 0 
+	button .menubar.srvrconnect  -text "connect" -command set_icesrvr\
+                 -bd 1 -highlightthickness 0 
+
+	.menubar.file.channels add command -image twobild -command "rerun $chans 2 1 2" 
+	.menubar.file.channels add command -image fourbild -command "rerun $chans 4 2 2" 
+	.menubar.file.channels add command -image sixbild  -command "rerun $chans 6 2 3" 
+	.menubar.file.channels add command -image eightbild  -command "rerun $chans 8 2 4" 
+
+	.menubar.file.menu add command -label "status" -underline 1 -command {puts $muse 333; flush $muse}
+	.menubar.file.menu add cascade -label "Channels" -underline 1 -menu .menubar.file.channels \
+		-menu .menubar.file.channels
+	.menubar.file.menu add command -label "Exit" -underline 1 -command { kill; exit }
+
+	pack .menubar.file  -side left -anchor w
+	pack .menubar.linein .menubar.srvrconnect -side right
+
+	frame .status -bd 0 -relief flat
+	label .status.msg -relief flat -bd 2 -text "MuSE 0.3"
+	label .status.prod -image peachbild
+
+	pack  .status.msg -side left -expand true -fill x -anchor w
+	pack  .status.prod -side right
+
+}
+
+#####  END  MAIN   ######################################################
+
+
+
+
+
+set port 6969
+set host localhost
+set pass hackme
+
+start_chans 6
+start_main 6
+gridme 6 2 3
+
+connect
+
+update_listboxes 6
+
+

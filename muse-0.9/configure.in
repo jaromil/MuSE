@@ -1,0 +1,447 @@
+dnl ==============================================================
+dnl Process this file with autoconf to produce a configure script.
+dnl ==============================================================
+
+AC_INIT(src/muse.cpp)
+
+AC_CANONICAL_HOST
+AC_CANONICAL_TARGET
+
+AC_PROG_MAKE_SET
+
+dnl ==============================================================
+dnl Setup for automake
+dnl ==============================================================
+
+AM_SANITY_CHECK
+AM_INIT_AUTOMAKE(MuSE, 0.8.2-cvs)
+AM_CONFIG_HEADER(config.h)
+AM_MAINTAINER_MODE
+
+dnl ==============================================================
+dnl Get the operating system and version number...
+dnl ==============================================================
+
+uname=`uname`
+uversion=`uname -r | sed -e 's/-.*$//g;s/[\.]//g'`
+
+dnl ==============================================================
+dnl Check for tools
+dnl ==============================================================
+AC_PROG_CC
+AC_PROG_CXX
+AC_ISC_POSIX
+AC_PROG_RANLIB
+
+dnl ==============================================================
+dnl Add the local include path and some flags - only linux i*86 supported
+dnl ==============================================================
+#AC_SUBST(OSTYPE)
+#AM_DEFINE_UNQUOTED(HOST_CPU, "${host_cpu}")
+
+CFLAGS="-O4 -D_REENTRANT -fomit-frame-pointer -march=${host_cpu} -ffast-math -malign-double -funroll-loops -pipe"
+
+dnl ==============================================================
+dnl Checks for header files.
+dnl ==============================================================
+AC_HEADER_STDC
+AC_HEADER_DIRENT
+AC_CHECK_HEADERS(fcntl.h sys/file.h sys/time.h unistd.h dirent.h sys/ndir.h sys/dir.h ndir.h limits.h unistd.h stdint.h inttypes.h)
+
+AC_CHECK_HEADER(pthread.h,, [ 
+	echo
+	echo "==================== PTHREAD HEADERS NOT FOUND"
+	echo "pthread.h needs to be found on your system in order"
+	echo "to compile the threading code. If you have this header,"
+	echo "make sure to make it reachable in the usual include path."
+	echo "Otherwise it can be that POSIX threads are not supported"
+	echo "on the platform you are compiling. Usually this is a strange"
+	echo "behaviour on a unix platform, so you're invited to report"
+	echo "the problem over the MuSE mailinglist at muse@dyne.org"
+	echo "documenting your system configuration."
+])
+
+dnl ==============================================================
+dnl Checks for typedefs, structures, and compiler characteristics.
+dnl ==============================================================
+AC_C_CONST
+AC_TYPE_SIZE_T
+AC_TYPE_MODE_T
+AC_TYPE_SIGNAL
+AC_HEADER_TIME
+
+dnl ==============================================================
+dnl Checks for library functions.
+dnl ==============================================================
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS(gettimeofday select socket strdup nanosleep inet_aton scandir getcwd mktime strerror sethostent endhostent getnameinfo getaddrinfo inet_pton)
+AC_C99_FUNC_LRINT
+AC_C99_FUNC_LRINTF
+
+AC_CHECK_SIZEOF(short, 2)
+AC_CHECK_SIZEOF(int, 4)
+AC_CHECK_SIZEOF(long, 4)
+
+dnl =============
+dnl CHECK MAT LIB
+dnl =============
+AC_CHECK_LIB(m, cos, M_LIBS="-lm", M_LIBS="")
+
+
+dnl =================
+dnl CHECK FOR GETTEXT
+dnl =================
+AM_GNU_GETTEXT
+ALL_LINGUAS="it"
+
+dnl ====================
+dnl switch for rubik GUI
+dnl ====================
+#AC_MSG_CHECKING(to build ncurses GUI by rubik)
+#AC_ARG_WITH(rubik,
+#[  --with-rubik        compile with ncurses CONSOLE GUI ],
+#[if test "$withval" = yes; then
+#  AC_MSG_RESULT(yes)
+AC_CHECK_LIB(termcap, waddstr)
+AC_CHECK_LIB(ncurses, start_color)
+have_ncurses=yes
+if test "$ac_cv_lib_ncurses_start_color" != yes ; then
+  AC_CHECK_LIB(curses, initscr, have_ncurses=yes, have_ncurses=no)
+fi
+
+AC_ARG_ENABLE(ncurses,
+[  --enable-ncurses        compile with ncurses interface (auto)],
+[  want_ncurses=$enableval])
+
+if test "$have_ncurses" = yes -a ! x$want_ncurses = xno; then
+  AC_DEFINE(HAVE_COLOR)
+  AC_CHECK_FUNC(XCursesExit, AC_DEFINE(HAVE_XCURSES))
+  GUI_RUBIK=true
+  AC_DEFINE(GUI_RUBIK)
+fi
+#  else
+#  AC_MSG_RESULT(no)
+#  have_ncurses=no
+#fi], [AC_MSG_RESULT(no)])
+
+
+dnl =======================
+dnl switch for nightolo GUI
+dnl =======================
+dnl AC_ARG_ENABLE(nightolo,
+dnl 	[  --enable-gtk		    compile with GTK+ graphical interface (autodetect)],
+dnl	GUI_NIGHTOLO="true", GUI_NIGHTOLO="false")
+dnl	[case "${enableval}" in
+dnl	        yes) nightolo=true ;;
+dnl		no) nightolo=false ;;
+dnl		*) AC_MSG_ERROR(--enable-gtk expects either yes or no) ;;
+dnl	esac], [nightolo=false])
+
+dnl AM_CONDITIONAL(NIGHTOLO, test x$nightolo = xtrue)
+dnl ===================
+dnl CHECK FOR X Windows
+dnl // this one i took from the Emacs configure.in
+dnl ===================
+
+AC_PATH_X
+if test "$no_x" = yes; then
+   window_system=none
+else
+   window_system=x11
+fi
+if test "${x_libraries}" != NONE && test -n "${x_libraries}"; then
+  LD_SWITCH_X_SITE=-L`echo ${x_libraries} | sed -e "s/:/ -L/g"`
+  LD_SWITCH_X_SITE_AUX=-R`echo ${x_libraries} | sed -e "s/:/ -R/g"`
+  x_default_search_path=""
+  for x_library in `echo ${x_libraries} | sed -e "s/:/ /g"`; do
+    x_search_path="\
+${x_library}/X11/%L/%T/%N%C%S:\
+${x_library}/X11/%l/%T/%N%C%S:\
+${x_library}/X11/%T/%N%C%S:\
+${x_library}/X11/%L/%T/%N%S:\
+${x_library}/X11/%l/%T/%N%S:\
+${x_library}/X11/%T/%N%S"
+    if test x"${x_default_search_path}" = x; then
+      x_default_search_path=${x_search_path}
+    else
+      x_default_search_path="${x_search_path}:${x_default_search_path}"
+    fi
+  done
+fi
+if test "${x_includes}" != NONE && test -n "${x_includes}"; then
+  C_SWITCH_X_SITE=-I`echo ${x_includes} | sed -e "s/:/ -I/g"`
+fi
+case "${window_system}" in
+  x11 )
+    HAVE_X11=yes
+  ;;
+  none )
+    HAVE_X11=no
+  ;;
+esac
+
+dnl ==================
+dnl CHECK GTK AND GLIB
+dnl ==================
+#AC_MSG_CHECKING(to build new Gtk2 GUI by nightolo)
+#AC_ARG_WITH(gtk2,
+#[  --with-gtk2        force to compile with Gtk2 GUI ],
+#[if test "$withval" = yes; then
+#  AC_MSG_RESULT(yes)
+#  FORCE_GTK2=yes
+#fi], [AC_MSG_RESULT(no)])
+
+AC_ARG_ENABLE(gtk2,
+[  --enable-gtk2           compile gtk2 gui (work in progress)],
+[  want_gtk2=$enableval])
+
+if test "${HAVE_X11}" = "yes"; then
+   
+  AM_PATH_GTK(1.2.0, [
+    HAVE_GTK="yes"
+    AC_DEFINE(HAVE_GTK, 1, have working GTK)],
+  HAVE_GTK="no")
+
+  PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0 gthread-2.0 >= 2.0.0, [
+    HAVE_GTK2="yes"
+    AC_DEFINE(HAVE_GTK2, 1, have working GTK2)],
+  HAVE_GTK2="no")
+
+# gtk2 interface is preferred now!
+  if test x$want_gtk2 = xyes; then
+# GTK2 enabled
+    HAVE_GTK=no
+  elif test x$want_gtk2 = xno; then
+# GTK2 disabled
+    HAVE_GTK2=no
+  elif test  "${HAVE_GTK2}" = "yes" -a "${HAVE_GTK}" = "yes" ; then
+# both GTK and GTK2 are present, GTK2 is preferred
+    HAVE_GTK="no"
+  fi
+
+  if test  "${HAVE_GTK}" = "yes" ; then
+    GUI_NIGHTOLO=true
+    AC_DEFINE(GUI_NIGHTOLO)
+  fi
+  if test  "${HAVE_GTK2}" = "yes" ; then
+    GUI_NIGHTOLO2=true
+    AC_DEFINE(GUI_NIGHTOLO2)
+  fi
+fi
+
+
+dnl ==============
+dnl CHECK LAME LIB
+dnl ==============
+AC_CHECK_HEADER(lame/lame.h, [
+        have_lame=yes;
+        echo "MP3 encoder found and succesfully linked"
+                             ], [
+        have_lame=no;
+        echo "LAME libraries not found, no MP3 support"
+                             ])
+
+dnl ===============
+dnl CHECK OGGVORBIS
+dnl ===============
+AM_PATH_OGG(have_ogg=yes,AC_MSG_WARN(Ogg not found!); exit 0)
+AM_PATH_VORBIS(have_vorbis=yes,AC_MSG_WARN(Vorbis not found!); exit 0)
+
+dnl Check for socklen_t
+AC_MSG_CHECKING([for unix98 socklen_t])
+AC_TRY_COMPILE([#include <sys/types.h>
+                #include <sys/socket.h>],
+               [typedef socklen_t int;
+                int test() { return 1; }],
+               AC_MSG_RESULT(yes)
+               HAVE_SOCKLEN_T=yes,
+               AC_MSG_RESULT(no)
+               HAVE_SOCKLEN_T=no)
+
+dnl ===================
+dnl assign some defines
+dnl ===================
+
+if test "${HAVE_X11}" = "yes" ; then
+  AC_DEFINE(HAVE_X11)
+fi
+
+if test "$have_lame" = "yes"; then
+	AC_DEFINE(HAVE_LAME)
+	LAME_LIBS="-lmp3lame"
+fi
+
+if test "$have_ogg" = "yes"; then
+	AC_DEFINE(HAVE_OGG)
+	OGG_LIBS="-logg"
+else
+	OGG_LIBS=""
+fi
+
+have_oggvorbis=no
+if test "$have_vorbis" = "yes"; then
+	if test "$have_ogg" = "yes"; then
+		AC_DEFINE(HAVE_VORBIS)
+		VORBIS_LIBS="-lvorbis -lvorbisfile -lvorbisenc"
+		have_oggvorbis=yes
+	else
+		VORBIS_LIBS=""
+		echo
+		echo "Vorbis library found, but Ogg codec is missing!"
+		echo "you should have both installed in order to decode"
+		echo "oggvorbis streams."
+		echo
+		exit 0
+	fi
+else
+	VORBIS_LIBS=""
+fi
+
+GUI_LIBS=""
+GUI_DIRS=""
+GUI_FLAGS=""
+GUI_DEPS=""
+if test "${GUI_RUBIK}" = "true"; then
+   GUI_LIBS="$GUI_LIBS ncursesgui/librubik.a ncursesgui/libcdk/libcdk.a"
+   GUI_DIRS="$GUI_DIRS ncursesgui"
+   GUI_FLAGS="$GUI_FLAGS"
+   GUI_DEPS="$GUI_DEPS ncursesgui/librubik.a"
+   AC_DEFINE(HAVE_LIBNCURSES, 1, "have working libncurses")
+fi
+
+if test "${HAVE_GTK}" = "yes"; then
+   GUI_LIBS="$GUI_LIBS $GTK_LIBS -lgthread gtkgui/libnightolo.a"
+   GUI_DIRS="$GUI_DIRS gtkgui"
+   GUI_FLAGS="$GUI_FLAGS $GTK_FLAGS"
+   GUI_DEPS="$GUI_DEPS gtkgui/libnightolo.a"
+fi
+
+if test "${HAVE_GTK2}" = "yes"; then
+   GUI_LIBS="$GUI_LIBS $GTK2_LIBS gtkgui2/libnightolo2.a"
+   GUI_DIRS="$GUI_DIRS gtkgui2"
+   GUI_FLAGS="$GUI_FLAGS $GTK2_CFLAGS"
+   GUI_DEPS="$GUI_DEPS gtkgui2/libnightolo2.a"
+fi
+
+dnl ==============================================================
+dnl Detect possible output devices 
+dnl ==============================================================
+
+dnl Check for OSS
+
+AC_CHECK_HEADERS(sys/soundcard.h)
+AC_CHECK_HEADERS(machine/soundcard.h)
+AM_CONDITIONAL(HAVE_OSS,test "${ac_cv_header_sys_soundcard_h}" = "yes" || test "${ac_cv_header_machine_soundcard_h}" = "yes")
+
+dnl ==============================================================
+dnl link with memory debugging library dmalloc
+dnl ==============================================================
+AC_CHECK_HEADER(dmalloc.h)
+if test "$ac_cv_header_dmalloc_h" = "yes"; then
+
+AC_MSG_CHECKING(if malloc debugging is wanted)
+AC_ARG_WITH(dmalloc,
+[  --with-dmalloc          use dmalloc, as in
+                          ftp://ftp.letters.com/src/dmalloc/dmalloc.tar.gz],
+[if test "$withval" = yes; then
+  AC_MSG_RESULT(yes)
+  AC_DEFINE(WITH_DMALLOC,1,
+            [Define if using the dmalloc debugging malloc package])
+  LIBS="$LIBS -ldmallocthcxx"
+  DMALLOCC="dmallocc.cpp"
+  have_dmalloc=yes
+else
+  AC_MSG_RESULT(no)
+  DMALLOCC=""
+  have_dmalloc=no
+fi], [AC_MSG_RESULT(no)])
+
+fi
+
+dnl ==============================================================
+dnl compile with full warnings and debugging symbols
+dnl ==============================================================
+AC_ARG_ENABLE(debug,
+	[  --enable-debug          compile with debug symbols (-Wall -g) [yes]],
+	[case "${enableval}" in
+		yes) debug=true; CFLAGS="-Wall -g $CFLAGS" ;;
+		no) debug=false ;;
+		*) AC_MSG_ERROR(--enable-debug expects either yes or no) ;;
+	esac], [debug=true])
+AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
+if test x$debug = xtrue; then
+   CFLAGS="-Wall -g $CFLAGS"
+fi
+
+dnl ===============================
+dnl declare things for the automake
+dnl ===============================
+
+AC_SUBST(M_LIBS)
+AC_SUBST(LAME_LIBS)
+AC_SUBST(OGG_LIBS)
+AC_SUBST(VORBIS_LIBS)
+
+AC_SUBST(GUI_LIBS)
+AC_SUBST(GUI_DIRS)
+AC_SUBST(GUI_FLAGS)
+AC_SUBST(GUI_DEPS)
+
+AC_SUBST(DMALLOCC)
+
+CFLAGS="$CFLAGS"
+CXXFLAGS="$CFLAGS"
+LIBS="$LIBS"
+
+AC_OUTPUT([  
+Makefile
+src/Makefile
+src/shout/Makefile
+src/libmpeg/Makefile
+src/gtkgui/Makefile
+src/gtkgui2/Makefile
+src/ncursesgui/Makefile
+src/ncursesgui/libcdk/Makefile
+src/resample/Makefile
+intl/Makefile
+])
+
+echo
+
+echo "== MuSE build configuration ====================================="
+echo ":: Building on ${host} (kernel $uname$uversion)"
+
+if test "$have_oggvorbis" = "yes"; then
+	echo ":: Linking OggVorbis libraries for OGG encoding"
+else
+	echo "OGGVORBIS is needed, go and install it from xiph.org"
+fi
+
+if test "$have_lame" = "yes"; then
+	echo ":: Linking Lame libraries for MP3 encoding"
+fi
+
+if test "${GUI_NIGHTOLO}" = "true"; then
+	echo ":: Building the GTK+ user interface"
+fi
+
+if test "${GUI_NIGHTOLO2}" = "true"; then
+	echo ":: Building the GTK-2 user interface"
+fi
+
+if test "${GUI_RUBIK}" = "true"; then
+	echo ":: Building the NCURSES user interface"
+fi
+
+if test "$debug" = "true"; then
+	echo ":: DEBUG informations ON (-Wall -g compile flags)"
+else
+	echo ":: DEBUG informations OFF"
+fi
+
+if test "$have_dmalloc" = "yes"; then
+	echo ":: Using dmalloc for memory fencing and debugging"
+fi
+
+echo "============================== now type make, may the source be with you!"
+echo
