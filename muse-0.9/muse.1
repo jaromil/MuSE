@@ -3,7 +3,7 @@
 .\"
 .TH MUSE 1 "April 2004" UNIX "User Manuals"
 .SH NAME
-MuSE - stream your audio over the internet
+MuSE - Multiple Streaming Engine
 .SH SYNOPSIS
 .B muse [
 .I generic opt
@@ -18,9 +18,12 @@ MuSE - stream your audio over the internet
 .B ] ]
 
 .SH DESCRIPTION
-\fBMuSE\fP is an application for mixing, encoding, and network streaming of sound. MuSE can simultaniously mix up to 6 encoded audio bitstreams (from files or network) plus a souncard input signal. The resulting stream can be played locally on the sound card and/or encoded as an mp3 bitstream sent to a broadcast server. MuSE offers two intuitive interfaces (graphical and console) to be operated realtime and can also run in commandline mode.
+\fBMuSE\fP is a user friendly application and at the same time a slick commandline tool for mixing, encoding, and network streaming of sound. MuSE can simultaniously mix up to 6 encoded audio inputs from microphone, files or network ogg and mp3 streams. The resulting mixed audio can be played locally on the sound card, saved in a file and/or encoded as an ogg or mp3 stream sent to a broadcast server. MuSE offers two intuitive interfaces (graphical gtk2 and console ncurses) to be operated realtime, while can also run in commandline mode.
 
-\fBMuSE\fP is being developed in the hope to provide the Free Software community with a user friendly tool for network audio streaming, making life easier for independent free speech radios.
+In this manual you get explained the latter mentioned commandline mode, usually appealing to unix ascii freaks.
+
+\fBMuSE\fP is being developed in the hope to provide the Free Software Community with a useful and user friendly tool for network audio streaming, making life easier for indypendent free speech radios.
+
 
 .SH COMMAND LINE USAGE
 Command line options in MuSE are position sensitive: all the encoder options affect the last encoder specified, all the servers are relative to the last encoding specified, all the server options affect the last server specified. In that way you can specify as much encoded streams you want and as much servers you need for each of them.
@@ -41,8 +44,6 @@ disable souncard output
 command line input. cli GUI is selected (same as -g cli) 
 .IP "-g --gui \fIname\fP"
 specify GUI \fIname\fP to use. Use \fIlist\fP to get a list of available GUIs
-.IP \fIfiles\fP
-add \fIfiles\fP to MuSE playlist
 
 .SH INPUT CHANNELS OPTIONS
 .IP "-i --live"
@@ -56,6 +57,8 @@ input channel volume, float from 0.0 to 1.0 (default 1.0)
 input channel starting position, float from 0.0 to 1.0 (default 0.0)
 .IP "-P --playmode"
 input channel playmode: play, cont, loop (default cont)
+.IP \fIfiles\fP
+add \fIfiles\fP to the current input \fIchannel\fP playlist
 
 .SH ENCODER OPTIONS
 .IP "-e --encoder \fIenc\fP"
@@ -172,6 +175,7 @@ Denis "jaromil" Rojo - author and mantainer \fIrastasoft.org\fR
 Antonino "nightolo" Radici - GTK+ interface \fIfreaknet.org\fR
 Luca "rubik" Profico - NCURSES interface \fIolografix.org\fR
 Angelo "pallotron" Failla - more input channels \fIfreaknet.org\fR
+Eugen Melinte - time program scheduler
 
 a full list of developers can be found in the AUTHOR file
 
