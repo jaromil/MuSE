@@ -399,12 +399,6 @@ void Basic_scheduler::stop_inner_channel(void)
   channel->lock();
   channel->stop();
   channel->unlock();
-  //FIXME: synchro bug
-  //channel->clean() will delete the decoder, which is used in the channel->run()
-  //function - wait a reasonable time for that loop to move off the decoder.
-  //Unfortunately I have to use clean() because the next thing to play might be
-  //in a different format. 
-  sleep(1);
   channel->lock();
   channel->playlist->cleanup();
   channel->clean(); 
