@@ -252,6 +252,10 @@ gboolean gcb_event_view_popup(GtkWidget *w, GdkEventButton *s, struct gchan *o)
 		gtk_widget_show_all(menupop);
 		return TRUE;
 	}
+	if(s->type == GDK_2BUTTON_PRESS || s->type == GDK_3BUTTON_PRESS) {
+		gcb_play_channel(w, o);
+		return TRUE;
+	}
 	return FALSE;
 	
 }
