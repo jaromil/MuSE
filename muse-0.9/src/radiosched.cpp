@@ -692,7 +692,14 @@ write_xml_schedule_file(const char *content)
 		error("problem opening " SCHEDFILE " for writing");
 		return FALSE;
 	}
-	
+
+	/* Make a check after put anything, it's not healthful to use
+	 * fputs with NULL for the 1st argument  -- night
+	 */
+
+	if(!content)
+		return FALSE;
+
 	fputs(empty_xml_sched_file_header, f);
 	fputs(content, f);
 	fputs(empty_xml_sched_file_footer, f);
