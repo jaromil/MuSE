@@ -25,4 +25,4 @@
 # or
 #DEFAULT (echo ""; id; echo %{sVv}; date; cat) >> $CVSROOT/CVSROOT/commitlog
 #DEFAULT /bin/mail -s "[CVS MuSE]: %s" hackers@dyne.org
-
+DEFAULT /bin/activitymail -cdagf %{sVv} -t "hackers@dyne.org" -u "cvs@dyne.org" -w "http://cvs.dyne.org/viewcvs.cgi/?root=muse" -p -V -m "commit by ${USER} on"
