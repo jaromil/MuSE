@@ -27,50 +27,51 @@
 
 #include <config.h>
 
-struct vumeters *vu;
-GtkWidget *winvu;
+struct vumeters *vu = NULL;
+GtkWidget *winvu = NULL;
 
 void vumeters_new(void)
 {
 	GtkWidget *hbox, *tmpbox; /* one hbox, two vbox */
 	GtkWidget *tmpwid;
 
-	if(winvu)
-		return;
+	if(!vu)
+	  vu = (struct vumeters *) malloc(sizeof(struct vumeters));
 
-	vu = (struct vumeters *) g_malloc(sizeof(struct vumeters));
+	if(!winvu) {
+		
+	  winvu = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	  gtk_window_set_title(GTK_WINDOW(winvu), _("MuSE - Vumeters"));
+	  gtk_container_set_border_width(GTK_CONTAINER(winvu), 5);
+	  g_signal_connect(G_OBJECT(winvu), "destroy",
+			   G_CALLBACK(vumeters_close), winvu);
+	  
+	  hbox = gtk_hbox_new(FALSE, 6);
+	  gtk_container_add(GTK_CONTAINER(winvu), hbox);
+	  
+	  /* volume - adj - widget - label - packing */
+	  
+	  tmpbox = gtk_vbox_new(FALSE, 0);
+	  //vu->vu_adjvol = gtk_adjustment_new(0.0, -32767.0, 32767.0, 1.0, 1.0, 0.0);
+	  vu->vu_adjvol = gtk_adjustment_new(0.0, 0.0, 32767.0, 1.0, 1.0, 0.0);
+	  tmpwid = gtk_dial_new(GTK_ADJUSTMENT(vu->vu_adjvol));
+	  vu->vu_labvol = gtk_label_new(_("volume"));
+	  gtk_box_pack_start(GTK_BOX(tmpbox), tmpwid, FALSE, FALSE, 0);
+	  gtk_box_pack_start(GTK_BOX(tmpbox), vu->vu_labvol, FALSE, FALSE, 0);
+	  gtk_box_pack_start(GTK_BOX(hbox), tmpbox, FALSE, FALSE, 5);
+	  /* bandwith - the same */
+	  
+	  tmpbox = gtk_vbox_new(FALSE, 0);
+	  /* 6144 = 2048*3 */
+	  vu->vu_adjband = gtk_adjustment_new(0.0, 0.0, 61440, 1.0, 1.0, 0.0);
+	  tmpwid = gtk_dial_new(GTK_ADJUSTMENT(vu->vu_adjband));
+	  vu->vu_labband = gtk_label_new(_("0 byte/s"));
+	  gtk_box_pack_start(GTK_BOX(tmpbox), tmpwid, FALSE, FALSE, 0);
+	  gtk_box_pack_start(GTK_BOX(tmpbox), vu->vu_labband, FALSE, FALSE, 0);
+	  gtk_box_pack_start(GTK_BOX(hbox), tmpbox, FALSE, FALSE, 5);
 
-	winvu = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_title(GTK_WINDOW(winvu), _("MuSE - Vumeters"));
-	gtk_container_set_border_width(GTK_CONTAINER(winvu), 5);
-	g_signal_connect(G_OBJECT(winvu), "destroy",
-			G_CALLBACK(vumeters_close), winvu);
-	
-	hbox = gtk_hbox_new(FALSE, 6);
-	gtk_container_add(GTK_CONTAINER(winvu), hbox);
-
-	/* volume - adj - widget - label - packing */
-
-	tmpbox = gtk_vbox_new(FALSE, 0);
-	//vu->vu_adjvol = gtk_adjustment_new(0.0, -32767.0, 32767.0, 1.0, 1.0, 0.0);
-	vu->vu_adjvol = gtk_adjustment_new(0.0, 0.0, 32767.0, 1.0, 1.0, 0.0);
-	tmpwid = gtk_dial_new(GTK_ADJUSTMENT(vu->vu_adjvol));
-	vu->vu_labvol = gtk_label_new(_("volume"));
-	gtk_box_pack_start(GTK_BOX(tmpbox), tmpwid, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(tmpbox), vu->vu_labvol, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(hbox), tmpbox, FALSE, FALSE, 5);
-	/* bandwith - the same */
-	
-	tmpbox = gtk_vbox_new(FALSE, 0);
-	/* 6144 = 2048*3 */
-	vu->vu_adjband = gtk_adjustment_new(0.0, 0.0, 61440, 1.0, 1.0, 0.0);
-	tmpwid = gtk_dial_new(GTK_ADJUSTMENT(vu->vu_adjband));
-	vu->vu_labband = gtk_label_new(_("0 byte/s"));
-	gtk_box_pack_start(GTK_BOX(tmpbox), tmpwid, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(tmpbox), vu->vu_labband, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(hbox), tmpbox, FALSE, FALSE, 5);
+	}
 	vu_status=true;
-	
 	gtk_widget_show_all(winvu);
 	
 }
@@ -78,8 +79,14 @@ void vumeters_new(void)
 void vumeters_close(GtkWidget *w)
 {
 	vu_status = false;
-	gtk_widget_destroy(w);
+	func("DESTROY");
+	gtk_widget_destroy(winvu);
+	func("DESTROY DONE");
+	//gtk_widget_hide(winvu);
 	winvu = NULL;
-	g_free(vu);
+	//	g_free(vu);
+	free(vu);
+	vu = NULL;
+	//	vu = NULL;
 }
 

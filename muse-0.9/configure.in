@@ -323,6 +323,20 @@ if test "${HAVE_GTK2}" = "yes"; then
 fi
 
 dnl ==============================================================
+dnl Choose which libshout version to use
+dnl ==============================================================
+AC_ARG_WITH(libshout,
+[  --with-libshout    which libshout to use: 1 or 2 (default is 2)],
+[if test "$withval" = 1; then
+   LIBSHOUT_DIR=shout
+ fi
+], [
+   LIBSHOUT_DIR=libshout2-kh
+])
+LIBSHOUT_LIB="${LIBSHOUT_DIR}/libshout.a"
+
+
+dnl ==============================================================
 dnl Detect CPU clipping mode (from the secret rabbit code)
 dnl ==============================================================
 AC_C_CLIP_MODE
@@ -422,7 +436,7 @@ if test x$have_lubrifications = xyes; then
      echo "cannot lubrify code if debug or profiling are enabled"
      CFLAGS="$CFLAGS -O2 -ffast-math"
    else
-     CFLAGS="$CFLAGS -O4 -fomit-frame-pointer -march=${host_cpu} -finline-functions -ffast-math -funroll-loops"
+     CFLAGS="$CFLAGS -O3 -fomit-frame-pointer -march=${host_cpu} -ffast-math"
    fi
 else
    CFLAGS="$CFLAGS -O2 -ffast-math"
@@ -443,6 +457,9 @@ AC_SUBST(GUI_DIRS)
 AC_SUBST(GUI_FLAGS)
 AC_SUBST(GUI_DEPS)
 
+AC_SUBST(LIBSHOUT_LIB)
+AC_SUBST(LIBSHOUT_DIR)
+
 AC_SUBST(DMALLOCC)
 AC_SUBST(LUBRIFY_CFLAGS)
 
@@ -453,6 +470,7 @@ AC_OUTPUT([
 Makefile
 src/Makefile
 src/shout/Makefile
+src/libshout2-kh/Makefile
 src/libmpeg/Makefile
 src/gtkgui/Makefile
 src/gtkgui2/Makefile

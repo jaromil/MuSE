@@ -84,7 +84,7 @@ OutChannel::OutChannel(char *myname)
   lowpass(0);
   highpass(0);
     
-  profile_changed = true;
+  //  profile_changed = true;
 
   guess_bps();
 }

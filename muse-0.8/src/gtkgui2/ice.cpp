@@ -280,9 +280,9 @@ void ice_new(codec tipoc)
 	tmplabel = gtk_label_new(_("Login Type"));
 	gtk_box_pack_start(GTK_BOX(tmpwid), tmplabel, FALSE, FALSE, 0);
 	i->logintype = gtk_combo_new();
-	i->combi = g_list_append(i->combi, (void *) "x-audiocast");
-	i->combi = g_list_append(i->combi, (void *) "icy");
-	i->combi = g_list_append(i->combi, (void *) "http");
+	i->combi = g_list_append(i->combi, (void *) "icecast 2");
+	i->combi = g_list_append(i->combi, (void *) "icecast 1");
+	i->combi = g_list_append(i->combi, (void *) "shoutcast");
 	gtk_combo_set_popdown_strings(GTK_COMBO(i->logintype), i->combi);
 	gtk_entry_set_editable(GTK_ENTRY(GTK_COMBO(i->logintype)->entry), FALSE);
 	gtk_widget_set_size_request(GTK_WIDGET(i->logintype), 100, 22);
@@ -389,20 +389,21 @@ void ice_put(struct icedata *i)
 	char tmp[MAX_VALUE_SIZE];
 	int type = 0;
 
-	type = i->coreice->login();
+	/// let's make it simpler? gtk2 still doesn't allows this:
+	//	gtk_combo_set_active( GTK_COMBO(i->logintype), i->coreice->login() );
 
 	switch(type) {
-		case 1: gtk_entry_set_text(GTK_ENTRY(
-			GTK_COMBO(i->logintype)->entry), "x-audiocast");
-			break;
-		case 2: gtk_entry_set_text(GTK_ENTRY(
-			GTK_COMBO(i->logintype)->entry), "icy");
-			break;
-		case 3: gtk_entry_set_text(GTK_ENTRY(
-			GTK_COMBO(i->logintype)->entry), "http");
-			break;
-			
-		default: func(_("login() gtk error :("));
+	case 0: gtk_entry_set_text
+		  (GTK_ENTRY(GTK_COMBO(i->logintype)->entry), "icecast 2");
+	  break;
+	case 1: gtk_entry_set_text
+		  (GTK_ENTRY(GTK_COMBO(i->logintype)->entry), "icecast 1");
+	  break;
+	case 2: gtk_entry_set_text
+		  (GTK_ENTRY(GTK_COMBO(i->logintype)->entry), "shoutcast");
+	  break;
+	  
+	default: func(_("login() gtk error :("));
 	}
 	
 	gtk_entry_set_text(GTK_ENTRY(i->host), i->coreice->host());
@@ -417,18 +418,22 @@ void ice_put(struct icedata *i)
 void ice_fill(struct icedata *i) {
 	/* fill coreice */
 	gchar *tmp = NULL;
-
-	if((tmp = gtk_editable_get_chars(GTK_EDITABLE(
-						GTK_COMBO(i->logintype)->entry), 0, -1))) {
-		func(_("ice_fill:: logintype = %s"), tmp);
-		if(tmp[0] == 'x')
-			i->coreice->login(1);
-		if(tmp[0] == 'i')
-			i->coreice->login(2);
-		if(tmp[0] == 'h')
-			i->coreice->login(3);
-	}
 	
+	/* let's make it simpler?
+	   i->coreice->login( gtk_combo_get_active(GTK_COMBO(i->logintype)) );
+	   still can't, but the new gtk2 yes... (bleah) */
+
+	tmp = gtk_editable_get_chars
+	  ( GTK_EDITABLE( GTK_COMBO(i->logintype)->entry ), 0, -1);
+	func("ice_fill:: logintype = %s", tmp);
+	if(strcmp(tmp,"icecast 2")==0)
+	  i->coreice->login(0);
+	else if(strcmp(tmp,"icecast 1")==0)
+	  i->coreice->login(1);
+	else if(strcmp(tmp,"shoutcast")==0)
+	  i->coreice->login(2);
+	else error("gtkgui2: invalid combo value in ice_fill");
+
 	i->coreice->host( gtk_editable_get_chars(GTK_EDITABLE(i->host), 0, -1) );
 	i->coreice->port( atoi(gtk_editable_get_chars(GTK_EDITABLE(i->port), 0, -1)) );
 	i->coreice->pass( gtk_editable_get_chars(GTK_EDITABLE(i->pass), 0, -1) );

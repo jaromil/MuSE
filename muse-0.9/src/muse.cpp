@@ -1,28 +1,82 @@
-/* MuSE - Multiple Streaming Engine
- * Copyright (C) 2000-2003 Denis Rojo aka jaromil <jaromil@dyne.org>
- *
- * This source code is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Public License as published 
- * by the Free Software Foundation; either version 2 of the License,
- * or (at your option) any later version.
- *
- * This source code is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * Please refer to the GNU Public License for more details.
- *
- * You should have received a copy of the GNU Public License along with
- * this source code; if not, write to:
- * Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * here command line is parsed
- * synchronous threads are launched depending on mode selection
- * signals are trapped for nice&clean exiting
- *
- * "$Id$"
- *
- */
 
+/* $Id$
+
+   here command line is parsed
+   synchronous threads are launched depending on mode selection
+   signals are trapped for nice&clean exiting
+
+*/
+
+/**
+   @mainpage MuSE :: Multiple Streaming Engine
+
+
+
+   @section Introduction
+   
+   MuSE is an application for mixing, encoding, and network streaming of
+   sound. It relies code that has been written with modularity and reusability
+   in mind. Actually the engine can play MP3 or OGG files, mix them together
+   up to an amount of 6 input streams and then reencode them together and stream
+   them to the network again.
+   
+   It can also produce multiple encoded streams at the same time, and save the
+   encoded audio to a local file.
+   
+   Streams produced by MuSE can run on various servers: icecast 1 and 2,
+   litestream, darwin (with icecast emulation), shoutcast and theoretically
+   any other protocol supported by libshout.
+   
+   MuSE can read its own MP3 streams (and mix them, and restream them, and...),
+   but also a large number of audio players can do: xmms, freeamp, winamp,
+   itunes, winzozz media player and probably more.
+   
+   In its application form, MuSE offers two allready implemented interfaces
+   to be operated in realtime and a slick commandline interface.
+   This documentation is useful to who wants to reuse or tweak MuSE's code,
+   if you are not a programmer (and you don't want to become one) you are
+   not really interested in all the details of the code, alltough to read
+   thru here it might give you a better idea about the yet unexplored
+   possibilities of network audio streaming ;)
+
+   Useful implementation examples can be found in muse.cpp
+   (commandline interface), in the gtkgui2 directory containing the
+   whole code of the GTK-2 interface, in the ncurses directory which
+   implements the Ncurses text based interface.
+
+   MuSE engine is being developed and hereby documented in the hope to
+   provide the Free Software community with user friendly tool for
+   network audio streaming and a high level interface for programming
+   automatic radio tools.
+
+
+
+
+   @section Authors
+
+   the MuSE Engine is Copyright (C) 2000-2004 Denis Rojo aka jaromil - http://rastasoft.org
+
+   the GTK-2 MuSE application interface is
+   Copyright (C) 2002-2004 Antonio Radici aka nightolo - http://freaknet.org
+
+   the Ncurses MuSE application interface is
+   Copyright (C) 2002-2004 Luca Profico aka rubik - http://olografix.org
+
+   MuSE and all its interface source code is free software; you can
+   redistribute it and/or modify it under the terms of the GNU Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+   
+   MuSE source code is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  Please refer
+   to the GNU Public License for more details.
+   
+   You should have received a copy of the GNU Public License along with
+   this source code; if not, write to:
+   Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   
+
+*/
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -91,6 +145,7 @@ char *help =
 ":: broadcast stream options:\n"
 " -s --server       stream to server[:port]     - default port 8000\n"
 " -m --mount        mounpoint on server         - default live\n"
+" -l --login        login type [ice1|ice2|icy]  - default ice1\n"
 " -p --pass         encoder password on server\n"
 " -n --name         name of the stream\n"
 " -u --url          descriptive url of the stream\n"
@@ -118,6 +173,7 @@ static const struct option long_options[] = {
   { "server", required_argument, NULL, 's' },
   { "port", required_argument, NULL, 'p' },
   { "mount", required_argument, NULL, 'm' },
+  { "login", required_argument, NULL, 'l' },
   { "pass",required_argument, NULL, 'p' },
   { "name",required_argument, NULL, 'n' },
   { "url",required_argument, NULL, 'u' },
@@ -125,7 +181,7 @@ static const struct option long_options[] = {
   { 0, 0, 0, 0 }
 };
 
-char *short_options = "-hvD:ioCN:V:S:P:e:b:r:q:c:f:g:s:m:p:n:u:d:";
+char *short_options = "-hvD:ioCN:V:S:P:e:b:r:q:c:f:g:s:m:l:p:n:u:d:";
 
 /* misc settings */
 #define MAX_CLI_CHARS 9182
@@ -207,22 +263,24 @@ bool take_args(int argc, char **argv) {
       break;
 
     case 'o':
-      if( !mix->set_lineout(false) )
+      /* if( !mix->set_lineout(false) )
 	error("soundcard not present");
       else {
 	act("CLI: soundcard disabled");
 	dspout = false;
-      }
+	} */
+      dspout = false;
       break;
 
     case 'i':
-      if( !mix->set_live(true) )
+      /* if( !mix->set_live(true) )
 	error("soundcard not present");
       else {
 	act("CLI: recording from mic/linein");
 	micrec = true;
-      }
-      break; 
+	} */
+      micrec = true;
+      break;
 
     case 'e':
       encid = 0;
@@ -433,6 +491,37 @@ bool take_args(int argc, char **argv) {
       
       break;
 
+    case 'l':
+      if(!outch) {
+        error("invalid command line argument: server login type");
+        error("you must specify a codec first with the -e option");
+        break;
+      }
+      if(!iceid) {
+        error("invalid command line argument: server login type");
+        error("you must specify a server first with the -s option");
+        break;
+      }
+      int ltype;
+      if(strncasecmp(optarg,"ice1",4)==0)
+	ltype = SHOUT_PROTOCOL_XAUDIOCAST;
+      else if(strncasecmp(optarg,"ice2",4)==0)
+	ltype = SHOUT_PROTOCOL_HTTP;
+      else if(strncasecmp(optarg,"icy",4)==0)
+	ltype = SHOUT_PROTOCOL_ICY;
+      else {
+	error("unrecognized login type: %s",optarg);
+	error("please use one of the following:");
+	error("ice1 = icecast 1, darwin and litestream");
+	error("ice2 = icecast 2 server");
+	error("icy  = shoutcast server");
+	break;
+      }
+      ice = outch->get_ice(iceid);
+      ice->login(ltype);
+      act("CLI: login type set to %s",optarg);
+      break;
+
     case 'p':
       if(!outch) {
         error("invalid command line argument: server password");
@@ -568,12 +657,14 @@ int main(int argc, char **argv) {
   }
   
   mix = new Stream_mixer();
-  if(dspout||micrec)
-    snddev = mix->open_soundcard();
-
+    
   if( !take_args(argc, argv) ) goto QUIT;
 
   check_config();
+
+  if(dspout||micrec) {
+    snddev = mix->open_soundcard(micrec,dspout);
+  }
 
   if(!snddev) {
     warning("no soundcard found");

@@ -140,7 +140,10 @@ void Stream_mixer::register_gui(GUI *reg_gui) {
   gui->set_title(temp);
 }
 
-bool Stream_mixer::open_soundcard() {
+bool Stream_mixer::open_soundcard(bool in, bool out) {
+
+  if(!in && !out) return false;
+
   int format,tstereo,speed,caps; //,val;   
   
   /* can't be nonblocking for correct playing
@@ -202,9 +205,9 @@ bool Stream_mixer::open_soundcard() {
   
   act("mixing 16bit %dHz stereo",speed);
   
-  dspout = true;
+  if(out) dspout = true;
   
-  livein.init(speed, tstereo+1, &dsp);
+  if(in) livein.init(speed, tstereo+1, &dsp);
   
   return(true);
 } /* open_soundcard */
@@ -571,7 +574,9 @@ bool Stream_mixer::set_live(bool stat) {
     return(false);
   }
   
-  if(!((dspout)&&(!fullduplex)&&(stat))) {
+  if(!( (dspout)
+	&&(!fullduplex)
+	&&(stat)) ) {
     lock();
     livein.on = linein = stat;
     unlock();
@@ -586,7 +591,9 @@ bool Stream_mixer::set_lineout(bool stat) {
     return(false);
   }
 
-  if(!((livein.on)&&(!fullduplex)&&(stat))) {
+  if(!( (livein.on)
+	&&(!fullduplex)
+	&&(stat)) ) {
     lock();
     dspout = stat;
     unlock();
@@ -860,7 +867,7 @@ bool Stream_mixer::apply_enc(int id) {
     return false;
   }
 
-  if(!outch->profile_changed) return true;
+  //  if(!outch->profile_changed) return true;
 
   char *qstr = outch->guess_bps();
 
@@ -882,29 +889,26 @@ bool Stream_mixer::apply_enc(int id) {
   return outch->initialized;
 }
 
-/* updchan takes care that any action is taken (channel ends etc.)
-   and updates the gui if registered.
-   this is called only by cafudda while the mixer is locked, so no need to lock
-*/
-bool Stream_mixer::updchan(int ch) {
-  PARACHAN
-    if(chan[ch]->seekable) {
-      snprintf(gui->ch_lcd[ch],9,"%02u:%02u:%02u",
-	       chan[ch]->time.h,chan[ch]->time.m,chan[ch]->time.s);
-      //	if(strncmp(temp,gui->ch_lcd[ch],5)!=0) { // LCD changed */
-      //strncpy(gui->ch_lcd[ch],temp,5);
-      gui->set_lcd(ch, gui->ch_lcd[ch]);
-      //	func("%i: %s %f",ch,gui->ch_lcd[ch],chan[ch]->state);
-      //	}
-      //	if(gui->ch_pos[ch] != chan[ch]->state) { /* POSITION changed */
-      gui->ch_pos[ch] = chan[ch]->state;
-      gui->set_pos(ch, chan[ch]->state);
-      //	}
-    }
-  return(true);
+
+
+void Stream_mixer::updchan(int ch) {
+  if(!chan[ch]) return;
+  if(chan[ch]->seekable) {
+    snprintf(gui->ch_lcd[ch],9,"%02u:%02u:%02u",
+	     chan[ch]->time.h,chan[ch]->time.m,chan[ch]->time.s);
+    //	if(strncmp(temp,gui->ch_lcd[ch],5)!=0) { // LCD changed */
+    //strncpy(gui->ch_lcd[ch],temp,5);
+    gui->set_lcd(ch, gui->ch_lcd[ch]);
+    //	func("%i: %s %f",ch,gui->ch_lcd[ch],chan[ch]->state);
+    //	}
+    //	if(gui->ch_pos[ch] != chan[ch]->state) { /* POSITION changed */
+    gui->ch_pos[ch] = chan[ch]->state;
+    gui->set_pos(ch, chan[ch]->state);
+    //	}
+  }
 }
 
-/* this routine clips audio and calculates volume peak
+/** this routine clips audio and calculates volume peak
    this saves cpu cycles by doing it all in the same iteration   
    featuring an adaptive coefficient for volume and clipping 
    Copyleft (C) 2002 Matteo Nastasi aka mop <nastasi@alternativeoutput.it> */

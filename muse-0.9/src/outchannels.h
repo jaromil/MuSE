@@ -18,6 +18,13 @@
  * "$Id$"
  */
 
+/**
+   @file MuSE Output Channels interface
+   
+   @desc This is the external API offered by OutChannel instances.
+   They are returned by create_enc method found in Stream_mixer.
+*/
+
 #ifndef __OUTCHANNELS_H__
 #define __OUTCHANNELS_H__
 
@@ -30,150 +37,290 @@
 
 #define ENCBUFFER_SIZE 128000 // 65536 // we have ram, isn't it?
 
-/* type of the encoder */
-enum codec { MP3, OGG };
 
+
+/**
+   @enum OutChannel codec type
+   @brief an enum holding the type of encoders available */
+enum codec {
+  MP3, ///< Lame encoder 
+  OGG  ///< Ogg/Vorbis encoder
+};
+
+/**
+
+   Instances of the OutChannel class can be crieated via the method
+   create_enc method found in the Stream_mixer class.
+
+   @class OutChannel   
+   @brief the Output Channel class
+*/
 class OutChannel: public Entry {
 
- private:
-  /* pthread properties and private methods */
-  void _thread_init();
-  void _thread_destroy();
-  bool _thread_initialized;
-  
-  pthread_t _thread;
-  pthread_attr_t _attr;
+  /**
+     @defgroup outchannel OutChannel encoder
 
-  pthread_mutex_t _mutex;
-  pthread_mutex_t _mutex_ice;
-  pthread_cond_t _cond;
-  /* ------------- */
+     The following methods and properties are publicly available
+     to control the behaviour or a OutChannel instance.
 
-  int idseed;
+     OutChannel offers you:
+
+     uniformed settings for the parameters of each codec:
+
+     - bps ( Kbit/s )
+     - freq ( samplerate in Hz )
+     - channels (1 is mono, 2 is stereo)
+     - quality (VALUE from 0.1 to 9.0)
+     - lowpass (lowpass in Hz, only with MP3)
+     - highpass (highpass in Hz, only with MP3)
+
+     methods to create instances of the Shouter class (*_ice)
+     
+     methods to start/stop the file dumping of the encoded audio to a
+     certain file.
+
+     The codec parameters are declared thru defines like INT_SET or
+     CHAR_SET or FLOAT_SET: they basically define two overloaded
+     functions to set and get the named parameter.
+
+     @{
+  */
+
 
  public:
+  /**
+     @brief the OutChannel class constructor 
+     @param myname given at creation by Stream_mixer
+  */
   OutChannel(char *myname);
-  virtual ~OutChannel();
+ 
+  virtual ~OutChannel(); ///< the OutChannel class destructor
 
-  /* INTERESTING THINGS FOR GUI MAKERS FOLLOW:
-     ========================================  */
+  
+  char name[128]; ///< name string of the encoder type (read only)
+  char version[128]; ///< version string of the encoder type (read only)
+  enum codec tipo; ///< codec type (read only)
 
-  /* name and version of the encoder
-     filled up in the constructor */
-  char name[128], version[128];
-  enum codec tipo;
+  bool quit; ///< set to true to exit the OutChannel thread
+  bool running; ///< if true the OutChannel thread is running (read only)
+  bool initialized; ///< if true all buffers have been allocated (read only)
 
-  /* la lista dei server icecast (classe Shouter) */
+
+  //////////////////////////////////////
+  // SHOUTERS
+  //////////////////////////////////////
+  
+  /**
+     @brief Create a Shouter instance
+     @returns ID of the new Shouter instance, or -1 on error
+  */
+  int create_ice();
+
+  /**
+     @brief delete a Shouter with ID
+     @param iceid Shouter ID
+  */
+  bool delete_ice(int iceid);
+
+  /**
+     @brief get a Shouter instance with ID
+     @param iceid Shouter ID
+     @return il puntatore ad uno Shouter
+  */
+  Shouter *get_ice(int iceid);
+
+  /**
+     @brief Applica la configurazione corrente.
+
+     Se gia' connesso, resta connesso
+     
+     @param iceid Shouter ID
+     @return true on success, false otherwise
+  */
+  bool apply_ice(int iceid);
+
+  /** 
+      @brief Connette o disconnette il server ID a seconda del flag.
+      
+      @param iceid Shouter ID
+      @param on on/off flag
+      @return true if connected, false otherwise
+  */
+  bool connect_ice(int iceid, bool on);
+  
+  /** @brief the Linklist of Shouter instances
+      
+  This is directly accessible: position operations on the Linklist class
+  are thread safe.
+  */
   Linklist icelist;
 
-  /*======== ICECAST SHOUTERS
-    crea un server (configurato a default)
-    ritorna l'id del server oppure -1 se c'e' errore*/
-  int create_ice();
-  bool delete_ice(int iceid); /* cancella un server */
-  Shouter *get_ice(int iceid); /* ritorna il puntatore ad un server 
-			       (per settarlo vedi: shouter.h) */
-  bool apply_ice(int iceid); /* applica la configurazione corrente
-			     (se gia' connesso, resta connesso) */
-  bool connect_ice(int iceid, bool on); /* connette o disconnette il server ID
-					a seconda del flag boolean */
+  /////////////////////////////////////
+  // end of Shouters
+  /////////////////////////////////////
 
-  /* ======= ENCODER SETTINGS HERE
-     the following macros declare two functions for each variable:
-     variable(value); assign value to variable
-     variable(); returns value of variable */
-  //  struct settings conf[6+1];
-  INT_SET(bps,_bps); // Kbit/s
-  INT_SET(freq,_freq); // samplerate in Hz
-  INT_SET(channels,_channels); // channels (1 is mono, 2 is stereo)
-  FLOAT_SET(quality,_quality); /* VALUE from 0.1 to 9.0 */
-  INT_SET(lowpass,_lowpass); // lowpass in Hz
-  INT_SET(highpass,_highpass); // highpass in Hz
 
-  /* the following is for semi-internal use
-     (classes instantiated by the specific outchannels */
-  virtual bool apply_profile() =0;
-  bool profile_changed;
 
+  /////////////////////////////////////
+  // ENCODER SETTINGS HERE
+  /////////////////////////////////////
+
+  INT_SET(bps,_bps); ///< Kbit/s
+
+  INT_SET(freq,_freq); ///< samplerate in Hz
+
+  INT_SET(channels,_channels); ///< channels (1 is mono, 2 is stereo)
+
+  FLOAT_SET(quality,_quality); ///< VALUE from 0.1 to 9.0
+
+  INT_SET(lowpass,_lowpass); ///< lowpass in Hz
+
+  INT_SET(highpass,_highpass); ///< highpass in Hz
+
+  /**
+     This method is used internally by the apply_profile()
+
+     It guesses the bps and samplerate parameters of the encoder from
+     quality value, then it renders the quality_desc string with a
+     human readable description of the setting.
+     
+     You can internally tweak this function to modify the mapping
+     of quality values to bps and samplerate.
+
+     @brief setup the bps encoder value
+     @return pointer to quality desc
+  */     
+  char *guess_bps();
   
+  char quality_desc[256]; ///< string rendered to describe the quality of encoding
 
-  /* file dump */
+  /**
+     @brief get the size of encoded audio in bytes
+     @return the size of the encoded audio in bytes
+  */
+  unsigned int get_bitrate() { return bitrate; };
+
+
+
+  ///////////////////////////////////////
+  // DUMP TO FILE
+  ///////////////////////////////////////
+
+  /** 
+      Starts to dump the encoded audio inside a local file.
+      If the file is allready existing, it creates a new one
+      with a slightly different name, without overwriting.
+      If it was allready dumping, it keeps on: to change the
+      filename to another file you must stop and then restart.
+      
+      @brief Start encoding to a file
+      @param file full path to the encoded file, including extension
+      @return true on success, false otherwise
+  */
   bool dump_start(char *file);
+  /**
+     @brief Stop encoding to a file
+     @return true on success, false otherwise
+  */
   bool dump_stop();
 
+  FILE *fd; ///< if non-zero a file is opened for dumping
+  char fd_name[MAX_PATH_SIZE]; ///< full path filename for dumping
 
-
-  /* ========================================= */
-  /* IF YOU ARE DEALING WITH A GUI
-     YOU ARE NOT INTERESTED IN WHAT
-     COMES NEXT TO HERE */
-  /* ========================================= */
-
-  char *guess_bps();
-  char quality_desc[256];
-
-  /* this returns the size of the encoded audio in bytes
-     TODO: must return the size of the total streamed bytes */
-  unsigned int get_bitrate() { return bitrate; };
   
-  /* TODO? float buffered() to return buffered percentage */
+  // end of the OutChannel public interface
+  /// @}
 
-  /* === virtual functions implemented by the encoder
-     used by run() method */
-  virtual bool init() = 0;
-  virtual int encode() =0;
-  virtual void flush() =0;
+
+  ///////////////////////////////////
+  // IF YOU ARE DEALING WITH A GUI
+  //  YOU ARE NOT INTERESTED IN WHAT
+  // COMES NEXT TO HERE
+  ///////////////////////////////////
+
+
+  /**     
+	  Used to activate the settings, after every change.
+
+	  To be able to change the OutChannel settings on the fly
+	  while encoding thread is running you should never call this
+	  directly, but only thru the Stream_mixer::apply_enc method.
+
+	  This is a pure virtual function, the implementation is defined
+	  inside the codec classes inheriting OutChannel.
+	  
+	  @brief apply changes to the parameters // INTERNAL USE, use Stream_mixer::apply_enc instead
+	  @return true on success, false otherwise
+  */
+  virtual bool apply_profile() =0;
+
+  
+  virtual bool init() = 0; ///< pure virtual function (INTERNAL)
+  virtual int encode() =0; ///< pure virtual function (INTERNAL)
+  virtual void flush() =0; ///< pure virtual function (INVERNAL)
+
+
   /* === */
-  int shout(); /* strimma fuori l'encodato a tutti gli icecast - USO INTERNO */
-  bool dump(); /* scrive fuori l'encodato nel file - USO INTERNO */
-  FILE *fd;
-  char fd_name[MAX_PATH_SIZE];
+  int shout(); ///< strimma fuori l'encodato a tutti gli Shouter // INTERNAL USE by run()
+  bool dump(); ///< scrive fuori l'encodato nel file // INTERNAL USE by run()
 
-  /* feeds into the pipe in case there is need to encode
-     internal use, from jmixer.cpp
-     RETURNS: 
-         int>0 = quantity of data pushed into the pipe
-	 0 = no need to feed in data: no encoding is configured
-	 -1 = pipe locked, wait a bit */
-  void push(void *data, int len);
-  /* this is where it sucks from the audio to be encoded
-     internal use! */
-  Pipe *erbapipa;
-
-  bool encoding; /* flag checked by run, (streaming||fd) ? true : false */
+  /**
+     @brief feeds the pipe for encoding // INTERNAL USE by jmixer.cpp carfudda()
+     @param data audio buffer to be encoded
+     @param len length in bytes of audio buffer to encode
+     @return
+     - int>0 = quantity of data pushed into the pipe
+     - 0 = no need to feed in data: no encoding is configured
+     - -1 = pipe locked, wait a bit
+  */
+  void push(void *data, int len);  
+  Pipe *erbapipa; ///< Pipe instance to feed the encoder // INTERNAL USE by run()
+  bool encoding; ///< flag checked by run, (streaming||fd) ? true : false // INTERNAL USE by run()
 
   /* pthread methods */
-  void start();
-  void run();
-  void lock() { pthread_mutex_lock(&_mutex); };
-  void unlock() { pthread_mutex_unlock(&_mutex); };
-  void lock_ice() { pthread_mutex_lock(&_mutex_ice); };
-  void unlock_ice() { pthread_mutex_unlock(&_mutex_ice); };
-  void wait() { pthread_cond_wait(&_cond,&_mutex); };
-  void signal() { pthread_cond_signal(&_cond); };
+  void start(); ///< start OutChannel thread
+  void run(); ///< running loop called by start()
+  void lock() ///< lock OutChannel main thread mutex
+    { pthread_mutex_lock(&_mutex); };
+  void unlock() { pthread_mutex_unlock(&_mutex); }; ///< unlock OutChannel main thread mutex
+  void wait() { pthread_cond_wait(&_cond,&_mutex); }; ///< wait for OutChannel thread signal
+  void signal() { pthread_cond_signal(&_cond); }; ///< launch the OutChannel thread signal
+  void lock_ice() { pthread_mutex_lock(&_mutex_ice); }; ///< lock Shouters thread
+  void unlock_ice() { pthread_mutex_unlock(&_mutex_ice); }; ///< unlock Shouters thread
   void destroy() { _thread_destroy(); };
+  ///< destroy the OutChannel thread // INTERNAL USE, use quit = true instead
+  /* ------------- */  
+
+  int16_t buffer[ENC_BUFFER]; ///< buffer holding the encoded audio
+
+ private:
+
+
+  /* pthread properties and private methods */
+  void _thread_init(); ///< pthread_init
+  void _thread_destroy(); ///< pthread_destroy
+  bool _thread_initialized; ///< is_pthread_initialized
+  
+  pthread_t _thread; ///< thread pointer
+  pthread_attr_t _attr; ///< thread attribute
+  pthread_mutex_t _mutex; ///< OutChannel thread mutex
+  pthread_mutex_t _mutex_ice; ///< Shouters thread mutex
+  pthread_cond_t _cond; ///< OutChannel thread condition
   /* ------------- */
 
-
-
-  bool quit;
-  bool running;
-  bool initialized; /* buffers have been allocated */
-  
-
-  /* this is where the encoded ends up, and
-     int encoded is how much */
-  int16_t buffer[ENC_BUFFER];
+  int idseed; ///< unique ID pseudo-random seed
 
  protected:
-  static void* kickoff(void *arg) { ((OutChannel *) arg)->run(); return NULL; };
 
-  /* bitrate stuff */
-  bool calc_bitrate(int enc);
-  int encoded;
-  int bitrate;
-  double now, prev;
-  unsigned int bytes_accu;
+  static void* kickoff(void *arg) { ((OutChannel *) arg)->run(); return NULL; };
+  ///< kickoff the thread
+
+  bool calc_bitrate(int enc); ///< bitrate calculus
+  int encoded; ///< encoded buffer size in bytes
+  int bitrate; ///< bits per second
+  double now; ///< time now (for bitrate calculus)
+  double prev; ///< time previous encoding (for bitrate calculus)
+  unsigned int bytes_accu; ///< bytes accuracy
 
 };
 

@@ -26,6 +26,9 @@ extern "C" {
 #include <stdio.h>
 #include <string.h>
 
+  /**
+     @file generic utilities
+  */
 
 #define MAX_DEBUG 2
 
@@ -33,6 +36,9 @@ extern "C" {
 		  ci sono le funzioni chiamate */
 #define WARN 1 /* ... blkbblbl */
 
+  /**
+     Macro declaration of parameters 
+  */
 #define CHAR_SET(func,var) \
 char var[MAX_VALUE_SIZE]; \
 void func(char *in) { \

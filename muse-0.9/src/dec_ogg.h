@@ -19,6 +19,11 @@
  *
  */
 
+/**
+   @file Ogg/Vorbis decoder
+   @desc input channel: decoder implemenation
+*/
+
 #ifndef __IN_OGGVORBIS_H__
 #define __IN_OGGVORBIS_H__
 
@@ -34,8 +39,16 @@ extern "C" {
 #include <vorbis/vorbisfile.h>
 }
 
-/* OggVorbis Channel // ogg-vorbis decoding */
+/**
+   Instances of the Ogg/Vorbis codec are created internally by the
+   Channel class, publicly available interface to the creation is in
+   Stream_mixer class. You should be investigating this as an example
+   only if you are interested in implementing new input Channel
+   decoders.
 
+   @class MuseDecOgg
+   @brief Ogg/Vorbis decoder
+*/
 class MuseDecOgg: public MuseDec {
  private:
   OggVorbis_File   vf;

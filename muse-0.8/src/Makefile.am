@@ -1,6 +1,8 @@
-SUBDIRS = resample shout libmpeg @GUI_DIRS@
+SUBDIRS = resample @LIBSHOUT_DIR@ libmpeg @GUI_DIRS@
 
-INCLUDES = -I/usr/X11R6/include @GUI_FLAGS@ -I$(top_srcdir)/src/ncursesgui
+INCLUDES = -I@LIBSHOUT_DIR@ -I/usr/X11R6/include -Incursesgui
+
+CFLAGS = @GUI_FLAGS@
 
 bin_PROGRAMS = muse
 
@@ -24,5 +26,14 @@ muse_SOURCES =  \
 
 muse_DEPENDENCIES = @GUI_DEPS@
 
-muse_LDADD = $(top_srcdir)/src/resample/libresample.a $(top_srcdir)/src/shout/libshout.a $(top_srcdir)/src/libmpeg/libmpeg.a -lpthread @M_LIBS@ @LAME_LIBS@ @OGG_LIBS@ @VORBIS_LIBS@ @GUI_LIBS@
+muse_LDADD = \
+	$(top_srcdir)/src/resample/libresample.a \
+	$(top_srcdir)/src/libmpeg/libmpeg.a \
+	-lpthread \
+	@LIBSHOUT_LIB@ \
+	@M_LIBS@ \
+	@LAME_LIBS@ \
+	@OGG_LIBS@ \
+	@VORBIS_LIBS@ \
+	@GUI_LIBS@
 

@@ -7,7 +7,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2004-02-13 17:22+0100\n"
+"POT-Creation-Date: 2004-03-27 11:25+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -139,7 +139,7 @@ msgstr ""
 msgid "Dock Channel"
 msgstr ""
 
-#: ../src/gtkgui2/docking.cpp:102 ../src/gtkgui2/gchan.cpp:298
+#: ../src/gtkgui2/docking.cpp:102 ../src/gtkgui2/gchan.cpp:302
 msgid "Undock Channel"
 msgstr ""
 
@@ -243,7 +243,7 @@ msgstr ""
 msgid "enc_get finished"
 msgstr ""
 
-#: ../src/gtkgui2/encoder.cpp:451 ../src/gtkgui2/ice.cpp:496
+#: ../src/gtkgui2/encoder.cpp:451 ../src/gtkgui2/ice.cpp:501
 msgid "You should insert a name for this profile"
 msgstr ""
 
@@ -280,7 +280,7 @@ msgstr ""
 msgid "gcb_set_filedump:: Not a valid filename"
 msgstr ""
 
-#: ../src/gtkgui2/filedump.cpp:134 ../src/gtkgui2/gchan.cpp:609
+#: ../src/gtkgui2/filedump.cpp:134 ../src/gtkgui2/gchan.cpp:613
 msgid "You have to insert a filename!!"
 msgstr ""
 
@@ -315,83 +315,83 @@ msgstr ""
 msgid "Forward Channel"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:185
+#: ../src/gtkgui2/gchan.cpp:189
 msgid "VOL"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:189 ../src/gtkgui2/gchan.cpp:199
+#: ../src/gtkgui2/gchan.cpp:193 ../src/gtkgui2/gchan.cpp:203
 msgid "100"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:197
+#: ../src/gtkgui2/gchan.cpp:201
 msgid "Speed"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:274
+#: ../src/gtkgui2/gchan.cpp:278
 msgid "single play"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:277
+#: ../src/gtkgui2/gchan.cpp:281
 msgid "loop"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:280
+#: ../src/gtkgui2/gchan.cpp:284
 msgid "continuous"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:329
+#: ../src/gtkgui2/gchan.cpp:333
 #, c-format
 msgid "GTK_GUI::spawnfilew : filebrowser for chan[%u]"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:331
+#: ../src/gtkgui2/gchan.cpp:335
 msgid "Select a .mp3 file or a playlist (.pl)"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:356
+#: ../src/gtkgui2/gchan.cpp:360
 msgid "Listen to a network stream"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:374
+#: ../src/gtkgui2/gchan.cpp:378
 msgid "Insert http source:"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:406
+#: ../src/gtkgui2/gchan.cpp:410
 msgid "You have to insert an url!!"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:410
+#: ../src/gtkgui2/gchan.cpp:414
 #, c-format
 msgid "httpinsert() url is %s"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:412
+#: ../src/gtkgui2/gchan.cpp:416
 msgid "GTK_GUI:: httpinsert problem adding url"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:413
+#: ../src/gtkgui2/gchan.cpp:417
 msgid "Problem adding url"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:505
+#: ../src/gtkgui2/gchan.cpp:509
 msgid "KO for playing :("
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:509
+#: ../src/gtkgui2/gchan.cpp:513
 msgid "ok for playing"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:604
+#: ../src/gtkgui2/gchan.cpp:608
 #, c-format
 msgid "GTK_GUI::gcb_add_file : idx %u"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:616
+#: ../src/gtkgui2/gchan.cpp:620
 #, c-format
 msgid "gcb_add_file:: mixer->add_to_playlist(%u, %s) failed"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:618
+#: ../src/gtkgui2/gchan.cpp:622
 msgid "Problem adding file :\\"
 msgstr ""
 
@@ -511,20 +511,15 @@ msgstr ""
 msgid "listrunner doesn't exist"
 msgstr ""
 
-#: ../src/gtkgui2/ice.cpp:405
+#: ../src/gtkgui2/ice.cpp:406
 msgid "login() gtk error :("
 msgstr ""
 
-#: ../src/gtkgui2/ice.cpp:423
-#, c-format
-msgid "ice_fill:: logintype = %s"
-msgstr ""
-
-#: ../src/gtkgui2/ice.cpp:448
+#: ../src/gtkgui2/ice.cpp:453
 msgid "wrong values in icecast configuration"
 msgstr ""
 
-#: ../src/gtkgui2/ice.cpp:453
+#: ../src/gtkgui2/ice.cpp:458
 msgid "Connection failed"
 msgstr ""
 

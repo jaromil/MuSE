@@ -36,7 +36,9 @@ Shouter::Shouter()
   */
 
   ice = shout_new();
-
+  
+  //  to do this, more of the code must be changed
+  //  shout_set_nonblocking(ice,1);
 
   running = false;
   retry = 0;
@@ -48,7 +50,7 @@ Shouter::Shouter()
   port(8000);
   pass("hackme");
   mount("live");
-  login(1);
+  login(SHOUT_PROTOCOL_HTTP); // defaults to icecast 2 login now
   name("Streaming with MuSE");
   url("http://muse.dyne.org");
   desc("Free Software Multiple Streaming Engine");
@@ -68,22 +70,29 @@ bool Shouter::start() {
   switch(login()) {
   case SHOUT_PROTOCOL_HTTP: sprintf(srv,"icecast2"); break;
   case SHOUT_PROTOCOL_ICY: sprintf(srv,"shoutcast"); break;
-  default: sprintf(srv,"icecast"); break;
+  default: sprintf(srv,"icecast 1"); break;
   }
 
-  if(running) return(true);
+  if(shout_get_connected(ice)) {
+    // if allready connected, reconnect
+    func("icecast still connected: disconnecting");
+    shout_close(ice);
+    shout_sync(ice);
+  }
   
   notice("Contacting %s server %s on port %u",srv,host(),port());
   
   res = shout_open(ice);
   func("Shouter::start() shout_open returns %i",res);
-  //  shout_sync(ice);
+  shout_sync(ice);
   
   if(res==SHOUTERR_SUCCESS) {
     notice("started streaming on %s",streamurl);
     running = true;
   } else {
     error("shout_open: %s",shout_get_error(ice));
+    shout_close(ice);
+    shout_sync(ice);
     running = false;
   }
   
@@ -162,7 +171,7 @@ bool Shouter::apply_profile() {
     error("shout_set_public: %s",shout_get_error(ice));
 
   if( shout_set_protocol(ice,login()) )
-    error("shout_set_protocol: %s",shout_get_error(ice));
+    error("shout_set_protocol %i: %s",login(),shout_get_error(ice));
 
   if( shout_set_format(ice,format) )
     error("shout_set_format: %s",shout_get_error(ice));
