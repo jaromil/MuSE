@@ -423,7 +423,10 @@ void Basic_scheduler::start_mixer_channel( Url *rec )
 	chan = atoi(p) -1 ;
 	notice("Basic_scheduler::start_mixer_channel %d", chan);
 	
-	if (chan>0 &&chan<MAX_CHANNELS) mixer->chan[chan]->start();
+	if (chan>0 &&chan<MAX_CHANNELS) {
+        mixer->set_channel(chan, 1/*pos*/);
+        mixer->play_channel(chan);
+    }
 }
 
 void Basic_scheduler::stop_mixer_channel( Url *rec )
@@ -439,12 +442,14 @@ void Basic_scheduler::stop_mixer_channel( Url *rec )
 	chan = atoi(p) -1 ;
 	notice("Basic_scheduler::stop_mixer_channel %d", chan);
 	
-	if (chan>0 &&chan<MAX_CHANNELS) mixer->chan[chan]->stop();
+	if (chan>0 &&chan<MAX_CHANNELS) {
+        mixer->stop_channel(chan);
+    }
 }
 
 void Basic_scheduler::start_channel( Url *rec )
 {
-    if (playing && strstr(rec->path,MUSE_URL)) {
+    if (strstr(rec->path,MUSE_URL)) {
         start_mixer_channel(rec);
     } else {
         start_inner_channel(rec);
