@@ -1,8 +1,8 @@
 SUBDIRS = resample shout libmpeg portaudio @GUI_DIRS@
 
-INCLUDES = -Ishout -Iportaudio -I/usr/X11R6/include -Incursesgui @GLIB2_CFLAGS@
+INCLUDES = -Ishout -Iportaudio -I/sw/include -I/usr/X11R6/include -Incursesgui @GLIB2_CFLAGS@
 
-CFLAGS = @GUI_FLAGS@  @JACK_CFLAGS@
+CFLAGS = @GUI_FLAGS@  @JACK_CFLAGS@ @OGG_CFLAGS@ @VORBIS_CFLAGS@
 
 bin_PROGRAMS = muse
 
@@ -49,5 +49,6 @@ muse_LDADD = \
 	@GUI_LIBS@ \
 	@SNDFILE_LIBS@ \
 	@GLIB2_LIBS@ \
-	@JACK_LIBS@
+	@JACK_LIBS@ \
+	@DARWIN_LIBS@
 

@@ -254,54 +254,6 @@ private:
 };
 
 
-class Rawtofile : public Soundplayer
-{
-public:
-  ~Rawtofile();
-
-  bool initialize(char *filename);
-  bool setsoundtype(int stereo,int samplesize,int speed);
-  bool putblock(void *buffer,int size);
-
-private:
-  int filehandle;
-  int rawstereo,rawsamplesize,rawspeed;
-};
-
-// Class for playing raw data
-class Rawplayer : public Soundplayer
-{
-public:
-  ~Rawplayer();
-
-  bool initialize(char *filename);
-  void abort(void);
-  int  getprocessed(void);
-
-  bool setsoundtype(int stereo,int samplesize,int speed);
-  bool resetsoundtype(void);
-
-  bool putblock(void *buffer,int size);
-
-  int  getblocksize(void);
-
-  void setquota(int q){quota=q;};
-  int  getquota(void) {return quota;};
-
-  static char *defaultdevice;
-  static int  setvolume(int volume);
-
-private:
-  short int rawbuffer[RAWDATASIZE];
-  int  rawbuffersize;
-  int  audiohandle,audiobuffersize;
-  int  rawstereo,rawsamplesize,rawspeed;
-  bool forcetomono,forceto8;
-  int  quota;
-};
-
-
-
 /*********************************/
 /* Data format converter classes */
 /*********************************/

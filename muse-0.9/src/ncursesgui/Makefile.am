@@ -1,4 +1,4 @@
-INCLUDES = -I$(top_srcdir)/src -Ilibcdk
+INCLUDES = -I$(top_srcdir)/src -I/sw/include -Ilibcdk
 
 noinst_LIBRARIES = librubik.a
 
