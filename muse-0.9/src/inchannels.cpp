@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <errno.h>
 
 /* mixing and audioprocessing algorithms*/
 #include <audioproc.h>
