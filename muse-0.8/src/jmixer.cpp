@@ -722,6 +722,14 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
     return(true);
   }
   
+  /* if it's a local file url (like gnome d&d)
+     strip away the file:// and treat it normally */
+  if(strncasecmp(file,"file://",7)==0) {
+    strncpy(temp,&file[7],MAX_PATH_SIZE);
+    func("QUAAA %s",temp);
+  }
+    
+  
   /* if it's not a stream, check if the file exists and it's readable */
   FILE *fd = NULL;
   fd = fopen(temp,"r");
