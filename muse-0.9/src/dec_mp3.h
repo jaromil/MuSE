@@ -19,31 +19,36 @@
  *
  */
 
-#ifndef __IN_MPEG_H__
-#define __IN_MPEG_H__
+#ifndef __DEC_MP3_H__
+#define __DEC_MP3_H__
 
-#include <inchannels.h>
+#include <decoder.h>
+#include <config.h>
 
 /* mpeg lib (splay) */
 #include <libmpeg/mpegsound.h>
 
 /* Mpeg Channel // MPEG-1 layer 1,2,3 and MPEG-2 layer 3 */
 
-class MpegChannel: public Channel {
+class MuseDecMp3: public MuseDec {
  private:
   Soundinputstream *loader;
   Mpegtoraw *server;
-  IN_DATATYPE *_get_audio();
+
   int framesize;
   int chunk_smp;
-  
+
+  char _file[MAX_PATH_SIZE];
+
  public:
-  MpegChannel();
-  ~MpegChannel();
+  MuseDecMp3();
+  ~MuseDecMp3();
   
   int load(char *file);
-  bool pos(float pos);
+  bool seek(float pos);
   void clean();
+
+  IN_DATATYPE *get_audio();
 
 };
 

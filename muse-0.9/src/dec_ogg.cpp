@@ -19,93 +19,73 @@
  *
  */
 
-#include <in_oggvorbis.h>
+
+#include <dec_ogg.h>
+#include <jutils.h>
+#include <config.h>
 
 #ifdef HAVE_VORBIS
 
-#include <jutils.h>
-#include <generic.h>
+/* ----- OggVorbis input channel ----- */
 
-/* ----- OggVorbis Channel ----- */
-
-OggChannel::OggChannel() : Channel() {
-  func("OggChannel::OggChannel()");
-  type = OGGCHAN;
+MuseDecOgg::MuseDecOgg() : MuseDec() {
+  func("MuseDecOgg::MuseDecOgg()");
 
   old_section = current_section = -1;
 
   oggfile = NULL;
+
+  strncpy(name,"Ogg",4);
 }
 
-OggChannel::~OggChannel() {
-  func("OggChannel::~OggChannel()");
-  if(on) stop();
-  clean();
-}
-
-void OggChannel::clean() {
+MuseDecOgg::~MuseDecOgg() {
+  func("MuseDecOgg::~MuseDecOgg()");
   ov_clear(&vf);
 }
 
-IN_DATATYPE *OggChannel::_get_audio() {
+IN_DATATYPE *MuseDecOgg::get_audio() {
   int res;
 
-  samples = 0;
   old_section = current_section;  
   
-  if(seekable)
+  if(seekable) {
     /* we check the position here 'cause ov_pcm_tell returns the NEXT frame */
     framepos = ov_pcm_tell(&vf);
+    fps = samplerate;
+  }
 
   res = 
     ov_read(&vf, _inbuf, IN_CHUNK, 0, 2, 1, &current_section);
   
   if(res<0) {
-    warning("OggChannel:_get_audio() : bitstream error");
-    state = 3.0;
+    warning("MuseDecOgg:_get_audio() : bitstream error");
+    err = true;
     return(NULL);
   }
 
   if((res==0)||(old_section != current_section && old_section != -1)) {
-    /* with this we check when entering into a new logical bitstream */
-    func("%s %s %i",__FILE__,__FUNCTION__,__LINE__);
-    func("oggvorbis channel enters a new logical bitstream");
-    state = 2.0;
-    func("returning NULL with state %.1f",state);
+    // with this we check when entering into a new logical bitstream
+    eos = true;
     return(NULL);
-  }    
-
-  //  if(res==0) { state = 2.0; return(NULL); }
+  }
 
   frames = res>>1;
 
-  if(seekable)
-    state = upd_time();
-  else state = 0.0;
-  
   return((IN_DATATYPE *)_inbuf);
 }
 
-int OggChannel::load(char *file) {
+int MuseDecOgg::load(char *file) {
   int res = 0;
-
-  lock();
-  on = false;
-
-  if(opened)
-    clean();
 
   oggfile = fopen(file,"rb");
   if(oggfile==NULL) {
-    error("OggChannel::set(%s) : can't open file",file);
-    unlock();
+    error("MuseDecOgg::open(%s) : can't open file",file);
     return(res);
   }
 
   if(ov_open(oggfile,&vf,NULL,0) < 0) {
-    error("OggChannel::set(%s): not a valid OggVorbis audio stream",file);
+    error("MuseDecOgg::open(%s): not a valid OggVorbis audio stream",file);
     fclose(oggfile);
-    unlock();
     return(res);
   }
 
@@ -116,21 +96,8 @@ int OggChannel::load(char *file) {
   channels = vi->channels;
   seekable = ov_seekable(&vf);
 
-  if(!set_resampler()) {
-    error("OggChannel::set(%s) : set_mixer() reported failure",file);
-    clean();
-    unlock();
-    return(res);
-  } 
-
   /* pcm position */
   framepos = 0;
-  /* that's a bit shamanic but works fine for me */
-  fps = samplerate;
-  /* time position */
-  time.h = time.m = time.s = 0;
-  /* floating point position */
-  position = time.f = 0.0;
 
   /* check if seekable */
   res = (ov_seekable(&vf)) ? 1 : 2;
@@ -139,35 +106,26 @@ int OggChannel::load(char *file) {
   if(seekable)
     frametot = ov_pcm_total(&vf,-1);
 
-  opened = true;
-  quit = false;
-
-  func("OggChannel::set : samplerate[%u] channels[%u]%sseekable",
-       samplerate,channels,(seekable)?" ":" non ");
-  
-  unlock();
- 
   return(res);
 }
 
-bool OggChannel::pos(float pos) {
+bool MuseDecOgg::seek(float pos) {
 
   if(pos==0.0) {
     if(ov_pcm_seek(&vf,1)!=0) {
-      error("OggChannel::pos : error in ov_pcm_seek(%p,1)",&vf);
+      error("MuseDecOgg::pos : error in ov_pcm_seek(%p,1)",&vf);
       return(false);
     }
+
   } else {
+
     if(ov_pcm_seek_page(&vf,(ogg_int64_t)((double)frametot * pos))!=0) {
-      error("OggChannel::play : error in ov_pcm_seek_page(%p,%u)",
-	    (ogg_int64_t)((double)frametot * position));
+      error("MuseDecOgg::play : error in ov_pcm_seek_page(%p,%u)",
+	    (ogg_int64_t)((double)frametot * pos));
       return(false);
     }
   }
-  time.f = position = pos;
 
-  fill_prev_smp = true;
-  
   return(true);
 }
 

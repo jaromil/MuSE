@@ -31,7 +31,8 @@
 
 /* muse generic tweakin headers */
 #include <generic.h>
-
+#include <decoder.h>
+#include <playlist.h>
 #include <pipe.h>
 
 struct timecode {
@@ -54,11 +55,8 @@ typedef int (Resampler )(IN_DATATYPE*, IN_DATATYPE*, IN_DATATYPE*, unsigned num,
 class Channel {
 
  private:
-  /* decode audio */
-  virtual IN_DATATYPE *_get_audio() = 0;
-
   /* resample */
-  IN_DATATYPE *_resample(IN_DATATYPE *audio);
+  IN_DATATYPE *resample(IN_DATATYPE *audio);
   /* resampling buffer */
   IN_DATATYPE buffo[IN_CHUNK*32];
   /* saved samples for interpolation */
@@ -69,33 +67,60 @@ class Channel {
   /* pthread stuff */
   void _thread_init();
   void _thread_destroy();
-  
   pthread_t _thread;
   pthread_attr_t _attr;
-
   pthread_mutex_t _mutex;
   pthread_cond_t _cond;
   /* ------------- */
+
+  /* total seconds */
+  int secs;
 
  public:
   Channel();
   virtual ~Channel();
 
-  /* set has to return:
-     0 = error
-     1 = stream is seakable
-     2 = stream is not seekable
-  */
-  virtual int load(char *file) = 0;
-  virtual bool pos(float pos) = 0;
-  virtual void clean() =0;
 
   bool play();
   bool stop();
+
+  /* the followings are wrappers for methods
+     implemented inside the decoder classes
+     means that to do a new decoder you have just
+     to implement the following public methods in
+     your class (inheriting Decoder from decoder.h) */
+
+  MuseDec *dec; /* that's the decoder object superclass
+		   the specific implementation is instantiated in load()
+		   where it is recognized by parsing the filename
+		   TODO: better ways to recognize file/stream types */
+
+  /* load returns:
+     0 = error
+     1 = stream is seakable
+     2 = stream is not seekable  */  
+  virtual int load(char *file);
+
+  /* seek takes from 0.0 to 1.0 float position */
+  virtual bool pos(float pos);
+
+  /* clean cleanups variables and destroys floating
+     buffers in the decoder implementation */
+  virtual void clean();
+  
+  /* ============== end of decoder implementation wrappers */
+
+
+  void skip();
   float upd_time();
-  bool set_resampler();
+  void upd_eos();
+  void upd_err();
+
+  bool set_resampler(MuseDec *ndec);
 
   void report(); // DEBUGGING PURPOSES: call it to print out channel state
+
+  Playlist *playlist;
 
   Pipe *erbapipa;
 
@@ -108,27 +133,28 @@ class Channel {
 
   /* 0.0 - 1.0 oppure 2.0 se EOF, 3.0 se errore */
   float state;
-
+  /*
   int samplerate;
   int channels;
   int bitrate;
+  */
+  
+  /* frames and samples after resampling to 44khz
+     samples = number of 44khz stereo samples */
   int frames;
   int samples;
-  
+
   uint8_t playmode;
 
   bool opened;
   bool on;
-  bool paused;
   bool update;
   bool seekable;
   bool running;
   bool quit;
   bool fill_prev_smp;
 
-  int frametot, framepos, fps;  
-
-  int type;
+  //  int frametot, framepos, fps;  
 
   /* pthread stuff */
   void start() {

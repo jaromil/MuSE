@@ -38,7 +38,7 @@
 #include <inchannels.h>
 #include <outchannels.h>
 #include <gui.h>
-#include <playlist.h>
+//#include <playlist.h>
 
 #include <generic.h>
 
@@ -57,7 +57,7 @@ class Stream_mixer {
 
   int idseed;
 
-  void updchan(int ch);
+  bool updchan(int ch);
   void clip_audio(int samples);
   
   OutChannel *out; /* pointer for internal use */
@@ -88,34 +88,34 @@ class Stream_mixer {
   bool create_channel(int ch);
 
   bool add_to_playlist(int ch, const char *file); /* this adds a playlist to the channel
-						     can be many kinds of files:
-						     1) .mp3 single files
-						     2) .ogg single files
-						     3) .pls | .pl | .m3u playlists
-						     4) http:// mp3 streams
-						     5) directory/ 
-						        (recusively adding recognized contents) */
+					       can be many kinds of files:
+					       1) .mp3 single files
+					       2) .ogg single files
+					       3) .pls | .pl | .m3u playlists
+					       4) http:// mp3 streams
+					       5) directory/ 
+					       (recusively adding recognized contents) */
   void rem_from_playlist(int ch, int pos);
 
-  int set_channel(int ch, int playlist_pos);
+  bool set_channel(int ch, int playlist_pos);
 
-  void delete_channel(int ch);
+  bool delete_channel(int ch);
 
-  bool play_channel(int ch);
+  int play_channel(int ch);
 
   bool stop_channel(int ch);
 
-  void pause_channel(int ch);
+  bool pause_channel(int ch); /* switch state true|false */
 
-  void pause_channel(int ch, bool stat);
+  bool pause_channel(int ch, bool stat); /* set state true|false */
 
   void set_all_volumes(float *vol);
 
-  void set_volume(int ch, float vol);
+  bool set_volume(int ch, float vol);
 
   void crossfade(int ch1, float vol1, int ch2, float vol2);
 
-  void set_playmode(int ch, int mode); /* this can take a value from 0 to 2:
+  bool set_playmode(int ch, int mode); /* this can take a value from 0 to 2:
 					  LOOP, CONT, PLAY */
 
   /* VERY EXPERIMENTAL */ void set_speed(int ch, int speed);
@@ -133,7 +133,7 @@ class Stream_mixer {
      returns the ID of the encoder (keep it!)
      returns -1 on ERROR */
   int create_enc(enum codec enc); /* enc value can be MP3 or OGG
-				is a enum defined in outchannels.h */
+				     is a enum defined in outchannels.h */
   void delete_enc(int id);
   OutChannel *get_enc(int id); /* returns the encoder object
 				  used to configure its settings */
@@ -156,13 +156,17 @@ class Stream_mixer {
 
   /* channels and playlists */
   Channel *chan[MAX_CHANNELS];
-  Playlist playlist[MAX_CHANNELS];
+  //  Playlist playlist[MAX_CHANNELS];
 
   /* live soundcard input */
   LiveIn livein;
 
   /* encoder outchannels */
   Linklist outchans;
+  /* the following are here filled with the first two
+     encoder channels created. this is for backward
+     compatibility with the existing GUIs, the encoders
+     can be as many as you want! */
   OutChannel *lame;
   OutChannel *ogg;
   

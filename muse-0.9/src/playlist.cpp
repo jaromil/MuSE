@@ -35,7 +35,6 @@ Url::~Url() {
 
 Playlist::Playlist()
   : Linklist() {
-  filename = NULL;
 }
 
 Playlist::~Playlist() {
@@ -43,20 +42,19 @@ Playlist::~Playlist() {
 }
 
 void Playlist::cleanup() {
-  int c;
   Url *p = (Url*)begin();
   while(p!=NULL) {
-    c++;
     rem(1);
     delete p;
     p = (Url*) begin();
   }
   clear();
-  if(filename) free(filename);
 }
 
 char *Playlist::addurl(const char *file) {
   Url *url = new Url(file);
+  if(!url)
+    error("%i:%s %s url is NULL",__LINE__,__FILE__,__FUNCTION__);
   append((Entry*)url);
   return(url->path);
 }
@@ -73,6 +71,13 @@ char *Playlist::song(int pos) {
   if(sel) return(sel->path);
   
   warning("Playlist::song(%i) : invalid song requested",pos);
+  return NULL;
+}
+
+char *Playlist::selection() {
+  Url *sel = (Url*) selected();
+  if(sel) return(sel->path);
+  warning("Playlist::selected() : no selection");
   return NULL;
 }
 

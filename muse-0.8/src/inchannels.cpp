@@ -39,6 +39,14 @@
 #include <config.h>
 #include <generic.h>
 
+#ifdef HAVE_VORBIS
+#include <dec_ogg.h>
+#endif
+#include <dec_mp3.h>
+
+//#ifdef DEBUG
+#define PARADEC if(!dec) error("%s:%s %i :: decoder is NULL",__FILE__,__FUNCTION__,__LINE__);
+//#endif
 
 /* ----- Parent Class Channel ----- */
 
@@ -56,87 +64,95 @@ Channel::Channel() {
   on = false;
   update = false;
   running = false;
-  seekable = false;
-  bitrate = samplerate = 0;
   quit = true;
+
   _thread_init();
   erbapipa = new Pipe(IN_PIPESIZE);
+  playlist = new Playlist();
+  dec = NULL;
   fill_prev_smp = true;
   lcd[0] = '\0';
-  unlock();
 }
 
 Channel::~Channel() {
   func("Channel::~Channel()");
 
   /* paranoia */
-  lock();
-  on = false;
+  //stop();
+  //  clean();
   quit = true;
-  unlock();
   
-  while(running) jsleep(0,100);
+  while(running) jsleep(0,20);
 
   /* clean up specific channel implementation */
 
-  opened = false;
-  
   delete erbapipa;
+  delete playlist;
+  if(dec) delete dec;
 
   _thread_destroy();
 }
 
 void Channel::run() {
-  //  jsleep(0,100);
-
 
   IN_DATATYPE *buff; // pointer to buffers to pass them around
   lock();
   func("InChanThread! here i am");
+  running = true;
   unlock();
   signal(); // signal to the parent thread we are born!
 
-
-  if(!opened) {
-    warning("InChanThread! Channel::run() : channel uninitialized, thread won't start");
-    return;
-  }
-
-  running = true;
   quit = false;
 
   while(!quit) {
-    lock();
-
-    /* now call get_audio() which sets up:
-       state = actual state (0.0-1.0 || 2.0 || 3.0)
-       samples = number of decoded samples
-       frames = number of decoded 16bit frames
-       and returns *IN_DATATYPE pointing to decoded buffer */
-    buff = _get_audio();
-
-    if(state>1.0) {
-      unlock(); jsleep(0,50); continue; } /* end of stream?
-					     wait that somebody updates the state */
-
+    
+    if(on) {
+      PARADEC
+      dec->lock();
+      /* now call get_audio() which
+	 returns the *IN_DATATYPE pointer to filled buffer
+	 setting up the following parameters:
+         dec->state = 0.0-1.0 is the position of the stream
+                      2.0 means end of the stream
+	  	      3.0 means error decoding stream
+	 dec->frames  is updated with number of decoded 16bit frames (double if stereo)
+	 dec->samplerate and dec->channels tell about the audio format */
+      buff = dec->get_audio();
+      dec->unlock();
     /* then call resample() which sets up:
        samples = number of 44khz stereo samples
        and returns *IN_DATATYPE pointing to the resampled buffer */
-    buff = _resample(buff);
+      if(buff) {
+	buff = resample(buff);
+	/* at last pushes it up into the pipe
+	   bytes are samples<<2 being the audio 16bit stereo */
+	while( erbapipa->write
+	       (samples<<2,buff) <0
+	       && !quit) jsleep(0,20);
+	/* then calculates the position and time */
+	if(dec->seekable) state = upd_time();
 
-    unlock();
+      } else /* if get_audio returns NULL then is eos or error */
+	if(dec->eos) upd_eos();
+	else if(dec->err) upd_err();
+	else { /* should never be here */
+	  error("unknown state on %s channel",dec->name);
+	  report(); state = 0.0;
+	} // if(buf) else      
+
+    } else { // if(on)
+
+      // just hang on
+      jsleep(0,20);
+      
+    }
     
-    /* at last pushes it up into the pipe
-       bytes are frames<<1 being the audio 16bit */
-    while( erbapipa->write
-	   (frames<<1,buff) <0
-	   && !quit) jsleep(0,10);
-  }
+  } // while(!quit)
   running = false;
 }
 
-IN_DATATYPE *Channel::_resample(IN_DATATYPE *audio) {
-  int temp = frames;
+IN_DATATYPE *Channel::resample(IN_DATATYPE *audio) {
+
   /* there is no previous samples saved 
      fill in with the first */
   if(fill_prev_smp) {
@@ -145,90 +161,206 @@ IN_DATATYPE *Channel::_resample(IN_DATATYPE *audio) {
     prev_smp[2] = audio[2];
     prev_smp[3] = audio[3];
     fill_prev_smp = false;
-    erbapipa->flush();
+    //    erbapipa->flush();
   }
 
-  frames = (*munch)(buffo,audio,prev_smp,temp,volume);
-  samples = frames / channels;
+  frames = dec->frames;
+  frames = (*munch)(buffo,audio,prev_smp,frames,volume);
+  samples = frames/2; /// dec->channels;
 
   /* save last part of the chunk
      for the next resampling */
-  prev_smp[0] = audio[temp-4];
-  prev_smp[1] = audio[temp-3];
-  prev_smp[2] = audio[temp-2];
-  prev_smp[3] = audio[temp-1];
+  prev_smp[0] = audio[dec->frames-4];
+  prev_smp[1] = audio[dec->frames-3];
+  prev_smp[2] = audio[dec->frames-2];
+  prev_smp[3] = audio[dec->frames-1];
 
   return(buffo);
 }
 
 bool Channel::play() {
   if(on) return(true);
-  if(!opened) { //||!running) {
-    error("Channel::play() : error starting to play chan opened[%i] running[%i]",
-	  opened,running);
-    on = false;
-    return (on);
+
+  if(!running) {
+    error("%i:%s %s channel thread not launched",
+	  __LINE__,__FILE__,__FUNCTION__);
+    return(false);
+  }
+
+  if(!opened) {
+    Url *url;
+    warning("Channel::play() : no song loaded");
+    url = (Url*) playlist->selected();
+    if(!url) {
+      warning("Channel::play() : no song selected in playlist");
+      url = (Url*)playlist->begin();
+      if(!url) {
+	error("Channel::play() : playlist is void");
+	return(false);
+      }
+    }
+
+    if( !load( url->path ) ) {
+      error("Channel::play() : can't load %s",url->path);
+      return(false);
+    } else url->sel(true);
   }
 
   if(time.f!=position) {
-    lock();
-    if(!pos(position))
-      error("Channel::play : error calling Channel::pos(%f)",position);
-    position = time.f;
-    unlock();
+    pos(position);
   } else fill_prev_smp = true;
+
   on = true;
   return(on);
 }
 
 bool Channel::stop() {
-  lock();
+  //  lock();
   on = false;
-  pos(0.0);
-  state = 0.0;
-  erbapipa->flush();
-  fill_prev_smp = true;
-  unlock();
+  if(opened) {
+    //  unlock();
+    pos(0.0);
+    state = 0.0;
+    erbapipa->flush();
+    fill_prev_smp = true;
+  }
   return(!on);
 }
 
-bool Channel::set_resampler() {
-  switch(samplerate) {
+int Channel::load(char *file) {
+  MuseDec *ndec = NULL;
+  int res;
+  /* returns:
+     0 = error
+     1 = stream is seakable
+     2 = stream is not seekable  */  
+
+  /* parse supported file types */
+
+  if(strncasecmp(file+strlen(file)-4,".ogg",4)==0) {
+#ifdef HAVE_VORBIS
+    func("creating Ogg decoder");
+    ndec = new MuseDecOgg();
+#else
+    error("can't open OggVorbis (support not compiled)");
+#endif
+  }
+  if(strncasecmp(file+strlen(file)-4,".mp3",4)==0) {
+    func("creating Mp3 decoder");
+    ndec = new MuseDecMp3();
+  }
+
+  if(!ndec) {
+    error("can't open %s (unrecognized extension)",file);
+    return(0);
+  }
+
+  lock();
+
+  ndec->lock();
+  res = ndec->load(file); // try to load the file/stream into the decoder
+  ndec->unlock();
+
+  if(!res) { // there is an error: we keep everything as it is
+    error("decoder load returns error",file);
+    unlock();
+    delete ndec;
+    return(0);
+  }
+  
+  res = set_resampler(ndec);
+
+  if(!res) {
+    error("invalid input samplerate %u",ndec->samplerate);
+    unlock();
+    delete ndec;
+    return(0);
+  }
+
+  // decoder succesfully opened the file
+  // here if res == 2 then we have a stream
+  // TODO: oggvorbis stream playing using libcurl
+  if(dec) delete dec; // delete the old decoder if present
+  dec = ndec;
+  opened = true;
+
+  res = (dec->seekable)?1:2;
+  seekable = (res==1) ? true : false;
+  state = 0.0;
+  
+  unlock();
+
+  notice("loaded %s",file);
+  notice("%s %iHz %s %s %iKb/s",
+	 dec->name, dec->samplerate,
+	 (dec->channels==1) ? "mono" : "stereo",
+	 (dec->seekable) ? "file" : "stream",
+	 dec->bitrate);
+  return res;
+}
+     
+bool Channel::pos(float pos) {
+  PARADEC
+  if(!dec->seekable) return false;
+  pos = (pos<0.0) ? 0.0 : (pos>1.0) ? 1.1 : pos;
+  dec->lock();
+  if(!dec->seek(pos))
+    error("Channel::seek : error calling decoder seek to %f",position);
+  else
+    position = time.f = pos;
+  dec->unlock();
+  return true;
+}
+
+void Channel::clean() {
+  on = false;
+  //  dec->lock();
+  //  dec->clean();
+  //  dec->unlock();
+  opened = false;
+  if(dec) delete dec;
+  dec = NULL;
+}
+
+bool Channel::set_resampler(MuseDec *ndec) {
+  switch(ndec->samplerate) {
   case 44100:
-    if(channels==2) munch = resample_stereo_44;
+    if(ndec->channels==2) munch = resample_stereo_44;
     else munch = resample_mono_44;
     break;
   case 32000:
-    if(channels==2) munch = resample_stereo_32;
+    if(ndec->channels==2) munch = resample_stereo_32;
     else munch = resample_mono_32;
     break;
   case 22050:
-    if(channels==2) munch = resample_stereo_22;
+    if(ndec->channels==2) munch = resample_stereo_22;
     else munch = resample_mono_22;
     break;
   case 16000:
-    if(channels==2) munch = resample_stereo_16;
+    if(ndec->channels==2) munch = resample_stereo_16;
     else munch = resample_mono_16;
     break;
-
-    warning("Channel::set_mixer : i can't mix sound at %uhz",samplerate);
+  default:
+    warning("Channel::set_mixer : i can't mix sound at %uhz",
+	    ndec->samplerate);
     return(false);
   }
   return(true);
 }
 
+
 float Channel::upd_time() {
-  long int secs;
+  PARADEC
   float res;
 
-  update = false;
+  /* calculate the float 0.0-1.0 position on stream */
+  res = (float)dec->framepos/(float)dec->frametot;
 
-  res = (float)framepos/(float)frametot;
-
-  if( ((res-time.f)>0.001) || (time.f-res)>0.001) {
+  /* calculate the time */
+  if( ((res-time.f)>0.003) || (time.f-res)>0.003) {
     time.f = res;
-    secs = framepos/fps;
-    
+    secs = dec->framepos / dec->fps;
+    //    func("secs %i",secs);
     if(secs>3600) {
       time.h = (int) secs / 3600;
       secs -= time.h*3600;
@@ -240,7 +372,56 @@ float Channel::upd_time() {
     time.s = (int) secs;
     update = true;
   }
+
   return(res);
+}
+
+void Channel::skip() {
+  switch(playmode) {
+  case PLAYMODE_PLAY:
+    stop();
+    break;
+  case PLAYMODE_LOOP:
+    pos(0.0);
+    break;
+  case PLAYMODE_CONT:
+    Url *n;
+    stop();
+    n = (Url*)playlist->selected();
+    if(n) do {
+      n->sel(false); n = (Url*)n->next;
+      if(!n) n = (Url*)playlist->begin();
+      if(!n) break;
+      n->sel(true);
+    } while( ! load(n->path) );
+    if(n) {
+      play();
+      update = true;
+    }
+    break;
+  default: break;
+  }
+}
+
+/* called on end of stream, manages playmode */
+void Channel::upd_eos() {
+  PARADEC
+    if(!dec->eos) return;
+  func("end of %s on %s playing for %i:%i:%i",
+       (seekable)?"stream":"file",dec->name,
+       time.h,time.m,time.s);
+  skip();
+  dec->eos = false;
+}
+
+void Channel::upd_err() {
+  PARADEC
+    if(!dec->err) return;
+    error("error on %s, skipping %s",
+	dec->name,(seekable)?"stream":"file");
+  report();
+  skip();
+  dec->err = false;
 }
 
 /* ----- LiveIN DSP Channel ----- */
@@ -325,24 +506,21 @@ void Channel::_thread_destroy() {
 /* here for debugging purposes */
 void Channel::report() {
 
-  notice("Channel | %s | %s | %s | %s |",
+  warning("Channel | %s | %s | %s | %s |",
 	 (opened)?"opened":" ",
 	 (running)?"running":" ",
 	 (on)?"on":"off",
 	 (seekable)?"seekable":" ");
 
-  act("is      | %s | %s | %s |",
-      (paused)?"paused":" ",
-      (quit)?"quitting":" ",
-      (update)?"updating":" ");
   act("vol %.2f pos %.2f lcd[%s]",volume,position,lcd);
   act("state %.2f playmode %s",state,
       (playmode==PLAYMODE_PLAY) ? "PLAY" :
       (playmode==PLAYMODE_LOOP) ? "LOOP" :
       (playmode==PLAYMODE_CONT) ? "CONT" :
       "ERROR");
-  act("framepos %i frametot %i fps %i type %i",
-      framepos,frametot,fps,type);
-  act("samplerate %i channels %i bitrate %i frames %i samples %i",
-      samplerate,channels,bitrate,frames,samples);
+  act("time: %i:%i:%i framepos %i frametot %i",
+      time.h, time.m, time.s, dec->framepos,dec->frametot);
+  act("samplerate %i channels %i bitrate %i",
+      dec->samplerate,dec->channels,dec->bitrate);
+  act("frames %i samples %i",dec->frames,samples);
 }

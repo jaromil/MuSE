@@ -1,6 +1,6 @@
 /*
   Copyright (c) 2001 Charles Samuels <charles@kde.org>
-  Copyright (c) 2002 Denis Rojo <jaromil@dyne.org>
+  Copyright (c) 2002-2004 Denis Rojo <jaromil@dyne.org>
   
 this pipe class was first written by Charles Samuels
 and then heavily mutilated by jaromil
@@ -27,8 +27,6 @@ Boston, MA 02111-1307, USA.
 #include <pthread.h>
 #include <string.h>
 #include <inttypes.h>
-
-#define PIPE_LATENCY 50 /* latency for every read/write operation on pipes */
 
 class Pipe {
 public:

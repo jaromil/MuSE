@@ -30,8 +30,11 @@
 GTK2_GUI::GTK2_GUI(int argc, char **argv, Stream_mixer *mix)
   : GUI(argc,argv,mix) {
   gtkgui_init(argc,argv,mix);
-  for(int i=0;i<MAX_CHANNELS;i++)
-    new_pos[i] = new_lcd[i] = false;
+  for(int i=0;i<MAX_CHANNELS;i++) {
+    new_pos[i] = false;
+    new_lcd[i] = false;
+    new_sel[i] = 0;
+  }
 }
 
 GTK2_GUI::~GTK2_GUI() { 
@@ -56,6 +59,10 @@ void GTK2_GUI::run() {
 	  gtkgui_set_lcd(i,ch_lcd[i]);
 	  new_lcd[i] = false;
 	}
+	if(new_sel[i]!=0) {
+	  gtkgui_sel_playlist(i,new_sel[i]);
+	  new_sel[i] = 0;
+	}
       }
 
       /* update vumeters */
@@ -65,13 +72,13 @@ void GTK2_GUI::run() {
       }
 
       gtkgui_refresh();
-
+    
       unlock();
     }
 
     /* dalle parti mie si dice:
        piglia o'tiemp pe sputa' n'terr */
-    jsleep(0,200);
+    //    jsleep(0,20);
     
   }
   gtkgui_refresh();
@@ -91,7 +98,7 @@ void GTK2_GUI::add_playlist(unsigned int ch, char *txt) {
 }
 
 void GTK2_GUI::sel_playlist(unsigned int ch, int row) {
-  gtkgui_sel_playlist(ch,row);
+  new_sel[ch] = row;
 }
 
 bool GTK2_GUI::meter_shown() { return vu_status; }

@@ -101,10 +101,10 @@ bool createch(void)
 	gtk_box_pack_start(GTK_BOX(vbox), fixed, FALSE, FALSE, 0);
 
 	/* addiamo il coso del tempo */
-	tmpwid = gtk_entry_new_with_max_length(7);
+	tmpwid = gtk_entry_new_with_max_length(9);
 	object->ptime = tmpwid;
-	gtk_widget_set_size_request(tmpwid, 40, 22);
-	gtk_entry_set_text(GTK_ENTRY(tmpwid), "00:00");
+	gtk_widget_set_size_request(tmpwid, 55, 22);
+	gtk_entry_set_text(GTK_ENTRY(tmpwid), "00:00:00");
 	gtk_entry_set_editable(GTK_ENTRY(tmpwid), FALSE);
 	gtk_box_pack_start(GTK_BOX(htast), tmpwid, FALSE, FALSE, 0);
 	
@@ -113,13 +113,13 @@ bool createch(void)
 	tmpwid = createpixmap(window, tmpwid, play_xpm, 
 			_("Play Channel"), TRUE);
 	object->play = tmpwid;
-	g_signal_connect(G_OBJECT(tmpwid), "clicked",
+	g_signal_connect(G_OBJECT(tmpwid), "pressed",
 			G_CALLBACK(gcb_play_channel), object);
 	gtk_box_pack_start(GTK_BOX(htast), tmpwid, FALSE, TRUE, 0);
 	
 	tmpwid = createpixmap(window, tmpwid, stop_xpm, 
 			_("Stop Channel"), FALSE);
-	g_signal_connect(G_OBJECT(tmpwid), "clicked",
+	g_signal_connect(G_OBJECT(tmpwid), "pressed",
 			G_CALLBACK(gcb_stop_channel), object);
 	gtk_box_pack_start(GTK_BOX(htast), tmpwid, FALSE, TRUE, 0);
 	
@@ -150,9 +150,13 @@ bool createch(void)
 	object->progress = progress;
 
 	gtk_scale_set_draw_value(GTK_SCALE(progress), FALSE);
+	/*
 	g_signal_connect(G_OBJECT(progress), "button_press_event",
 			   G_CALLBACK(gcb_event_pause_channel), object);
 	g_signal_connect(G_OBJECT(progress), "button_release_event",
+			G_CALLBACK(gcb_event_set_position), object);
+	*/
+	g_signal_connect(G_OBJECT(progress), "button_press_event",
 			G_CALLBACK(gcb_event_set_position), object);
 	gtk_box_pack_start(GTK_BOX(vbox), progress, FALSE, FALSE, 0);
 
@@ -251,6 +255,9 @@ bool createch(void)
 
 	select = gtk_tree_view_get_selection (GTK_TREE_VIEW (tree));
 	gtk_tree_selection_set_mode (select, GTK_SELECTION_SINGLE);
+	g_signal_connect(G_OBJECT(select), "changed",
+			 G_CALLBACK(gcb_set_channel), object);
+
 	g_signal_connect(G_OBJECT(tree), "button_press_event",
 			G_CALLBACK(gcb_event_view_popup), object);
         renderer = gtk_cell_renderer_text_new();
@@ -449,55 +456,59 @@ void gcb_set_playmode(GtkWidget *w, struct gchan *o)
 		mixer->set_playmode(o->idx-1, mode);
 }
 
-void gcb_play_channel(GtkWidget *w, struct gchan *o)
-{
+
+void gcb_set_channel(GtkWidget *w, struct gchan *o) {
 	GtkTreeModel *model;
 	GtkTreePath *path;
 	GtkTreeIter iter;
-	GtkTreeSelection *select;
+	GtkTreeSelection *select = (GtkTreeSelection*)w;
 	gint row=0;
+
+	if((gtk_tree_selection_get_selected(select, &model, &iter))) {
+	  path = gtk_tree_model_get_path(model, &iter);
+	  row = gtk_tree_path_get_indices(path)[0];
+	  func("GTK2: gcb_set_channel(%i,%i)",o->idx-1,row+1);
+	  mixer->set_channel(o->idx-1,row+1);
+
+	  gtk_tree_path_free(path);
+	}
+}
+
+void gcb_play_channel(GtkWidget *w, struct gchan *o)
+{
 	guint res;
-	bool pro = false;
+	if( mixer->chan[o->idx-1]->on) {
+	  gtk_toggle_button_set_active
+	    (GTK_TOGGLE_BUTTON(o->play), FALSE);
+	  return;
+	}
 
-	select = gtk_tree_view_get_selection(GTK_TREE_VIEW(o->tree));
+	res = mixer->play_channel(o->idx-1);
 
-	if(GTK_TOGGLE_BUTTON(w)->active) 
-		if((gtk_tree_selection_get_selected(select, &model, &iter))) {
-			path = gtk_tree_model_get_path(model, &iter);
-			row = gtk_tree_path_get_indices(path)[0];
-			
-			res = mixer->set_channel(o->idx-1, row+1); 
-
-			gtk_tree_path_free(path);
-			
-		if(!res)
-			func(_("GTK_GUI::gcb_set_channel : Stream_mixer::set_channel(%d,%d) returned %u"), o->idx-1, row+1, res);
-
-		switch(res) {
-			case 0:
-			  o->channel=0;
-			  break;
-			case 1:  /* channel is seekable */
-			  gtk_entry_set_text(GTK_ENTRY(o->ptime), "00:00");
-			  gtk_adjustment_set_value(GTK_ADJUSTMENT(o->adjprog), 0.0);
-			  o->channel=1;
-			  break;
-			case 2: /* unseekable */
-			  gtk_entry_set_text(GTK_ENTRY(o->ptime), "-----");
-			  gtk_adjustment_set_value(GTK_ADJUSTMENT(o->adjprog), 0.0);
-			  o->channel=2;
-			  break;
-		}
-
-			
-		pro = mixer->play_channel(o->idx-1);
-		if(pro)
-			notice(_("ok for playing"));
-		else {
-			notice(_("KO for playing :("));
-			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(o->play),
-					FALSE);
-		}
+	switch(res) {
+	case 0:
+	  o->channel=0;
+	  break;
+	case 1:  /* channel is seekable */
+	  gtk_entry_set_text(GTK_ENTRY(o->ptime), "00:00:00");
+	  gtk_adjustment_set_value(GTK_ADJUSTMENT(o->adjprog), 0.0);
+	  o->channel=1;
+	  break;
+	case 2: /* unseekable */
+	  gtk_entry_set_text(GTK_ENTRY(o->ptime), "-stream-");
+	  gtk_adjustment_set_value(GTK_ADJUSTMENT(o->adjprog), 0.0);
+	  o->channel=2;
+	  break;
+	}
+	
+	if(res==0) {
+	  func(_("KO for playing :("));
+	  gtk_toggle_button_set_mode
+	    (GTK_TOGGLE_BUTTON(o->play), FALSE);
+	} else {
+	  func(_("ok for playing"));
+	  gtk_toggle_button_set_mode
+	    (GTK_TOGGLE_BUTTON(o->play), TRUE);
 	}
 		
 
@@ -510,13 +521,14 @@ void gcb_stop_channel(GtkWidget *w, struct gchan *o)
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(o->play), FALSE);
 	gtk_adjustment_set_value(GTK_ADJUSTMENT(o->adjprog), 0.0);
 	switch(o->channel) {
-		case 1:
-		gtk_entry_set_text(GTK_ENTRY(o->ptime), "00:00");
-		break;
-		case 2:
-		gtk_entry_set_text(GTK_ENTRY(o->ptime), _("stream"));
+	case 1:
+	  gtk_entry_set_text(GTK_ENTRY(o->ptime), "00:00:00");
+	  break;
+	case 2:
+	  gtk_entry_set_text(GTK_ENTRY(o->ptime), "-stream-");
+	  break;
 	}
-
+	
 }
 
 void gcb_pause_channel(GtkWidget *w, struct gchan *o)

@@ -28,6 +28,7 @@
 #include <jmixer.h>
 #include <config.h>
 
+		     
 void gcb_event_pause_channel(GtkWidget *w, GdkEventButton *s, struct gchan *o)
 {
 	if(o->channel != 1)
@@ -77,7 +78,7 @@ gboolean DND_data_motion(GtkWidget *w, GdkDragContext *dc, gint x, gint y,
 				guint t, struct gchan *o)
 {
 	gdk_drag_status(dc, GDK_ACTION_MOVE, t);
-	func("drag_data_motion");
+	//	func("drag_data_motion");
 	return FALSE;
 }
 
@@ -131,7 +132,7 @@ void DND_data_received(GtkWidget *w, GdkDragContext *dc, gint x, gint y,
 	 */
 	
 	source = gtk_drag_get_source_widget(dc);
-	notice("source = %p info %d", source, info);
+	func("source = %p info %d", source, info);
 	
 	title = (gchar *) selection->data;
 	
@@ -154,7 +155,7 @@ void DND_data_received(GtkWidget *w, GdkDragContext *dc, gint x, gint y,
 			pathsrc = gtk_tree_model_get_path(modelsrc, &itersrc);
 			rowsrc = gtk_tree_path_get_indices(pathsrc)[0];
 			
-			notice("dndch = %d rowsrc = %d row = %d", dndch-1, rowsrc+1, row+1);
+			func("dndch = %d rowsrc = %d row = %d", dndch-1, rowsrc+1, row+1);
 			if(dndch >= 0 && rowsrc >= 0 && row >= 0) {
 				func("move_song called %d %d %d %d", dndch-1, rowsrc+1, o->idx-1, row+1);
 				mixer->move_song(dndch-1, rowsrc+1, o->idx-1, row+1);

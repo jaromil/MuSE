@@ -435,7 +435,6 @@ snprintf(quality_desc,256,"%uKbit/s %uHz",bps(),freq());
   case 9: BPSVAL(128,44100); break;
 
   }
-  func("OutChannel::guess_bps() q%i %s",q,quality_desc);
   return quality_desc;
 }
 

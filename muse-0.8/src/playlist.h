@@ -42,6 +42,7 @@ class Playlist : public Linklist {
   /* returns the full path of the element
      position starts from 1 */
   char *song(int pos);
+  char *selection();
   //  char *song() { return song( sel() ); };
 
   /* sets and returns selection
@@ -53,7 +54,7 @@ class Playlist : public Linklist {
   void cleanup();
 
   //  Url *selected;
-  char *filename;
+  //  char *filename;
 };
 
 

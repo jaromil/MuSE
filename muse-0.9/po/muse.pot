@@ -7,7 +7,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2003-12-08 22:45+0100\n"
+"POT-Creation-Date: 2004-02-13 17:22+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -139,7 +139,7 @@ msgstr ""
 msgid "Dock Channel"
 msgstr ""
 
-#: ../src/gtkgui2/docking.cpp:102 ../src/gtkgui2/gchan.cpp:291
+#: ../src/gtkgui2/docking.cpp:102 ../src/gtkgui2/gchan.cpp:298
 msgid "Undock Channel"
 msgstr ""
 
@@ -280,7 +280,7 @@ msgstr ""
 msgid "gcb_set_filedump:: Not a valid filename"
 msgstr ""
 
-#: ../src/gtkgui2/filedump.cpp:134 ../src/gtkgui2/gchan.cpp:597
+#: ../src/gtkgui2/filedump.cpp:134 ../src/gtkgui2/gchan.cpp:609
 msgid "You have to insert a filename!!"
 msgstr ""
 
@@ -315,113 +315,104 @@ msgstr ""
 msgid "Forward Channel"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:181
+#: ../src/gtkgui2/gchan.cpp:185
 msgid "VOL"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:185 ../src/gtkgui2/gchan.cpp:195
+#: ../src/gtkgui2/gchan.cpp:189 ../src/gtkgui2/gchan.cpp:199
 msgid "100"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:193
+#: ../src/gtkgui2/gchan.cpp:197
 msgid "Speed"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:267
+#: ../src/gtkgui2/gchan.cpp:274
 msgid "single play"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:270
+#: ../src/gtkgui2/gchan.cpp:277
 msgid "loop"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:273
+#: ../src/gtkgui2/gchan.cpp:280
 msgid "continuous"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:322
+#: ../src/gtkgui2/gchan.cpp:329
 #, c-format
 msgid "GTK_GUI::spawnfilew : filebrowser for chan[%u]"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:324
+#: ../src/gtkgui2/gchan.cpp:331
 msgid "Select a .mp3 file or a playlist (.pl)"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:349
+#: ../src/gtkgui2/gchan.cpp:356
 msgid "Listen to a network stream"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:367
+#: ../src/gtkgui2/gchan.cpp:374
 msgid "Insert http source:"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:399
+#: ../src/gtkgui2/gchan.cpp:406
 msgid "You have to insert an url!!"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:403
+#: ../src/gtkgui2/gchan.cpp:410
 #, c-format
 msgid "httpinsert() url is %s"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:405
+#: ../src/gtkgui2/gchan.cpp:412
 msgid "GTK_GUI:: httpinsert problem adding url"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:406
+#: ../src/gtkgui2/gchan.cpp:413
 msgid "Problem adding url"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:474
-#, c-format
-msgid "GTK_GUI::gcb_set_channel : Stream_mixer::set_channel(%d,%d) returned %u"
-msgstr ""
-
-#: ../src/gtkgui2/gchan.cpp:495
-msgid "ok for playing"
-msgstr ""
-
-#: ../src/gtkgui2/gchan.cpp:497
+#: ../src/gtkgui2/gchan.cpp:505
 msgid "KO for playing :("
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:517
-msgid "stream"
-msgstr ""
-
-#: ../src/gtkgui2/gchan.cpp:592
-#, c-format
-msgid "GTK_GUI::gcb_add_file : idx %u"
+#: ../src/gtkgui2/gchan.cpp:509
+msgid "ok for playing"
 msgstr ""
 
 #: ../src/gtkgui2/gchan.cpp:604
 #, c-format
+msgid "GTK_GUI::gcb_add_file : idx %u"
+msgstr ""
+
+#: ../src/gtkgui2/gchan.cpp:616
+#, c-format
 msgid "gcb_add_file:: mixer->add_to_playlist(%u, %s) failed"
 msgstr ""
 
-#: ../src/gtkgui2/gchan.cpp:606
+#: ../src/gtkgui2/gchan.cpp:618
 msgid "Problem adding file :\\"
 msgstr ""
 
-#: ../src/gtkgui2/gchan_events.cpp:218
+#: ../src/gtkgui2/gchan_events.cpp:219
 #, c-format
 msgid "il row e' %d"
 msgstr ""
 
-#: ../src/gtkgui2/gchan_events.cpp:222
+#: ../src/gtkgui2/gchan_events.cpp:223
 msgid "Add File..."
 msgstr ""
 
-#: ../src/gtkgui2/gchan_events.cpp:227
+#: ../src/gtkgui2/gchan_events.cpp:228
 msgid "Add Url..."
 msgstr ""
 
-#: ../src/gtkgui2/gchan_events.cpp:233 ../src/gtkgui2/ice.cpp:321
+#: ../src/gtkgui2/gchan_events.cpp:234 ../src/gtkgui2/ice.cpp:321
 msgid "Delete"
 msgstr ""
 
-#: ../src/gtkgui2/gchan_events.cpp:240
+#: ../src/gtkgui2/gchan_events.cpp:241
 msgid "Cancel"
 msgstr ""
 
@@ -545,7 +536,7 @@ msgstr ""
 msgid "MuSE-cvs Gtk+2"
 msgstr ""
 
-#: ../src/gtkgui2/musegtk.cpp:267
+#: ../src/gtkgui2/musegtk.cpp:271
 #, c-format
 msgid "%d byte/s"
 msgstr ""
@@ -580,11 +571,6 @@ msgstr ""
 
 #: ../src/gtkgui2/utils.cpp:91
 msgid "Hall of Fame"
-msgstr ""
-
-#: ../src/gtkgui2/utils.cpp:156
-#, c-format
-msgid "cfade_set get data for pos %u"
 msgstr ""
 
 #: ../src/gtkgui2/utils.cpp:188

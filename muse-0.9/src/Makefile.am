@@ -9,8 +9,9 @@ muse_SOURCES =  \
     jmixer.cpp      \
     audioproc.cpp       \
     inchannels.cpp      \
-    in_oggvorbis.cpp    \
-    in_mpeg.cpp     \
+    decoder.cpp		\
+    dec_mp3.cpp		\
+    dec_ogg.cpp		\
     outchannels.cpp     \
     out_vorbis.cpp	\
     out_lame.cpp	\

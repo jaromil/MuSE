@@ -57,14 +57,14 @@ bool OutVorbis::init() {
 
 
   initialized = true;
+
+  vorbis_encode_setup_init(&vi);
   
   if(!apply_profile()) {
     error("problems in setting up codec parameters");
     //    vorbis_info_clear(&vi);
     return false;
   }
-
-  vorbis_encode_setup_init(&vi);
 
   /* Now, set up the analysis engine, stream encoder, and other
      preparation before the encoding begins. */
@@ -75,13 +75,8 @@ bool OutVorbis::init() {
   /* sets up our comments */
   {
     char tmp[128];
-
     sprintf(tmp,"%s version %s",PACKAGE,VERSION);
     vorbis_comment_init(&vc);
-    /*    Shouter *sh = (Shouter*)icelist.begin();
-	  vorbis_comment_add_tag(&vc,"Name",sh->name());
-	  vorbis_comment_add_tag(&vc,"Description",sh->desc());
-	  vorbis_comment_add_tag(&vc,"Url",sh->url()); */
     vorbis_comment_add_tag(&vc,"Streamed with",tmp);
   }
 
@@ -273,14 +268,14 @@ bool OutVorbis::apply_profile() {
   func("resample ratio for freq %i is %.4f", 
        freq(), ratio);
 
-  func("apply vorbis_encode_setup_vbr(%p,%u,%u,%f)",
-       &vi, channels(), freq(), quality()/10.0f);
   if( vorbis_encode_setup_vbr
       (&vi, channels(), freq(), quality()/10.0f) ) {
-    error("vorbis_encode_setup_vbr failed: invalid parameters (for quality?)");
+    error("vorbis_encode_setup_vbr failed: invalid parameters");
+    error("apply vorbis_encode_setup_vbr(%p,%u,%u,%f)",
+	  &vi, channels(), freq(), quality()/10.0f);
     res = false;
   }
-  
+
   Shouter *ice = (Shouter*)icelist.begin();
   while(ice) {
     ice->bps( bps() );

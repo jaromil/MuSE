@@ -63,6 +63,7 @@ void httpwin(GtkWidget *, struct gchan *);
 void httpinsert(GtkWidget *, struct gchan *);
 
 void gcb_set_playmode(GtkWidget *, struct gchan *);
+void gcb_set_channel(GtkWidget *, struct gchan *);
 void gcb_play_channel(GtkWidget *, struct gchan *);
 void gcb_stop_channel(GtkWidget *, struct gchan *);
 void gcb_pause_channel(GtkWidget *, struct gchan *);

@@ -25,6 +25,8 @@ class GTK2_GUI : public GUI {
  private:
   bool new_pos[MAX_CHANNELS];
   bool new_lcd[MAX_CHANNELS];
+  unsigned int new_sel[MAX_CHANNELS];
+
   int vuband, vumeter;
 
  public:

@@ -37,9 +37,9 @@ class Linklist {
   void prepend(Entry *addr);
   void insert(Entry *addr, int pos);
   
-  void rem(int pos);
-  void sel(int pos);
-  void clear();
+  bool rem(int pos);
+  bool sel(int pos);
+  bool clear();
   bool moveup(int pos);
   bool movedown(int pos);
   bool moveto(int num, int pos);
@@ -53,16 +53,16 @@ class Linklist {
   Entry *last;
   int length;
 
-  void lock() { pthread_mutex_lock(&mutex); };
-  void unlock() { pthread_mutex_unlock(&mutex); };
-
   /* deprecated, here just for MuSE */
   Entry *pick_id(int id);
   int selected_pos();
 
-
+  /* thread stuff */
+  void lock();
+  void unlock();
  private:
-  pthread_mutex_t mutex;
+  pthread_mutex_t _mutex;
+
 };
 
 class Entry {

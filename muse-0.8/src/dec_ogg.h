@@ -25,7 +25,7 @@
 #include <config.h>
 #ifdef HAVE_VORBIS
 
-#include <inchannels.h>
+#include <decoder.h>
 
 /* oggvorbis lib */
 extern "C" {
@@ -36,7 +36,7 @@ extern "C" {
 
 /* OggVorbis Channel // ogg-vorbis decoding */
 
-class OggChannel: public Channel {
+class MuseDecOgg: public MuseDec {
  private:
   OggVorbis_File   vf;
   vorbis_info      *vi;
@@ -45,16 +45,18 @@ class OggChannel: public Channel {
   int current_section, old_section;
 
   FILE *oggfile;
-  IN_DATATYPE *_get_audio();
-  char _inbuf[MIX_CHUNK+2];
+
+  char _inbuf[IN_CHUNK+2];
 
  public:
-  OggChannel();
-  ~OggChannel();
+  MuseDecOgg();
+  ~MuseDecOgg();
 
   int load(char *file);
-  bool pos(float pos);
-  void clean();
+  bool seek(float pos);
+
+  IN_DATATYPE *get_audio();
+
 };
 
 #endif /* HAVE VORBIS */

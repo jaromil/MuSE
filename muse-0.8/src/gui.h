@@ -63,7 +63,7 @@ class GUI {
   Stream_mixer *_mix;
 
   float ch_pos[MAX_CHANNELS];
-  char ch_lcd[MAX_CHANNELS][8];
+  char ch_lcd[MAX_CHANNELS][10];
 
  private:
   pthread_t _thread;

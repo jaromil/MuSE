@@ -153,7 +153,7 @@ void cfade_set(GtkWidget *w, struct pack *p)
 	float value;
 	gchar tmp[4];
 
-	notice(_("cfade_set get data for pos %u"), p->id);
+	//	func(_("cfade_set get data for pos %u"), p->id);
 	tmp1 = (struct gchan *) list_get_data(listachan, 0, p->id);
 	tmp2 = (struct gchan *) list_get_data(listachan, 0, p->id+1);
 

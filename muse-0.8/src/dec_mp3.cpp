@@ -19,28 +19,18 @@
  *
  */
 
-#include <in_mpeg.h>
+#include <dec_mp3.h>
 #include <jutils.h>
-#include <generic.h>
 #include <config.h>
 
 
-MpegChannel::MpegChannel() : Channel() {
-  func("MpegChannel::MpegChannel()");
-  type = MP3CHAN;
-
+MuseDecMp3::MuseDecMp3() : MuseDec() {
   loader = NULL;
   server = NULL;
+  strncpy(name,"Mp3",4);
 }
 
-MpegChannel::~MpegChannel() {
-  func("MpegChannel::~MpegChannel()");
-  if(on) stop();
-  clean();
-}
-
-/* cleans decoder memory but does'nt kills the thread */
-void MpegChannel::clean() {
+MuseDecMp3::~MuseDecMp3() {
   if(loader) {
     delete loader;
     loader = NULL;
@@ -50,51 +40,39 @@ void MpegChannel::clean() {
     delete server;
     server = NULL;
   }
+
 }
 
-int MpegChannel::load(char *file) {
-  func("MpegChannel::set(%s)",file);
+int MuseDecMp3::load(char *file) {
+  func("MuseDecMp3::load(%s)",file);
   int res = 0;
-  lock();
-  on = false;
-  
-  if(opened)
-    clean();
-  
+
   loader = Soundinputstream::hopen(file,&res);
   if(loader == NULL) {
-    warning("MpegChannel::set : i don't see any stream flowing from %s",file);
-    clean(); // QUAAAAAAA
-    unlock();
+    warning("MuseDecMp3::load : i don't see any stream flowing from %s",file);
+    //    clean(); // QUAAAAAAA
+    //    unlock();
     return(0);
-  } // else func("MpegChannel->loader %p - OK",loader);
+  } // else func("MuseDecMp3->loader %p - OK",loader);
 
   server = new Mpegtoraw(loader);
   if(server == NULL) {
-    warning("MpegChannel::set(%s) - uuops! NULL Mpegtoraw",file);
-    clean();
-    unlock();
+    warning("MuseDecMp3::load(%s) - uuops! NULL Mpegtoraw",file);
+    delete loader;
+    loader = NULL;
+    //    clean();
+    //    unlock();
     return(0);
-  } // else func("MpegChannel->server %p - OK",server);
+  } // else func("MuseDecMp3->server %p - OK",server);
 
   server->initialize(file);
 
   samplerate = server->getfrequency();
   channels = (server->getmode()<3) ? 2 : 1;
-
   bitrate = server->getbitrate();
-
-  if(!set_resampler()) {
-    error("MpegChannel::set(%s) - argh! set_mixer() reported failure",file);
-    clean(); unlock(); return(0);
-  }
 
   /* pcm position */
   framepos = 0;
-  /* time position */
-  time.h = time.m = time.s = 0;
-  /* floating point position */
-  position = time.f = 0.0;
 
   /* check if seekable */
   res = (loader->seekable) ? 1: 2;
@@ -102,13 +80,14 @@ int MpegChannel::load(char *file) {
 
   /* get samples in a chunk
      framesize is frames in a chunk (samples / channels) */
-  samples = server->getpcmperframe();
-  framesize = samples * channels;
+  framesize = server->getpcmperframe() * channels;
+  //  framesize = samples * channels;
   if(samplerate<=22050) {
     //   if(channels==2) framesize = framesize>>1;
     framesize /=2;
   }
-  //  framesize = server->getpcmperframe();
+  
+  //framesize = server->getpcmperframe();
   //  if(samplerate==44100) framesize = framesize<<1;
   /* ?FIX? division needed for 11khz? */
   //  if(channels==1) framesize = framesize;
@@ -118,75 +97,79 @@ int MpegChannel::load(char *file) {
     /* total chunks into bitstream (if seekable) */
     frametot = server->gettotalframe();
     /* how much frames make second */
-    fps = samplerate/samples;
+    fps = samplerate / server->getpcmperframe(); // (framesize / channels);
   }
 
-  opened = true;
-  quit = false;
-  func("MpegChannel::set bitrate[%u] channels[%u]%sseekable",
-       bitrate,channels,(seekable)?" ":" non ");
+ 
+  strncpy(_file,file,MAX_PATH_SIZE); /* HACK! 
+					this is normally not needed
+					see the seek() method for info */
+	  
+  /* now the notice is in inchannels.cpp:load()
+    notice("Mp3 decoder opened bitstream %uKb/s %uKHz %s %sseekable",
+	 bitrate,samplerate/1000,
+	 (channels==1)?"mono":"stereo",
+	 (seekable)?" ":" non ");
   //  func("for every chunk there are samples[%i] and bytes[%i]",samples,framesize);
-  unlock();
-
+  */
   return(res);
 }
 
-IN_DATATYPE *MpegChannel::_get_audio() {
-
-  samples = 0;
+IN_DATATYPE *MuseDecMp3::get_audio() {
 
   if(!server->run(1)) {
     switch(server->geterrorcode()) {
     case SOUND_ERROR_FINISH:
-      state = 2.0;
+      func("mpeglib: end of stream");
+      eos = true;
       return(NULL);
     case SOUND_ERROR_FILEOPENFAIL:
       error("mpeglib: failed opening file (FILEOPENFAIL)");
-      state = 3.0;
+      err = true;
       return(NULL);
     case SOUND_ERROR_FILEREADFAIL:
       error("mpeglib: failed reading from file (FILEREADFAIL)");
-      state = 3.0;
+      err = true;
       return(NULL);
     case SOUND_ERROR_UNKNOWNPROXY:
       error("mpeglib: unknown proxy");
-      state = 3.0;
+      err = true;      
       return(NULL);
     case SOUND_ERROR_UNKNOWNHOST:
       error("mpeglib: unknown host");
-      state = 3.0;
+      err = true;      
       return(NULL);
     case SOUND_ERROR_SOCKET:
       error("mpeglib: socket error");
-      state = 3.0;
+      err = true;      
       return(NULL);
     case SOUND_ERROR_CONNECT:
       error("mpeglib: connect error");
-      state = 3.0;
+      err = true;      
       return(NULL);
     case SOUND_ERROR_FDOPEN:
       error("mpeglib: FDOPEN");
-      state = 3.0;
+      err = true;      
       return(NULL);
     case SOUND_ERROR_HTTPFAIL:
       error("mpeglib: http failure");
-      state = 3.0;
+      err = true;      
       return(NULL);
     case SOUND_ERROR_HTTPWRITEFAIL:
       error("mpeglib: http write failed");
-      state = 3.0;
+      err = true;      
       return(NULL);
     case SOUND_ERROR_TOOMANYRELOC:
       error("mpeglib: TOOMANYRELOC");
-      state = 3.0;
+      err = true;      
       return(NULL);
     case SOUND_ERROR_THREADFAIL:
       error("mpeglib: thread failure");
-      state = 3.0;
+      err = true;      
       return(NULL);
     default:
       error("mpeglib: unknown error :(");
-      state = 3.0;
+      err = true;      
       return(NULL);
     }
   }
@@ -195,30 +178,28 @@ IN_DATATYPE *MpegChannel::_get_audio() {
     framesize is the number of frames of data in input
     frames stores how much data we have in
     for mp3 it's fixed coz the framesize never changes
-    (maybe with VBR does? anyway VBR is no good for streaming) */
+    (maybe with VBR does?) */
   frames = framesize;
   //  samples = frames / channels;
 
   if(seekable) {
     framepos = server->getcurrentframe();
-    state = upd_time();
-  } else state = 0.0;
+  }
 
   /* returns a pointer to decoded buffer */
   return((IN_DATATYPE *)server->rawdata);
 }
 
-bool MpegChannel::pos(float pos) {
-
-  if(pos==0.0)
-    server->setframe(0);
+bool MuseDecMp3::seek(float pos) {
+  func("MuseDecMp3::seek(%f)",pos);
+  
+  if(pos==0.0) /* HACK! here reload the file
+	     this is a problem with the mp3 decoder
+	     we must reload in order to seek to start */
+    load(_file);
   else
     server->setframe((int) (frametot*pos));
   /* no error codes out of here :( */
-  
-  time.f = position = pos;
-
-  fill_prev_smp = true;
   
   return(true);
 }

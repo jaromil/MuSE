@@ -35,17 +35,30 @@ Linklist::Linklist() {
   length = 0;
   first = NULL;
   last = NULL;
-  pthread_mutex_init(&mutex,NULL);
+  if(pthread_mutex_init (&_mutex,NULL))
+    error("%i:%s error initializing POSIX thread mutex",
+	  __LINE__,__FILE__);
 }
 
 Linklist::~Linklist() {
   clear();
+  if(pthread_mutex_destroy(&_mutex))
+    error("error destroying POSIX thread mutex",
+	  __LINE__,__FILE__);
+}
+
+void Linklist::lock() {
+  pthread_mutex_lock(&_mutex);
+}
+void Linklist::unlock() {
+  pthread_mutex_unlock(&_mutex);
 }
 
 /* adds one element at the end of the list */
 void Linklist::append(Entry *addr) {
   Entry *ptr = NULL;
   if(addr->list) addr->rem();
+
   lock();
 
   if(!last) { /* that's the first entry */
@@ -63,7 +76,9 @@ void Linklist::append(Entry *addr) {
   /* save the pointer to this list */
   addr->list = this;
   length++;
+
   unlock();
+
 }
 
 void Linklist::prepend(Entry *addr) {
@@ -122,13 +137,17 @@ void Linklist::insert(Entry *addr, int pos) {
    i don't delete filters here because they have to be deleted
    from the procedure creating them. so this call simply discards
    the pointers stored into the linked list. OBJECTS ARE NOT FREED */
-void Linklist::clear() {
+bool Linklist::clear() {
+  //  func("you are using Linklist::clear()");
+  //  func("you have to free all the elements of the list by hand");
+  //  func("it's use is highly error prone, be warned!");
   lock();
   sel(0);
   length = 0;
   first = NULL;
   last = NULL;
   unlock();
+  return(true);
 }
 
 /* takes one element from the list
@@ -169,25 +188,34 @@ bool Linklist::moveto(int num, int pos) {
   return( p->move(pos) );
 }
 /* removes one element from the list */
-void Linklist::rem(int pos) {
+bool Linklist::rem(int pos) {
   Entry *ptr = pick(pos);
-  if(ptr==NULL) return;
+  if(ptr==NULL) return(false);
   ptr->rem();
+  return(true);
 }
   
 /* selects ONLY ONE, deselects the others
    use Entry::sel() if you want to do multiple selects */
-void Linklist::sel(int pos) {
+bool Linklist::sel(int pos) {
   int c;
+  bool res = false;
   Entry *ptr = last;
 
-  if(pos>length) return;
+  if(pos>length) return(res);
 
   for(c=length;c>0;c--) {
-    if(c==pos) ptr->sel(true);
-    else ptr->sel(false);
+    if(c==pos) {
+      if(ptr->select) 
+	res = false; // was allready selected
+      else {
+	ptr->sel(true);
+	res = true; // a new one is selected
+      }
+    } else ptr->sel(false);
     ptr = ptr->prev;
   }
+  return(res);
 }
 
 /* returns the last one selected

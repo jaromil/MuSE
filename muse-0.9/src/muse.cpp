@@ -141,7 +141,7 @@ int thegui = -1; /* no gui */
 enum interface { CLI, GTK1, GTK2, NCURSES };
 
 // channel options
-int number = 1;
+int number = 0;
 int playmode = PLAYMODE_CONT;
 
 bool has_playlist = false;
@@ -334,8 +334,8 @@ bool take_args(int argc, char **argv) {
 
     case 'N':
       number = atoi(optarg);
-      number = (number<1) ? 1 : (number>MAX_CHANNELS) ? number = MAX_CHANNELS : number;
-      number--;
+      number = (number<0) ? 0 : (number>=MAX_CHANNELS) ? MAX_CHANNELS-1 : number;
+      //      number--;
       if(!mix->chan[number]) {
 	if(!mix->create_channel(number)) {
 	  error("got problems creating channel %i",number);
@@ -514,10 +514,17 @@ bool take_args(int argc, char **argv) {
       break;
 
     case 1:
+      act("CLI: queue %s on channel %i",optarg,number);
+      if(!mix->chan[number])
+	if(!mix->create_channel(number)) {
+	  error("CLI: can't create channel %i",number);
+	  break;
+	} else {
+	  notice("CLI: created channel %i",number);
+	  mix->set_playmode(number,playmode);
+	}
       if(!mix->add_to_playlist(number,optarg))
 	error("CLI: can't add %s to channel %1",optarg,number);
-      else
-	act("CLI: queue %s on channel %i",optarg,number);
       break;
 
     default:
@@ -715,17 +722,17 @@ int main(int argc, char **argv) {
   /* simple isn't it? */
 
   QUIT:
-  if(mix) mix->quit = true;
   notice("quitting MuSE");
-  set_guimsg(NULL);
+
   if(thegui!=CLI) gui->quit = true;
+
+  set_guimsg(NULL);
   
+  if(mix) {
+    act("stopping mixer...");  
   /* piglia o'tiemp e sputa in terra
      senza fa' troppo casino a segnala' ai canali */
-
-  if(mix) {
-    act("stopping mixer...");
-    jsleep(2,0);
+    jsleep(0,50);
     delete mix;
   }
 
@@ -734,7 +741,7 @@ int main(int argc, char **argv) {
     delete gui;
   }
   
-  act("cya!");
+  act("cya on http://muse.dyne.org");
   MuseCloseLog();
   exit(0);
 }

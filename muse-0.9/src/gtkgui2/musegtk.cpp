@@ -211,31 +211,35 @@ void gtkgui_set_statustext(char *testo)
 
 bool gtkgui_sel_playlist(unsigned int chan, int row)
 {
-	struct gchan *c;
-	GtkTreeModel *model;
-	GtkTreeSelection *selection;
+	struct gchan *c = NULL;
+	GtkTreeModel *model = NULL;
+	GtkTreeSelection *selection = NULL;
 	GtkTreeIter iter;
-	GtkTreePath *path;
+	GtkTreePath *path = NULL;
 
 	c = (struct gchan *) list_get_data(listachan, chan+1, 0); 
 
-	if(!c) 
-		return false;
+	if(!c) return false;
+
+	if(!c->playmode)
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(c->play), FALSE);
+
+	gtk_entry_set_text(GTK_ENTRY(c->ptime), "00:00:00");
+	gtk_adjustment_set_value(GTK_ADJUSTMENT(c->adjprog), 0.0);
 
 	model = gtk_tree_view_get_model(GTK_TREE_VIEW(c->tree));
+	if(!model) return false;
 	selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(c->tree));
+	if(!selection) return false;
 	gtk_tree_selection_get_selected(selection, NULL, &iter);
 	path = gtk_tree_model_get_path(model, &iter);
+	if(!path) return false;
 	
 	gtk_tree_selection_select_path(selection, path);
 	
 	gtk_tree_path_free(path);
 	
-	gtk_entry_set_text(GTK_ENTRY(c->ptime), "00:00");
-	gtk_adjustment_set_value(GTK_ADJUSTMENT(c->adjprog), 0.0);
 
-	if(!c->playmode)
-		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(c->play), FALSE);
 	return true;
 }
 

@@ -1,5 +1,5 @@
 /* MuSE - Multiple Streaming Engine
- * Copyright (C) 2000-2003 Denis Roio aka jaromil <jaromil@dyne.org>
+ * Copyright (C) 2000-2004 Denis Roio aka jaromil <jaromil@dyne.org>
  *
  * This source code is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Public License as published 
@@ -40,9 +40,8 @@
 #include <jutils.h>
 #include <audioproc.h>
 #include <jmixer.h>
-
-#include <in_oggvorbis.h>
-#include <in_mpeg.h>
+#include <playlist.h>
+#include <inchannels.h>
 
 #include <config.h>
 
@@ -62,6 +61,14 @@
    audio_buffer BUF_SIZE is:
    BUF_SIZE of 16bit short *2channels *8resampling_space
 */
+
+#define PARACHAN \
+  if(!chan[ch]) { \
+    warning("%i:%s %s - channel %i is NULL", \
+    __LINE__,__FILE__,__FUNCTION__,ch); \
+    return(false); \
+  }
+
 
 Stream_mixer::Stream_mixer() {
   int i;
@@ -223,27 +230,27 @@ void Stream_mixer::cafudda()
 
   for(i=0;i<MAX_CHANNELS;i++) {
     if(chan[i] != NULL) {
-      if(chan[i]->on) {
 
-	if(!chan[i]->running) { /* startup thread */
+      /*
+      if(chan[i]->update) {
+	if(have_gui) 
+	  gui->sel_playlist
+	    (i,chan[i]->playlist->selected_pos());
+	chan[i]->update = false;
+      }
+      */
 
-	  chan[i]->lock();
-	  chan[i]->start();
-	  func("waiting for channel %i thread to start",i);
-	  chan[i]->wait();
-	  /* wait for the existance lock, then we unlock */
-	  chan[i]->unlock();
-
-	} else { /* suck in data */
-
-	  // OPTIMIZE: elimina l'azzeramento all'inizio e fallo nella prima passata di mix
-	  cc = chan[i]->erbapipa->mix16stereo(MIX_CHUNK,process_buffer);
-	  // if(cc!=MIX_CHUNK<<2) warning("hey! mix16stereo on ch[%u] returned %i",i,cc);
-	  c+=cc;
-	  updchan(i);
-
-	}
+      if(chan[i]->on) {	
+	cc = chan[i]->erbapipa->mix16stereo(MIX_CHUNK,process_buffer);
+	// if(cc!=MIX_CHUNK<<2) warning("hey! mix16stereo on ch[%u] returned %i",i,cc);
+	c+=cc;
+	if(have_gui)
+	  if(chan[i]->update) {
+	    updchan(i);
+	    chan[i]->update = false;
+	  }
       } /* if(chan[i].on) */
+
     } /* if(chan[i] != NULL) */
   } /* for(i=0;i<MAX_CHANNELS;i++) */
   
@@ -317,212 +324,139 @@ void Stream_mixer::cafudda()
      in which we must find the right moment to breath;
      
      here we give fifos a bit of air and avoid tight loops
-     making the mixing engine wait 10 nanosecs */
-  jsleep(0,50);
+     making the mixing engine wait 20 nanosecs */
+  jsleep(0,20);
 
 }
 
 bool Stream_mixer::create_channel(int ch) {
-  lock();
-
+  
   /* paranoia */
-  if(chan[ch]!=NULL)
-    delete_channel(ch);
+  if(chan[ch]) {
+    warning("channel %i allready exists");
+    unlock();
+    return true;
+  }
 
-  /* by default we create a mpeg channel */
-  chan[ch] = new MpegChannel();
+  Channel *nch;
+  nch = new Channel();
 
+  nch->lock();
+  nch->start();
+  func("waiting for channel %i thread to start",ch);
+  nch->wait();
+  /* wait for the existance lock, then we unlock */
+  nch->unlock();
+
+  lock();
+  chan[ch] = nch;
   unlock();
   
-  if(chan[ch]==NULL)
-    return(false);
-
   return(true);
 }
 
-void Stream_mixer::delete_channel(int ch) { 
+bool Stream_mixer::delete_channel(int ch) { 
   /* paranoia */
-  if(!chan[ch]) {
-    warning("Stream_mixer::delete_channel(%u) called on a NULL channel",ch);
-    return;
-  }
-
-    
-    
+  PARACHAN
 
   lock();
+  /*
   if(chan[ch]->on) chan[ch]->stop();
-  /* quit the thread */
+  // quit the thread
   if(chan[ch]->running) {
     chan[ch]->quit = true;
-    /* be sure it quitted */
+    // be sure it quitted
     chan[ch]->signal();
-    chan[ch]->lock(); chan[ch]->unlock();
     jsleep(0,50);
+    chan[ch]->lock(); chan[ch]->unlock();
+
   }
+  */
 
   /* clean internal allocated buffers */
   delete chan[ch];
   chan[ch] = NULL;
-  playlist[ch].cleanup();
+  //  chan[ch]->playlist->cleanup();
   unlock();
+  return true;
 }
 
-void Stream_mixer::pause_channel(int ch) {
+bool Stream_mixer::pause_channel(int ch) {
   /* paranoia */
-  if(!chan[ch]) {
-    warning("Stream_mixer::pause_channel(%u) called on a NULL channel",ch);
-    return;
-  }
+  PARACHAN
 
   /* here i don't lock - c'mon, boolean _is_ atomical */
   if(chan[ch]->opened) {
     if(!chan[ch]->on) {
       lock();
       if(!chan[ch]->play())
-	error("can't play channel %u",ch,ch);
+      	error("can't play channel %u",ch,ch);
       unlock();
     } else {
       chan[ch]->on = false;
       chan[ch]->position = chan[ch]->time.f;
+      return true;
     }
-  } else error("tried to switch pause on unopened channel %i",ch);
+  } else warning("tried to switch pause on unopened channel %i",ch);
+  return false;
 } /* overloaded non-switching function follows */
-void Stream_mixer::pause_channel(int ch, bool stat) { /* if stat==true -> pause the channel */
+bool Stream_mixer::pause_channel(int ch, bool stat) { /* if stat==true -> pause the channel */
   /* paranoia */
-  if(!chan[ch]) {
-    warning("Stream_mixer::pause_channel(%u) called on a NULL channel",ch);
-    return;
-  }
+  PARACHAN
+
   if(chan[ch]->opened) {
     if(!stat) {
       lock();
       if(!chan[ch]->play())
 	error("can't play channel %u",ch,ch);
       unlock();
-    } else chan[ch]->on = false;
+    } else {
+      chan[ch]->on = false;
+      return true;
+    }
   } else error("can't pause unopened channel %i",ch);
+  return false;
+}
+
+bool Stream_mixer::set_channel(int ch, int pos) {
+  PARACHAN
+
+    if(!chan[ch]->playlist->sel(pos))
+      return(false);
+    else
+      chan[ch]->opened = false;
+
+  /* if have_gui select the choosen song
+  if(have_gui)
+    gui->sel_playlist( ch , pos );
+  */
+  return(true);
 }
 
 /*
-  set the active sound on the channel
-  the file/stream is loaded and a channel is created to handle it
-  takes the channel number and the position of the song into the playlist
+  play the selected stream sound on the channel
+  the file/stream is loaded
+  (CHANGES TO API! RUBIK PERDONO)
+  takes only the channel number
   ** int pos starts from 1
   set_channel returns:
   0 - error
   1 - bitstream opened (seekable)
   2 - bitstream opened (non seekable)
 */
-int Stream_mixer::set_channel(int ch, int pos) {
-  int res;
-  char *sel = playlist[ch].song(pos);
+int Stream_mixer::play_channel(int ch) {
+  int res = 0;
 
-  func("Stream_mixer::set_channel(%i,%i)",ch,pos);
-
-  if(!sel) {
-    error("channel %u has no entry %u in playlist",ch,pos);
-    return(0);
-  }
+  /* paranoia */
+  PARACHAN
 
   lock();
-
-  if(strncasecmp(sel+strlen(sel)-4,".ogg",4)==0) {
-#ifdef HAVE_VORBIS
-    /* take care to delete the old channel if present*/
-    if(chan[ch]!=NULL) {
-      if(chan[ch]->type != OGGCHAN) {
-	func("deleting previous MpegChannel");
-	delete (OggChannel*)chan[ch];
-	/* should we wait a bit after deleting?
-	   jsleep(0,100);	*/
-	func("speeding up in %s %s %i",__FILE__,__FUNCTION__,__LINE__);
-	chan[ch] = new OggChannel();
-      }
-    } else chan[ch] = new OggChannel();
-#else
-    warning("Stream_mixer::set_channel(%u,%u) : can't open OggVorbis (support not compiled)",ch,pos);
-    return(0);
-#endif
-  } else if(strncasecmp(sel+strlen(sel)-4,".mp3",4)==0) {
-    /* take care to delete the old channel if present*/
-    if(chan[ch]!=NULL) {
-      if(chan[ch]->type != MP3CHAN) {
-	func("deleting previous OggChannel");
-	delete (MpegChannel*)chan[ch];
-	/* should we wait a bit after deleting?
-	   jsleep(0,100);	*/
-	func("speeding up in %s %s %i",__FILE__,__FUNCTION__,__LINE__);
-	chan[ch] = new MpegChannel();
-      }
-    } else chan[ch] = new MpegChannel();
-  }
-
+  if(!chan[ch]->play())
+    error("can't play channel %u",ch);
+  else
+    res = (chan[ch]->seekable) ? 1 : 2;
   unlock();
 
-  /* ok, we have the channel here, let's load the bitstream */
-  res = chan[ch]->load(sel);
-
-
-  if(!res) {  /* there is an error in opening the file */
-    error("Stream_mixer::set_channel can't set channel %u", ch);
-    chan[ch]->opened = false;
-
-    switch(chan[ch]->playmode) {
-    case PLAYMODE_LOOP: /* LOOP :::::::::::::::::::::::: */
-      return(0);
-      break;
-    case PLAYMODE_CONT: /* CONT :::::::::::::::::::::::: */
-      if(playlist[ch].len()<=1) return(0);
-      if(pos>=playlist[ch].len()) pos=1; else pos++;
-      /* recursion HERE! et voila' */
-      return set_channel(ch,pos);
-      break;
-    case PLAYMODE_PLAY: /* PLAY :::::::::::::::::::::::: */
-      return(0);
-    default:
-      func("%s::%s playmode $i ERROR",
-	   __FILE__,__FUNCTION__,chan[ch]->playmode);
-      return(0);
-    }
-
-  } else { /* file opened, everything ok */
-    func("%s::%s(%i,%i) file opened ok",
-	 __FILE__,__FUNCTION__,ch,pos);
-    /* flush out the pipe */
-    chan[ch]->erbapipa->flush();
-
-    /*
-    if(!chan[ch]->running) { // startup separated thread
-      chan[ch]->lock();
-      chan[ch]->start();
-      func("waiting for thread to start");
-      chan[ch]->wait();
-      // wait for the existance lock, then we unlock
-      chan[ch]->unlock();
-    }
-    */
-
-    playlist[ch].sel(pos);
-    
-    switch(chan[ch]->type) {
-    case MP3CHAN:
-      notice("Mpeg on chan[%u] %ukbit %ukhz %s"
-	     , ch, chan[ch]->bitrate, chan[ch]->samplerate,
-	     (chan[ch]->channels==1) ? "mono" : "stereo" );
-      break;
-    case OGGCHAN:
-      notice("OggVorbis on chan[%u] %ukhz %s"
-	     , ch, chan[ch]->samplerate,
-	     (chan[ch]->channels==1) ? "mono" : "stereo" );
-      break;
-    }
-    /* if have_gui select the choosen song */
-    if(have_gui)
-      gui->sel_playlist
-	( ch , playlist[ch].selected_pos() );
-
-  }
   return(res);
 }
 
@@ -536,15 +470,14 @@ void Stream_mixer::set_all_volumes(float *vol) {
   unlock();
 }
 
-void Stream_mixer::set_volume(int ch, float vol) {
-  if(!chan[ch]) {
-    warning("Stream_mixer::set_volume(%u,%f) called on a NULL channel",ch,vol);
-    return;
-  }
+bool Stream_mixer::set_volume(int ch, float vol) {
+  /* paranoia */
+  PARACHAN
 
   lock();
   chan[ch]->volume = vol;
   unlock();
+  return true;
 }
 
 void Stream_mixer::crossfade(int ch1, float vol1, int ch2, float vol2) {
@@ -568,47 +501,27 @@ void Stream_mixer::set_speed(int ch, int speed) {
   */
 }
 
-bool Stream_mixer::play_channel(int ch) {
-  /* paranoia */
-  if(chan[ch]==NULL) {
-    warning("Stream_mixer::play_channel(%u) called on a NULL channel",ch);
-    return(false);
-  }
-
-  func("Stream_mixer::play_channel(%i)",ch);
-  
-  lock();
-  if(!chan[ch]->play())
-    error("can't play channel %u",ch);
-  unlock();
-  return(chan[ch]->on);
-}
-  
 bool Stream_mixer::stop_channel(int ch) {
   /* paranoia */
-  if(!chan[ch]) {
-    warning("Stream_mixer::stop_channel(%u) called on a NULL channel",ch);
-    return(false);
-  }
+  PARACHAN
 
   bool res = false;
-  if(chan[ch]->running) {
-    lock();
-    res = chan[ch]->stop();
-    unlock();
-    if(have_gui) gui->sel_playlist(ch,playlist[ch].selected_pos());
-  }
+    //  if(chan[ch]->running) {
+  lock();
+  res = chan[ch]->stop();
+  unlock();
+  /*  if(have_gui) {
+    int p = chan[ch]->playlist->selected_pos();
+    if(p) gui->sel_playlist(ch,p);
+    } */
   return(res);
 }
 
 bool Stream_mixer::set_position(int ch, float pos) {
-  bool res = false;
-  /* paranoia */
-  if(!chan[ch]) {
-    warning("Stream_mixer::set_position(%u,%f) called on a NULL channel",ch,pos);
-    return(res);
-  }
 
+  /* paranoia */
+  PARACHAN
+  bool res = false;
   if(!chan[ch]->opened) {
     error("can't seek position on channel %u",ch);
     return(res);
@@ -638,13 +551,17 @@ bool Stream_mixer::set_position(int ch, float pos) {
 /* move song 'pos' in channel 'ch' to the new 'npos' in channel 'nch'
    songs can also be moved within the same channel */
 bool Stream_mixer::move_song(int ch, int pos, int nch, int npos) {
-  Entry *x = playlist[ch].pick(pos);
+  Entry *x = chan[ch]->playlist->pick(pos);
+  func("move song %i on channel %i to channel %i in position %i",
+       pos,ch,nch,npos);
   if(x) {
     /* the insert also removes from the old list
        (in future we should be using the linklist API directly) */
-    playlist[nch].insert(x,npos);
+    chan[nch]->playlist->insert(x,npos);
     return(true);
-  }
+  } else 
+    func("no song to move there!");
+
   return(false);
 }
 
@@ -683,7 +600,7 @@ void Stream_mixer::close_soundcard() {
   close(dsp);
 }
 
-void Stream_mixer::set_playmode(int ch, int mode) {
+bool Stream_mixer::set_playmode(int ch, int mode) {
   
   switch(mode) {
   case PLAYMODE_PLAY:
@@ -696,9 +613,12 @@ void Stream_mixer::set_playmode(int ch, int mode) {
     chan[ch]->playmode = PLAYMODE_CONT;
     break;
   }
+  return true;
 }
 
-/* this is the function selecting files for the scandir */
+/* this is the function selecting files for the scandir
+   on freebsd systems you should change the following line to:
+   int selector(struct dirent *dir) {    */
 int selector(const struct dirent *dir) {
   if( strncasecmp(dir->d_name+strlen(dir->d_name)-4,".mp3",4)==0
 #ifdef HAVE_VORBIS
@@ -721,9 +641,15 @@ int selector(const struct dirent *dir) {
 
 bool Stream_mixer::add_to_playlist(int ch, const char *file) {
 
-
   if(!file) {
     warning("Stream_mixer::add_to_playlist(%i,NULL) called",ch);
+    return(false);
+  }
+
+  if(!chan[ch]) {
+    warning("%i:%s %s - called on NULL channel %i",
+	    __LINE__,__FILE__,__FUNCTION__,ch);
+    warning("call jmixer::create_channel first");
     return(false);
   }
 
@@ -733,12 +659,13 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
 
   strncpy(temp,file,MAX_PATH_SIZE);
   chomp(temp);
-  
+  func("add to playlist %s", temp);
   /* if it's a url, just add it */
   if(strncasecmp(temp,"http://",7)==0) {
-    lock();
-    path = playlist[ch].addurl(temp);
-    unlock();
+    func("it's a network stream url");
+    //    lock();
+    path = chan[ch]->playlist->addurl(temp);
+    //    unlock();
     if(have_gui) gui->add_playlist(ch,path);
     return(true);
   }
@@ -746,15 +673,18 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
   /* if it's a local file url (like gnome d&d)
      strip away the file:// and treat it normally */
   if(strncasecmp(temp,"file://",7)==0) {
+    func("it's a file url (drag & drop)");
     strncpy(temp,&file[7],MAX_PATH_SIZE);
-    func("QUAAA %s",temp);
+    path = chan[ch]->playlist->addurl(temp);
+    if(have_gui) gui->add_playlist(ch,path);
+    return(true);
   }
   
   /* if it's not a stream, check if the file exists and it's readable */
   FILE *fd = NULL;
   fd = fopen(temp,"r");
   if(!fd) {
-    warning("Stream_mixer::add_to_playlist : %s is not readable",temp);
+    warning("is not a readable file",temp);
     return(false);
   } else fclose(fd);
 
@@ -767,9 +697,10 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
   if( strncasecmp(temp+strlen(temp)-4,".ogg",4)==0
    || strncasecmp(temp+strlen(temp)-4,".mp3",4)==0
       ) {
-    lock();
-    path = playlist[ch].addurl(temp);
-    unlock();
+    func("it's a local file",temp);
+    //    lock();
+    path = chan[ch]->playlist->addurl(temp);
+    //    unlock();
     
     if(have_gui) {
       p = path+strlen(path);// *p='\0';
@@ -783,6 +714,7 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
   } else if( strncasecmp(temp+strlen(temp)-3,".pl",3)==0
 	     || strncasecmp(temp+strlen(temp)-4,".pls",4)==0
 	     || strncasecmp(temp+strlen(temp)-4,".m3u",4)==0 ) {
+    func("it's a playlist");
     /* the file is a playlist, read thru it and append it to the existing */
     char votantonio[MAX_PATH_SIZE];
     fd = fopen(temp,"r");
@@ -805,10 +737,9 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
     if(stat(temp,&prcd)<0) {
       error("can't read file status");
       warning("cannot stat %s : %s",temp,strerror(errno));
-
     } else if(prcd.st_mode & S_IFDIR) {
-     
-      func("Stream_mixer::add_to_playlist called on directory");
+      func("it's a directory");
+
       struct dirent **filelist;
       int found = scandir(temp,&filelist,selector,alphasort);
       if(found<0) {
@@ -819,6 +750,7 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
 	for(c=0;c<found;c++) {
 	  char barakus[MAX_PATH_SIZE];
 	  snprintf(barakus,MAX_PATH_SIZE,"%s/%s",temp,filelist[c]->d_name);
+	  /* et vuala' la ricorsione pure qua */
 	  add_to_playlist(ch,barakus);
 	}
 	res = true;
@@ -840,16 +772,16 @@ void Stream_mixer::rem_from_playlist(int ch, int pos) {
     return;
   }
 
-  lock();
+  //  lock();
 
-  playlist[ch].rem(pos);
+  chan[ch]->playlist->rem(pos);
 
-  pos = (pos>playlist[ch].len()) ? playlist[ch].len() : pos;
+  pos = (pos>chan[ch]->playlist->len()) ? chan[ch]->playlist->len() : pos;
   if(pos>0) {
-    playlist[ch].sel(pos);
+    chan[ch]->playlist->sel(pos);
     if(have_gui) gui->sel_playlist(ch,pos-1);  
   }
-  unlock();
+  //  unlock();
 }
 
 int Stream_mixer::create_enc(enum codec enc) {
@@ -909,23 +841,10 @@ void Stream_mixer::delete_enc(int id) {
     outch->quit = true;
     jsleep(0,50);
     outch->lock(); outch->unlock();
-    outch->flush(); /* QUAA: CHECK THIS */
+    outch->flush(); /* QUA we waste some buffer in the pipe 
+		       CHECK THIS */
   }
 
-  /*  
-  switch(outch->tipo) {
-
-#ifdef HAVE_VORBIS
-  OGG: delete (OutVorbis*)outch; break;
-#endif
-  
-#ifdef HAVE_LAME
-  MP3: delete (OutLame*)outch; break;
-#endif
-  
-  default: break;
-  }
-  */
   delete outch;
   unlock();
 }
@@ -967,83 +886,28 @@ bool Stream_mixer::apply_enc(int id) {
    and updates the gui if registered.
    this is called only by cafudda while the mixer is locked, so no need to lock
 */
-void Stream_mixer::updchan(int ch) {
-  //  func("%s::%s(%i)",__FILE__,__FUNCTION__,ch);
-
-  if(chan[ch]->state>=1.0) {
-    if(chan[ch]->state==3.0)
-      error("JMIX::updchan : channel %u reported errors",ch);
-    
-    chan[ch]->stop();
-
-    func("%s::%s(%i)",__FILE__,__FUNCTION__,ch);
-    chan[ch]->report();
-    switch(chan[ch]->playmode) {
-    case PLAYMODE_PLAY: /* PLAY :::::::::::::::::::::::: */
-      unlock();
-      if(!have_gui) { /* if there is no interface and
-			 nothing is running continuous
-			 we quit */
-	bool mustquit = true;
-	int i;
-	for(i=0;i<MAX_CHANNELS;i++)
-	  if(chan[ch])
-	    if( chan[ch]->playmode != PLAYMODE_PLAY )
-	      mustquit = false;
-	if(mustquit) quit = true;
-      }
-      if(chan[ch]->seekable) set_channel(ch,playlist[ch].selected_pos());
-      else if(have_gui) gui->sel_playlist(ch,playlist[ch].selected_pos());
-      lock();
-      break;
-    case PLAYMODE_LOOP: /* LOOP :::::::::::::::::::::::: */     
-      unlock();
-      if(chan[ch]->seekable) {
-	set_channel(ch,playlist[ch].selected_pos());
-	play_channel(ch);
-      } else if(have_gui) gui->sel_playlist(ch,playlist[ch].selected_pos());
-      lock();
-      break;
-    case PLAYMODE_CONT: /* CONT :::::::::::::::::::::::: */
-      int now = playlist[ch].selected_pos();
-      int next =
-	(now < playlist[ch].len()) ? now+1 : 1;
-
-      unlock();
-      set_channel(ch,next);
-      play_channel(ch);
-      lock();
-
-      playlist[ch].sel(next);
-      if(have_gui) gui->sel_playlist(ch,playlist[ch].selected_pos());
-
-      break;
+bool Stream_mixer::updchan(int ch) {
+  PARACHAN
+    if(chan[ch]->seekable) {
+      snprintf(gui->ch_lcd[ch],9,"%02u:%02u:%02u",
+	       chan[ch]->time.h,chan[ch]->time.m,chan[ch]->time.s);
+      //	if(strncmp(temp,gui->ch_lcd[ch],5)!=0) { // LCD changed */
+      //strncpy(gui->ch_lcd[ch],temp,5);
+      gui->set_lcd(ch, gui->ch_lcd[ch]);
+      //	func("%i: %s %f",ch,gui->ch_lcd[ch],chan[ch]->state);
+      //	}
+      //	if(gui->ch_pos[ch] != chan[ch]->state) { /* POSITION changed */
+      gui->ch_pos[ch] = chan[ch]->state;
+      gui->set_pos(ch, chan[ch]->state);
+      //	}
     }
-
-  } else { /* state<1.0 : normal flow */
-    if(have_gui && chan[ch]->seekable) {
-      char temp[8];
-      snprintf(temp,8,"%02u:%02u",chan[ch]->time.m,chan[ch]->time.s);
-      if(strncmp(temp,gui->ch_lcd[ch],5)!=0) { /* LCD changed */
-	strncpy(gui->ch_lcd[ch],temp,5);
-	gui->set_lcd(ch, gui->ch_lcd[ch]);
-      }
-      if(gui->ch_pos[ch] != chan[ch]->state) { /* POSITION changed */
-	gui->ch_pos[ch] = chan[ch]->state;
-	//	gui->set_pos(ch, chan[ch]->state);
-      }
-    }
-  }
+  return(true);
 }
 
 /* this routine clips audio and calculates volume peak
    this saves cpu cycles by doing it all in the same iteration   
-   featuring an adaptive coefficient for volume and clipping
-   
-   Copyright (C) 2002 Matteo Nastasi aka mop <nastasi@alternativeoutput.it>
-*/
-
-
+   featuring an adaptive coefficient for volume and clipping 
+   Copyleft (C) 2002 Matteo Nastasi aka mop <nastasi@alternativeoutput.it> */
 void Stream_mixer::clip_audio(int samples) {
   int c;
   static float k = 1.0;
