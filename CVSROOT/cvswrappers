@@ -1,5 +1,6 @@
 # This file affects handling of files based on their names.
 
+
 #
 # The -t/-f options allow one to treat directories of files
 # as a single file, or to transform a file in other ways on
