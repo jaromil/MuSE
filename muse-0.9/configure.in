@@ -420,7 +420,6 @@ AC_ARG_ENABLE(profiling,
     have_profiling=no
   else
       have_profiling=yes;
-    fi
   fi ],[ have_profiling=no ])
 if test x$have_profiling = xyes; then
   CFLAGS="$CFLAGS -pg"
