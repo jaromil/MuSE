@@ -37,19 +37,20 @@ void gcb_event_pause_channel(GtkWidget *w, GdkEventButton *s, struct gchan *o)
 	gcb_pause_channel(w, o);
 }
 
-void gcb_event_set_position(GtkWidget *w, GdkEventButton *s, struct gchan *o)
+gboolean gcb_event_set_position(GtkWidget *w, GdkEventButton *s, struct gchan *o)
 {
 	float position;
 
 	if(o->channel != 1) {
 		/* get your hands off! */
 		gtk_adjustment_set_value(GTK_ADJUSTMENT(o->adjprog), 0.0);
-		return;
+		return FALSE;
 	}
 	// gtk_adjustment_changed(GTK_ADJUSTMENT(o->adjprog)); just a try..
 	position=GTK_ADJUSTMENT(o->adjprog)->value;
 	mixer->set_position(o->idx-1, position);
 	/* muse-core will play channel with set_position */	
+	return FALSE;
 }
 
 /* drag'n'drop stuff */

@@ -20,8 +20,8 @@
 #define GCHAN_EVENTS_H
 
 /* event stuff: position and popup */
-void gcb_event_pause_channel(GtkWidget *, GdkEventButton *, struct gchan *);
-void gcb_event_set_position(GtkWidget *, GdkEventButton *, struct gchan *);
+/* void gcb_event_pause_channel(GtkWidget *, GdkEventButton *, struct gchan *); */
+gboolean gcb_event_set_position(GtkWidget *, GdkEventButton *, struct gchan *);
 
 void DND_begin(GtkWidget *, GdkDragContext *, struct gchan *);
 void DND_end(GtkWidget *, GdkDragContext *, struct gchan *);
