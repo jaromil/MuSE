@@ -50,7 +50,8 @@ case $uname in
      AC_MSG_RESULT(Darwin/OSX)
      AC_DEFINE(HAVE_DARWIN,1,[define if compiling for Apple Darwin OSX])
      have_darwin=yes
-     DARWIN_LIBS="-L/sw/lib -lintl -framework AudioToolbox -framework CoreAudio"
+     DARWIN_LIBS="-L/sw/lib -lintl -framework AudioToolbox -framework CoreAudio -loss"
+	 DARWIN_CFLAGS="-I/sw/include"
      ;;
      *)
      echo "[!] Your system architecture is not supported by MuSE"
@@ -402,6 +403,26 @@ if test "${HAVE_GTK2}" = "yes"; then
 fi
 
 dnl ==============================================================
+dnl Choose external portaudio library
+dnl =========================================
+AC_MSG_CHECKING(if external portaudio library is requested)
+PORTAUDIO_LIBS="portaudio/lib/libportaudio.a"
+PORTAUDIO_CFLAGS="-Iportaudio/pa_common -Iportaudio/pablio -Iportaudio"
+PORTAUDIO_DIRS="portaudio"
+AC_ARG_WITH(portaudio,
+[  --with-portaudio=/sw portaudio lib prefix],
+[if test -r "$withval"; then
+	 external_portaudio=yes
+     PORTAUDIO_LIBS="$withval/lib/libportaudio.a"
+	 PORTAUDIO_CFLAGS="-I$withval/include -I$withval/pa_common"
+	 PORTAUDIO_DIRS=""
+	 AC_MSG_RESULT(yes)
+ fi],[AC_MSG_RESULT(no)])
+AC_SUBST(PORTAUDIO_LIBS)
+AC_SUBST(PORTAUDIO_CFLAGS)
+AC_SUBST(PORTAUDIO_DIRS)
+
+dnl ==============================================================
 dnl Choose which libshout version to use
 dnl ==============================================================
 dnl LIBSHOUT_DIR=shout
@@ -541,6 +562,7 @@ dnl declare things for the automake
 dnl ===============================
 
 AC_SUBST(DARWIN_LIBS)
+AC_SUBST(DARWIN_CFLAGS)
 
 AC_SUBST(M_LIBS)
 AC_SUBST(LAME_LIBS)
@@ -581,6 +603,11 @@ echo
 echo "== MuSE build configuration ====================================="
 echo ":: Building on ${host} (kernel $uname$uversion)"
 
+if test "$have_darwin" = "yes"; then
+	echo ":: Linking Darwin libs $DARWIN_LIBS"
+fi
+
+
 if test "$have_oggvorbis" = "yes"; then
 	echo ":: Linking OggVorbis libraries for OGG encoding"
 else
@@ -608,6 +635,9 @@ if test "${GUI_RUBIK}" = "true"; then
 fi
 if test "$external_libshout" = "yes"; then
 	echo ":: Embedding external libshout from $LIBSHOUT_LIBS"
+fi
+if test "$external_portaudio" = "yes"; then
+	echo ":: Embedding external portaudio from $PORTAUDIO_LIBS"
 fi
 if test "$debug" = "true"; then
 	echo ":: DEBUG informations ON (-Wall -g compile flags)"

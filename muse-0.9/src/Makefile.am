@@ -1,6 +1,6 @@
-SUBDIRS = resample shout libmpeg portaudio @GUI_DIRS@
+SUBDIRS = resample shout libmpeg @GUI_DIRS@ @PORTAUDIO_DIRS@
 
-INCLUDES = -Ishout -Iportaudio -I/sw/include -I/usr/X11R6/include -Incursesgui @GLIB2_CFLAGS@
+INCLUDES = -Ishout -I/usr/X11R6/include -Incursesgui @GLIB2_CFLAGS@ @DARWIN_CFLAGS@ @PORTAUDIO_CFLAGS@
 
 CFLAGS = @GUI_FLAGS@  @JACK_CFLAGS@ @OGG_CFLAGS@ @VORBIS_CFLAGS@
 
@@ -27,20 +27,20 @@ muse_SOURCES =  \
     radiosched.cpp      \
     httpstream.cpp  \
     gui.cpp \
-    dev_sound.cpp
+    dev_sound.cpp \
+	pablio.cpp \
+	ringbuffer.cpp
 
 muse_DEPENDENCIES = \
 	@GUI_DEPS@ \
 	resample/libresample.a \
 	libmpeg/libmpeg.a \
-	shout/libshout.a \
-	portaudio/libportaudio.a
+	shout/libshout.a
 
 muse_LDADD = \
 	$(top_srcdir)/src/resample/libresample.a \
 	$(top_srcdir)/src/libmpeg/libmpeg.a \
 	$(top_srcdir)/src/shout/libshout.a \
-	$(top_srcdir)/src/portaudio/libportaudio.a \
 	-lpthread \
 	@M_LIBS@ \
 	@LAME_LIBS@ \
@@ -50,5 +50,6 @@ muse_LDADD = \
 	@SNDFILE_LIBS@ \
 	@GLIB2_LIBS@ \
 	@JACK_LIBS@ \
-	@DARWIN_LIBS@
+	@DARWIN_LIBS@ \
+	@PORTAUDIO_LIBS@
 

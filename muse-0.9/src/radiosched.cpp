@@ -32,7 +32,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <sys/soundcard.h>
+//#include <sys/soundcard.h>
 #include <string.h>
 #include <signal.h>
 #include <sys/types.h>

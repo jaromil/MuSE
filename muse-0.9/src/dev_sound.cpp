@@ -84,7 +84,7 @@ bool SoundDevice::pablio_input(bool state) {
       error("error opening input sound device: %s",Pa_GetErrorText( err ) );
       return false;
     } else
-      info_input = Pa_GetDeviceInfo( Pa_GetDefaultInputDeviceID() );
+      info_input = Pa_GetDeviceInfo( Pa_GetDefaultInputDevice() );
 
   } else if(!state && aInStream) {
 
@@ -113,7 +113,7 @@ bool SoundDevice::pablio_output(bool state) {
       error("error opening output sound device: %s",Pa_GetErrorText( err ) );
       return false;
     } else
-      info_output = Pa_GetDeviceInfo( Pa_GetDefaultOutputDeviceID() );
+      info_output = Pa_GetDeviceInfo( Pa_GetDefaultOutputDevice() );
 
   } else if(!state && aOutStream) {
     

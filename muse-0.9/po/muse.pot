@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2004-12-15 20:38+0100\n"
+"POT-Creation-Date: 2005-03-22 00:23+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,15 +15,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #. gtk_widget_set_size_request(window1, 550, 300);
-#: ../src/gtkgui2/about.cpp:52
+#: ../src/gtkgui2/about.cpp:54
 msgid "about MuSE: the Multiple Streaming Engine"
 msgstr ""
 
-#: ../src/gtkgui2/about.cpp:57
+#: ../src/gtkgui2/about.cpp:59
 msgid "MuSE: Codename COTURNIX"
 msgstr ""
 
-#: ../src/gtkgui2/about.cpp:70
+#: ../src/gtkgui2/about.cpp:72
 msgid ""
 "development team for this release:\n"
 "\n"
@@ -34,7 +34,7 @@ msgid ""
 "Eugen Melinte - radio scheduler, http stream parser\n"
 msgstr ""
 
-#: ../src/gtkgui2/about.cpp:105
+#: ../src/gtkgui2/about.cpp:107
 msgid ""
 "MuSE is an application for the mixing, encoding, and\n"
 "streaming of sound: is an engine that can simultaniously\n"
@@ -589,39 +589,39 @@ msgstr ""
 msgid "Vumeters"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:101
+#: ../src/gtkgui2/utils.cpp:103
 msgid "Hall of Fame"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:197
+#: ../src/gtkgui2/utils.cpp:199
 msgid "_The_ status bar"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:275
+#: ../src/gtkgui2/utils.cpp:277
 msgid "Save an Icecast profile"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:279
+#: ../src/gtkgui2/utils.cpp:281
 msgid "Save a Lame profile"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:281
+#: ../src/gtkgui2/utils.cpp:283
 msgid "Save an Ogg/Vorbis profile"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:305 ../src/gtkgui2/utils.cpp:371
+#: ../src/gtkgui2/utils.cpp:307 ../src/gtkgui2/utils.cpp:373
 msgid "Profile Name"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:341
+#: ../src/gtkgui2/utils.cpp:343
 msgid "Remove an Icecast profile"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:345
+#: ../src/gtkgui2/utils.cpp:347
 msgid "Remove a Lame profile"
 msgstr ""
 
-#: ../src/gtkgui2/utils.cpp:347
+#: ../src/gtkgui2/utils.cpp:349
 msgid "Remove a Ogg/Vorbis profile"
 msgstr ""
 
