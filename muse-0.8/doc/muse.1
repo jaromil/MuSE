@@ -1,19 +1,21 @@
 .\" Process this file with
 .\" groff -man -Tascii foo.1
 .\"
-.TH MUSE 1 "February 2003" UNIX "User Manuals"
+.TH MUSE 1 "April 2004" UNIX "User Manuals"
 .SH NAME
 MuSE - stream your audio over the internet
 .SH SYNOPSIS
 .B muse [
-.I generic options
-.B ] [-e [
-.I encoder options
-.B ] [
-.I stream options
-.B ] ] [
-files
+.I generic opt
+.B ] [ [ -N
+.I input opt
 .B ]
+.I files
+.B ] [-e [
+.I encoder opt
+.B ] [
+.I stream opt
+.B ] ]
 
 .SH DESCRIPTION
 \fBMuSE\fP is an application for mixing, encoding, and network streaming of sound. MuSE can simultaniously mix up to 6 encoded audio bitstreams (from files or network) plus a souncard input signal. The resulting stream can be played locally on the sound card and/or encoded as an mp3 bitstream sent to a broadcast server. MuSE offers two intuitive interfaces (graphical and console) to be operated realtime and can also run in commandline mode.
@@ -33,8 +35,6 @@ show help
 show version information
 .IP "-D --debug [\fI num \fP]"
 set debug verbosity level to \fInum\fP between 1 and 3, useful to figure out where is the problem and to file good bug reports, default is 1
-.IP "-i"
-mix soundcard live input
 .IP "-o --dspout"
 disable souncard output
 .IP "-C --cli"
@@ -43,6 +43,19 @@ command line input. cli GUI is selected (same as -g cli)
 specify GUI \fIname\fP to use. Use \fIlist\fP to get a list of available GUIs
 .IP \fIfiles\fP
 add \fIfiles\fP to MuSE playlist
+
+.SH INPUT CHANNELS OPTIONS
+.IP "-i --live"
+mix soundcard live input, capturing from mic or line-in (default off) 
+.IP "-N --number"
+set the current input \fIchannel\fP number, starting from 1 to 6 (default 1)
+.IP "Options below affect the current \fIchannel\fP specified."	
+.IP "-V --volume"
+input channel volume, float from 0.0 to 1.0 (default 1.0)
+.IP "-S --position"
+input channel starting position, float from 0.0 to 1.0 (default 0.0)
+.IP "-P --playmode"
+input channel playmode: play, cont, loop (default cont)
 
 .SH ENCODER OPTIONS
 .IP "-e --encoder \fIenc\fP"
@@ -54,9 +67,9 @@ set codec bitrate in Kbit/s. default 24
 set encoding frequency to \fIfreq\fP. Possible choices are 0, 11000, 16000,
 22050 or 44100. 0 means auto. default auto
 .IP "-q --quality \fIqual\fP"
-set encoding quality to \fIqual\fP between 0.1 and 9.0 . default 1.0
+set encoding quality to \fIqual\fP between 0.1 and 9.0 . default 4.0
 .IP "-c --channels \fInum\fP"
-set number of audio channels to use. default 1
+set number of audio channels to use, mono=1 stereo=2 (default 1)
 .IP "-f --filedump \fIfile\fP"
 dump audio stream to \fIfile\fP
 
@@ -77,28 +90,108 @@ set descriptive url of the stream to \fIurl\fP
 .IP "-d --desc \fIdesc\fP"
 set description of the stream to \fIdesc\fP
 
+.SH INPUT CHANNELS FORMAT
+MuSE offers a variety of formats for the input channels you are going
+to play: when compiled with all features it supports Mp3, Ogg/Vorbis,
+Wav, Aiff, Voc, Snd, Pvf, Mat, Au, Sf audio formats.
+
+You can also use playlists with muse: text files which store on each
+line the location of the file to be queued when playing. To easily
+generate such a text file you can simply do:
+.br
+.B find /my/music/dir/ -name "*.ogg" > ogg-playlist.pls
+.br
+and then you can load the 'ogg-playlist.pls generated file to be
+played by MuSE.
+
+Last but not least you can use filesystem directories: if a directory
+is loaded as an input channel in MuSE, it will be recursively searched
+and all playable formats inside will be added to the playlist queue.
+
+.SH HOW TO LISTEN
+In order to make people able to tune in and listen to your stream, you
+should communicate your listeners the URL of your network radio. That
+is formed by elements of the options that you are using: the
+\FIserver\FP, the \FIport\FP (which defaults to 8000) and the
+\FImountpoint\FP.
+
+Therefore a muse commandline containing the options
+.br
+.B [...] -s stream.dyne.org:7090 -m my-radio.ogg
+.br
+will be available to be listened at the URL \fIhttp://stream.dyne.org:7090/my-radio.ogg\fP
+which should be simply typed in the 'Open Location' dialog of most audio players.
+
+.SH COMMANDLINE USAGE EXAMPLES
+
+.B muse -C -i -N1 -V0.5 test.wav -N2 -V0.7 test.ogg -e ogg -f record.ogg -s stream.dyne.org -m muse-example.ogg -l ice2 -p hackme
+.br
+The above command starts muse in commandline mode, recording from the soundcard input and continuously mixing two channes over it: the first playing test.wav at half volume, the second test.ogg at slightly higher volume. The resulting audio is then encoded in Ogg/Vorbis format and simultaneously recorder in the record.ogg file and streamed to the stream.dyne.org server, using mountpoint 'muse-example' and the icecast2 type login password 'hackme'.
+The stream will be available at the url \fIhttp://stream.dyne.org:8000/muse-example.ogg\fP
+.br
+.B muse -C playlist.pls -e ogg -s stream.dyne.org:6969 -m my-music -l ice2 -p hackme
+.br
+The above (simplier) command plays continuously all files listed in the playlist.pls files, encoding them in Ogg/Vorbis and streaming them to stream.dyne.org (port 6969) icecast2 server on mountpoint my-music with password hackme. The listening URL for the stream will therefore be http://stream.dyne.org:6969/my-music - you can also avoid to listen the music being streamed on your computer by using the -o flag at the very beginning of the commandline.
+
 .SH BUGS
 .nf
-noone knows ;) submit bugs to muse@dyne.org
+Bugreporting is very welcome, especially if you know how to use the
+CVS version of this software. The sourcecode comes with memory fencing
+(dmalloc) and profiling functionalities, more information on how to
+download from CVS is available on the website muse.dyne.org.
+
+When you have a bugreport, complete with \fIdebug logs\fP (using the
+-D3 flag) and possibly with the \fIgdb backtraces\fP you can submit it
+in the bugtracker system on \fIhttp://bugs.dyne.org\fP.
+
+Thanks much for your collaboration, we need expert people to
+consciously follow development and bugfixing: you can surely do if you
+understood all the above ;)
 .fi
 
 .SH AUTHORS
 .nf
-Denis "jaromil" Rojo - author and mantainer <\fIhttp://rastasoft.org\fR>
-Antonino "nightolo" Radici - GTK+ interface <\fInight@dyne.org\fR>
-Luca "rubik" Profico - NCURSES interface <\fIrubik@olografix.org\fR>
+Denis "jaromil" Rojo - author and mantainer \fIrastasoft.org\fR
+Antonino "nightolo" Radici - GTK+ interface \fIfreaknet.org\fR
+Luca "rubik" Profico - NCURSES interface \fIolografix.org\fR
+Angelo "pallotron" Failla - more input channels \fIfreaknet.org\fR
 
-a full list of developers can be found in the AUTHOR file 
+a full list of developers can be found in the AUTHOR file
 
-This manual page was written by
-Filippo Giunchedi <\fIfilippo@esaurito.net\fR> and
-and edited by <\fIjaromil@dyne.org\fR>.
+This manual page was written by Filippo "godog" Giunchedi and further
+edited by jaromil.
 
-Write to the mailinglist <\fImuse@dyne.org\fR> to contact developers.
+Join and write the mailinglist on \fIlists.dyne.org/muse\fR to contact
+developers.
 .fi
 
 .SH COPYING
-Permission is granted to copy, distribute and/or modify this manual under the terms of the GNU Free Documentation License, Version 1.1 or any later version published by the Free Software Foundation; with the Invariant Sections being NAME, SYNOPSIS, DESCRIPTION, AUTHORS, AVAILABILITY and with the Front-Cover Texts including "MuSE - stream your audio over the internet - manual pages". Permission is granted to make and distribute verbatim copies of this manual page provided the above copyright notice and this permission notice are preserved on all copies.
+
+Permission is granted to copy, distribute and/or modify this manual
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation;
+Permission is granted to make and distribute verbatim copies of this
+manual page provided the above copyright notice and this permission
+notice are preserved on all copies.
+
+--
+
+MuSE source code is free software; you can redistribute it and/or
+modify it under the terms of the GNU Public License as published by
+the Free Software Foundation; either version 2 of the License, or (at
+your option) any later version.
+
+MuSE source code is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+Please refer to the GNU Public License for more details.
+
+You should have received a copy of the GNU Public License along with
+this source code; if not, write to:
+Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
 
 .SH AVAILABILITY
-The most recent version of \fIMuSE\fR can be attained from its homepage at \fIhttp://muse.dyne.org\fR.
+
+The most recent version of \fIMuSE\fR can be attained from its
+homepage at \fIhttp://muse.dyne.org\fR.

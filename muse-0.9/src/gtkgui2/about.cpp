@@ -11,13 +11,14 @@
 #include <gtk/gtk.h>
 
 #include <utils.h>
-#include <xpm2/asbepallo.h>
+#include <xpm2/dyne.h>
+#include <xpm2/rastasoft.h>
 
 GtkWidget*
 about_win(void)
 {
 	GtkWidget *window1;
-	GtkWidget *vbox1, *hbox1;
+	GtkWidget *vbox1, *hbox1, *vbox2;
 	GtkWidget *aboutframe;
 	GtkWidget *img;
 	GtkWidget *label1, *fixed1;
@@ -49,12 +50,11 @@ about_win(void)
 	gtk_container_add(GTK_CONTAINER(vbox1), fixed1);
 
 	label1 = gtk_label_new (_("development team for this release:\n"
-			  "\n"
-			  "jaromil aka Denis Rojo - main coder and mantainer\n"
-			  "nightolo aka Antonino Radici - GTK user interface\n"
-			  "rubik aka Luca Profico - console user interface\n"
-			  "pallotron aka Angelo Failla - more input channels\n"
-			  "godog aka Filippo Giunchedi - docu and organizer\n"));
+				  "\n"
+				  "jaromil aka Denis Rojo - main coder and mantainer\n"
+				  "nightolo aka Antonino Radici - GTK user interface\n"
+				  "rubik aka Luca Profico - console user interface\n"
+				  "pallotron aka Angelo Failla - more input channels\n"));
 
 	//gtk_label_set_justify (GTK_LABEL (label1), GTK_JUSTIFY_LEFT);
 	//gtk_box_pack_start(GTK_BOX(vbox1), label1, FALSE, FALSE, 0);
@@ -145,10 +145,19 @@ about_win(void)
 		   "\nThis source code is free software; you can redistribute\nit and/or modify it under the terms of the GNU Public\nLicense as published by the Free Software Foundation;\neither version 2 of the License, or (at your option) any\nlater version.\n\nThis source code is distributed in the hope that it will\nbe useful, but WITHOUT ANY WARRANTY; without\neven the implied warranty of MERCHANTABILITY or\nFITNESS FOR A PARTICULAR PURPOSE.\nPlease refer to the GNU Public License for more details.\n\nYou should have received a copy of the GNU Public\nLicense along with this source code; if not, write to:\nFree Software Foundation, Inc., 675 Mass Ave,\nCambridge, MA 02139, USA\n\n\n"), 
 	-1);
 	
+	vbox2 = gtk_vbox_new(FALSE, 6);
 	
-	pixbuf = gdk_pixbuf_new_from_inline(-1, (guint8*)asbepallo, 0, NULL);
+	gtk_container_add(GTK_CONTAINER(hbox1), vbox2);
+	//	gtk_box_pack_start(GTK_BOX(hbox1), vbox2, FALSE, FALSE, 0);
+
+	
+	pixbuf = gdk_pixbuf_new_from_inline(-1, dyne, 0, NULL);
 	img = gtk_image_new_from_pixbuf(pixbuf);
-	gtk_box_pack_start(GTK_BOX(hbox1), img, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox2), img, FALSE, FALSE, 0);
+
+	pixbuf = gdk_pixbuf_new_from_inline(-1, rastalion, 0, NULL);
+	img = gtk_image_new_from_pixbuf(pixbuf);
+	gtk_box_pack_start(GTK_BOX(vbox2), img, FALSE, FALSE, 0);
 	
 	gtk_widget_show_all(window1);
 
