@@ -208,7 +208,7 @@ gboolean gcb_event_view_popup(GtkWidget *w, GdkEventButton *s, struct gchan *o)
 	gint *row = NULL;
 	
 	if(s->button == 3) {
-		select = gtk_tree_view_get_selection(GTK_TREE_VIEW(w));
+		/*select = gtk_tree_view_get_selection(GTK_TREE_VIEW(w));
 		if(gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(w), 
 				(gint) s->x, (gint) s->y,
 				&path, NULL, NULL, NULL)) {
@@ -220,7 +220,7 @@ gboolean gcb_event_view_popup(GtkWidget *w, GdkEventButton *s, struct gchan *o)
 				act(_("il row e' %d"), row[0]);
 			gtk_tree_path_free(path);
 		}
-		
+		*/
 		tmpwid = gtk_menu_item_new_with_label(_("Add File..."));
 		g_signal_connect(G_OBJECT(tmpwid), "activate",
 				G_CALLBACK(spawnfilew), o);
@@ -231,13 +231,13 @@ gboolean gcb_event_view_popup(GtkWidget *w, GdkEventButton *s, struct gchan *o)
 				G_CALLBACK(httpwin), o);
 		gtk_menu_append(GTK_MENU(menupop), tmpwid);
 		
-		if(row) {
+//		if(row) {
 			tmpwid = gtk_menu_item_new_with_label(_("Delete"));
 			g_signal_connect(G_OBJECT(tmpwid), "activate",
 					G_CALLBACK(gcb_rem_from_playlist), 
 					o);
 			gtk_menu_append(GTK_MENU(menupop), tmpwid);
-		}
+//		}
 		
 		tmpwid = gtk_menu_item_new_with_label(_("Cancel"));
 		g_signal_connect(G_OBJECT(tmpwid), "activate",

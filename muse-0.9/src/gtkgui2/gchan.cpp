@@ -258,10 +258,10 @@ bool createch(void)
 	/* end*/
 
 	select = gtk_tree_view_get_selection (GTK_TREE_VIEW (tree));
-	gtk_tree_selection_set_mode (select, GTK_SELECTION_SINGLE);
-	g_signal_connect(G_OBJECT(select), "changed",
+	gtk_tree_selection_set_mode (select, GTK_SELECTION_MULTIPLE);
+	/*g_signal_connect(G_OBJECT(select), "changed",
 			 G_CALLBACK(gcb_set_channel), object);
-
+*/
 	g_signal_connect(G_OBJECT(tree), "button_press_event",
 			G_CALLBACK(gcb_event_view_popup), object);
         renderer = gtk_cell_renderer_text_new();
@@ -330,6 +330,9 @@ void spawnfilew(GtkWidget *button, struct gchan *o)
 {
 	GtkWidget *filew;
 
+/*#if GTK_CHECK_VERSION(2,4,0)
+	notice("provola");
+#else*/
 	func(_("GTK_GUI::spawnfilew : filebrowser for chan[%u]"), o->idx);
 
 	filew = gtk_file_selection_new(_("Select a .mp3 file or a playlist (.pl)"));
@@ -347,7 +350,7 @@ void spawnfilew(GtkWidget *button, struct gchan *o)
 			"clicked", G_CALLBACK(gtk_widget_destroy), 
 			G_OBJECT(filew));
 	gtk_widget_show(filew);
-
+/*#endif*/
 }
 
 void httpwin(GtkWidget *w, struct gchan *o)
@@ -579,18 +582,41 @@ void gcb_rem_from_playlist(GtkWidget *w, struct gchan *o)
 	GtkTreeIter iter;
 	GtkTreeModel *model = gtk_tree_view_get_model(GTK_TREE_VIEW(o->tree));
 	GtkTreeSelection *select;
+	GtkTreeRowReference *reference;
 	GtkTreePath *path;
+	GList *pathlist, *reflist;
 	gint row;
+	
 
 	select = gtk_tree_view_get_selection(GTK_TREE_VIEW(o->tree));
+	pathlist = gtk_tree_selection_get_selected_rows(select, NULL);
 
-	if(gtk_tree_selection_get_selected(select, NULL, &iter)) {
-		path = gtk_tree_model_get_path(model, &iter);
+	pathlist = g_list_first(pathlist);
+	reflist = NULL;
+	
+	while(pathlist) {
+		reference = gtk_tree_row_reference_new(model, 
+				(GtkTreePath *)pathlist->data);
+		reflist = g_list_append(reflist, (void *) reference);
+		
+		pathlist = g_list_next(pathlist);
+	}
+	
+	reflist = g_list_first(reflist);
+	
+	while(reflist) {
+		path = gtk_tree_row_reference_get_path(
+				(GtkTreeRowReference *) reflist->data);
 		row = gtk_tree_path_get_indices(path)[0];
 		mixer->rem_from_playlist(o->idx-1, row+1);
-		gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+		if(gtk_tree_model_get_iter(model, &iter, path)) {
+			notice("removed %d", row);
+			gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+		}
+		
 		gtk_tree_path_free(path);
 
+		reflist = g_list_next(reflist);
 	}
 
 }
