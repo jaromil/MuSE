@@ -25,17 +25,11 @@
 #include <generic.h>
 #include <config.h>
 
-#ifdef HAVE_DARWIN
 #define PA_SAMPLE_TYPE paFloat32
-#else
-#define PA_SAMPLE_TYPE paInt16
-#endif
-
 #define PA_SAMPLES_PER_FRAME 2
-#define PA_MAX_FRAMES 4096
 #define PA_NUM_SECONDS 5
 #define FRAMES_PER_BUFFER   (64)
-#define PA_PIPE_SIZE FRAMES_PER_BUFFER*(PA_SAMPLES_PER_FRAME*sizeof(PA_SAMPLE_TYPE))*128
+#define PA_PIPE_SIZE (IN_BUFFER*2)*8
 
 #define INPUT_DEVICE  Pa_GetDefaultInputDeviceID()
 #define OUTPUT_DEVICE Pa_GetDefaultOutputDeviceID()
@@ -43,76 +37,75 @@
 
 #ifdef HAVE_JACK
 int dev_jack_process(jack_nframes_t nframes, void *arg) {
-  jack_nframes_t opframes;
-  SoundDevice *dev = (SoundDevice*)arg;
-  if(!dev->jack) return 0; // just return
-  
-  // take output from pipe and send it to jack
-  dev->jack_out_buf = (jack_default_audio_sample_t*)
-    jack_port_get_buffer(dev->jack_out_port,nframes);
-  opframes = dev->jack_out_pipe->read
-    (nframes * sizeof(float) * 2 , dev->jack_out_buf);
+jack_nframes_t opframes;
+SoundDevice *dev = (SoundDevice*)arg;
+if(!dev->jack) return 0; // just return
 
-  // take input from jack and send it in pipe
-  dev->jack_in_buf = (jack_default_audio_sample_t*)
-    jack_port_get_buffer(dev->jack_in_port,nframes);
-  dev->jack_in_pipe->write // does the float2int conversion in one pass
-    (nframes * sizeof(float) * 2 , dev->jack_in_buf);
+// take output from pipe and send it to jack
+dev->jack_out_buf = (jack_default_audio_sample_t*)
+jack_port_get_buffer(dev->jack_out_port,nframes);
+opframes = dev->jack_out_pipe->read
+(nframes * sizeof(float) * 2 , dev->jack_out_buf);
 
-  return 0;
+// take input from jack and send it in pipe
+dev->jack_in_buf = (jack_default_audio_sample_t*)
+jack_port_get_buffer(dev->jack_in_port,nframes);
+dev->jack_in_pipe->write // does the float2int conversion in one pass
+(nframes * sizeof(float) * 2 , dev->jack_in_buf);
+
+return 0;
 }
 
 void dev_jack_shutdown(void *arg) {
-  SoundDevice *dev = (SoundDevice*)arg;
-  // close the jack channels
-  dev->jack = false;
-  jack_port_unregister(dev->jack_client, dev->jack_in_port);
-  jack_port_unregister(dev->jack_client, dev->jack_out_port);
-  jack_deactivate(dev->jack_client);
-  delete dev->jack_in_pipe;
-  delete dev->jack_out_pipe;
+SoundDevice *dev = (SoundDevice*)arg;
+// close the jack channels
+dev->jack = false;
+jack_port_unregister(dev->jack_client, dev->jack_in_port);
+jack_port_unregister(dev->jack_client, dev->jack_out_port);
+jack_deactivate(dev->jack_client);
+delete dev->jack_in_pipe;
+delete dev->jack_out_pipe;
 }
 #endif
 
 
 SoundDevice::SoundDevice() {
-  memset(&input_device,0,sizeof(input_device));
-  memset(&output_device,0,sizeof(output_device));
-  pa_dev.input = &input_device;
-  pa_dev.output = &output_device;
-  input_device.pipe = new Pipe(PA_PIPE_SIZE);
-  input_device.pipe->set_block(false,true);
-  output_device.pipe = new Pipe(PA_PIPE_SIZE);
-  output_device.pipe->set_block(true,false);
-#ifdef HAVE_DARWIN
-  input_device.pipe->set_output_type("copy_float_to_int16");
-  output_device.pipe->set_input_type("copy_int16_to_float");
-#endif
-  jack = false;
-  jack_in = false;
-  jack_out = false;
+memset(&input_device,0,sizeof(input_device));
+memset(&output_device,0,sizeof(output_device));
+pa_dev.input = &input_device;
+pa_dev.output = &output_device;
+input_device.pipe = new Pipe(PA_PIPE_SIZE);
+input_device.pipe->set_block(false,true);
+output_device.pipe = new Pipe(PA_PIPE_SIZE);
+output_device.pipe->set_block(true,false);
+input_device.pipe->set_output_type("copy_float_to_int16");
+output_device.pipe->set_input_type("copy_int16_to_float");
+jack = false;
+jack_in = false;
+jack_out = false;
 }
 
 SoundDevice::~SoundDevice() {
-  close();
+close();
 }
 
 static int pa_process( void *inputBuffer, void *outputBuffer, 
-			unsigned long framesPerBuffer, 
-			PaTimestamp outTime, void *userData )
+	unsigned long framesPerBuffer, 
+	PaTimestamp outTime, void *userData )
 {
-  PaDevices *dev = (PaDevices *)userData;
-  long len = framesPerBuffer * sizeof(float) * 2 ;
+int readBytes;
+PaDevices *dev = (PaDevices *)userData;
+long len = framesPerBuffer * (PA_SAMPLES_PER_FRAME*sizeof(PA_SAMPLE_TYPE));
   if(inputBuffer != NULL) {
-    int numRead = dev->input->pipe->write(len,inputBuffer);
+    readBytes = dev->input->pipe->write(len,inputBuffer);
   }
   if(outputBuffer != NULL) {
-    int i;
-    int numRead = dev->output->pipe->read(len,outputBuffer);
+    readBytes = dev->output->pipe->read(len,outputBuffer);
+	
     /* Zero out remainder of buffer if we run out of data. */
-    for( i=numRead;i<len;i++) {
-      ((char *)outputBuffer)[i] = 0;
-    }
+ //   for( i=numRead;i<len;i++) {
+  //    ((char *)outputBuffer)[i] = 0;
+   // }
   }
   return 0;
 }
@@ -144,7 +137,6 @@ PaError SoundDevice::pa_real_open(int mode) {
 
 bool SoundDevice::pa_open(bool state,int mode) {
   PaDevInfo *dev,*other;
-  PaDeviceID id;
   int creq,oreq;
   char dir[7];
   if(mode == PaInput) { // input requested
@@ -278,18 +270,33 @@ bool SoundDevice::open(bool read, bool write) {
 }
 
 void SoundDevice::close() {
-  if(input_device.stream)
-    Pa_StopStream( input_device.stream);
-    Pa_CloseStream( input_device.stream );
-    input_device.stream = NULL;
+  if((pa_mode&PaInput) == PaInput) {
+	if((pa_mode&PaOutput) == PaOutput) {
+	  pa_mode = PaOutput;
+	  if(output_device.stream == input_device.stream)
+	    output_device.stream = NULL;
+	}
+	else pa_mode = PaNull;
+	if(input_device.stream) {
+       Pa_StopStream( input_device.stream);
+       Pa_CloseStream( input_device.stream );
+       input_device.stream = NULL;
+	}
     input_device.pipe->flush();
     //delete input_device.pipe;
+  }
 
-  if(output_device.stream)
-    Pa_StopStream( output_device.stream);
-    Pa_CloseStream( output_device.stream );
-    output_device.stream = NULL;
+  if((pa_mode&PaOutput) == PaOutput) {
+    if(output_device.stream) {
+       Pa_StopStream( output_device.stream);
+       Pa_CloseStream( output_device.stream );
+       output_device.stream = NULL;
+	}
     output_device.pipe->flush();
+	if((pa_mode&PaInput) == PaInput)
+		pa_mode = PaInput;
+	else pa_mode = PaNull;
+  }
     //delete output_device.pipe;
 }
 
@@ -318,9 +325,7 @@ int SoundDevice::write(void *buf, int len) {
     res = jack_out_pipe->write(len*2,buf);
 
   } else if(output_device.stream) { // portaudio
-
-    // takes number of left and right frames (stereo / 2)
-	res = output_device.pipe->write(len*2,buf);
+	res = output_device.pipe->write(len,buf);
   }
   return res;
 }
