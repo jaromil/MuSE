@@ -404,9 +404,28 @@ fi
 dnl ==============================================================
 dnl Choose which libshout version to use
 dnl ==============================================================
-LIBSHOUT_DIR=shout
-LIBSHOUT_LIB="${LIBSHOUT_DIR}/libshout.a"
-
+dnl LIBSHOUT_DIR=shout
+AC_MSG_CHECKING(where to take libshout for embedding)
+LIBSHOUT_LIBS="shout/libshout.a"
+LIBSHOUT_DIR="shout"
+AC_ARG_WITH(shout,
+[  --with-shout=/usr/local/src/libshout directory where libshout
+              is compiled to embed static thread-disabled version],
+[if test -r "$withval"; then
+    LIBSHOUT_SRCDIR="`find $withval -name 'src'`"
+    LIBSHOUT_LIBS="$LIBSHOUT_SRCDIR/.libs/libshout.a"
+    if test ! -r "$LIBSHOUT_LIBS"; then
+        AC_MSG_RESULT(no)
+	echo "!! $LIBSHOUT_LIBS not found: you must compile a static library of libshout"
+    else
+	LIBSHOUT_DIR=""
+	external_libshout=yes
+	AC_MSG_RESULT(yes)
+    fi
+ fi
+],[AC_MSG_RESULT(no)])
+AC_SUBST(LIBSHOUT_DIR)
+AC_SUBST(LIBSHOUT_LIBS)
 
 dnl ==============================================================
 dnl Detect CPU clipping mode (from the secret rabbit code)
@@ -533,7 +552,7 @@ AC_SUBST(GUI_DIRS)
 AC_SUBST(GUI_FLAGS)
 AC_SUBST(GUI_DEPS)
 
-AC_SUBST(LIBSHOUT_LIB)
+AC_SUBST(LIBSHOUT_LIBS)
 AC_SUBST(LIBSHOUT_DIR)
 
 AC_SUBST(DMALLOCC)
@@ -587,7 +606,9 @@ fi
 if test "${GUI_RUBIK}" = "true"; then
 	echo ":: Building the NCURSES user interface"
 fi
-
+if test "$external_libshout" = "yes"; then
+	echo ":: Embedding external libshout from $LIBSHOUT_LIBS"
+fi
 if test "$debug" = "true"; then
 	echo ":: DEBUG informations ON (-Wall -g compile flags)"
 else
