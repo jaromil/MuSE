@@ -312,8 +312,6 @@ bool take_args(int argc, char **argv) {
       }
 #endif
 
-      //TODO: pallotron
-      
       if(encid>0) outch = mix->get_enc(encid);
       if(outch) break;
 
@@ -690,7 +688,9 @@ int main(int argc, char **argv) {
   check_config();
 
   if(dspout||micrec) {
-    snddev = mix->open_soundcard(micrec,dspout);
+    mix->set_live(micrec);
+    mix->set_lineout(dspout);
+    //    snddev = mix->open_soundcard(micrec,dspout);
   }
   
   if(!snddev) {

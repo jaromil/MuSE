@@ -89,17 +89,17 @@ bool SoundDevice::open(bool read, bool write) {
   
   if( ! output(write) ) return false;
   
-  if(info_input) 
-    func("input device: %s",info_input->name);
-  else
-    error("information not available on input device");
-  
-  if( ! input(read) ) return false;
-
-  if(info_output)
+  if(info_output) 
     func("output device: %s",info_output->name);
   else
     error("information not available on output device");
+  
+  if( ! input(read) ) return false;
+
+  if(info_input)
+    func("input device: %s",info_input->name);
+  else
+    error("information not available on input device");
 
   return true;
 }
