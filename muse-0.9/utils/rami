@@ -174,7 +174,7 @@ case "$FORMAT" in
     
     "mp3")
 	LAMERATE=`echo "scale=1;$RATE/1000"|bc`
-	if [ $CHANNELS==1 ]; then $LAMECHAN='m'; else $LAMECHAN='j'; fi
+	if [ $CHANNELS==1 ]; then LAMECHAN='m'; else LAMECHAN='j'; fi
 	echo " .  MP3 encoding at VRB quality $QUALITY $LAMERATEKhz [$FILE]"
 	sox -t ossdsp -w -r"$RATE" -c$CHANNELS /dev/dsp \
 	    -t raw -w -r"$RATE" -c$CHANNELS - $EFFECT | \
