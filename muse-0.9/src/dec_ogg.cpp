@@ -57,8 +57,10 @@ IN_DATATYPE *MuseDecOgg::get_audio() {
     fps = samplerate;
   }
 
-  res = 
-    ov_read(&vf, _inbuf, IN_CHUNK, 0, 2, 1, &current_section);
+  do {
+    res = 
+      ov_read(&vf, _inbuf, IN_CHUNK, 0, 2, 1, &current_section);
+  } while (res == OV_HOLE);
   
   if(res<0) {
     warning("MuseDecOgg:_get_audio() : bitstream error %d", res);
