@@ -72,6 +72,7 @@
 //194
 		195DF8CFFE9D517E11CA2CBB = {
 			children = (
+				AAECECDC08021710004C1C3F,
 			);
 			isa = PBXGroup;
 			name = Products;
@@ -120,6 +121,9 @@
 		};
 		20286C2AFDCF999611CA2CEA = {
 			children = (
+				AAE5AE8408069517006FA613,
+				AA761B560805AFB8003C6E4A,
+				AA761B570805AFB8003C6E4A,
 				AA3FCC3B07FCDD370061F816,
 				AA3FCC3C07FCDD370061F816,
 				AA4C3A7D07FEBC9B00E15170,
@@ -136,6 +140,7 @@
 		};
 		20286C2CFDCF999611CA2CEA = {
 			children = (
+				AA9ACF7D08061D9D0028BFCC,
 				8D0C4E960486CD37000505A6,
 				AA5F43EE07FCC22C001D1B1A,
 				0867D6AAFE840B52C02AAC07,
@@ -268,7 +273,7 @@
 			name = "muse-osx";
 			productInstallPath = "$(HOME)/Applications";
 			productName = "muse-osx";
-			productReference = 8D0C4E970486CD37000505A6;
+			productReference = AAECECDC08021710004C1C3F;
 			productType = "com.apple.product-type.application";
 		};
 		8D0C4E8C0486CD37000505A6 = {
@@ -326,6 +331,9 @@
 				AA3FDA2307FCE1410061F816,
 				AA3FDA5707FD59300061F816,
 				AA4C3A7F07FEBC9B00E15170,
+				AA761B580805AFB8003C6E4A,
+				AA9ACF7E08061D9D0028BFCC,
+				AAE5AE8508069517006FA613,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -407,6 +415,7 @@
 				AA3FDA2207FCE1410061F816,
 				AA3FDA2507FCE1410061F816,
 				AA4C3A8007FEBC9B00E15170,
+				AA761B590805AFB8003C6E4A,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -434,14 +443,6 @@
 			path = Info.plist;
 			refType = 4;
 			sourceTree = "<group>";
-		};
-		8D0C4E970486CD37000505A6 = {
-			explicitFileType = wrapper.application;
-			includeInIndex = 0;
-			isa = PBXFileReference;
-			path = "muse-osx.app";
-			refType = 3;
-			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 //8D0
 //8D1
@@ -551,9 +552,9 @@
 			);
 			isa = PBXGroup;
 			name = src;
-			path = "/Users/xant/src/muse-0.9/src";
-			refType = 0;
-			sourceTree = "<absolute>";
+			path = ../src;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
 		};
 		AA3FD4DD07FCE13D0061F816 = {
 			fileEncoding = 30;
@@ -2293,6 +2294,69 @@
 			isa = PBXBuildFile;
 			settings = {
 			};
+		};
+		AA761B560805AFB8003C6E4A = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			path = carbon_message.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		AA761B570805AFB8003C6E4A = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			path = carbon_message.cpp;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		AA761B580805AFB8003C6E4A = {
+			fileRef = AA761B560805AFB8003C6E4A;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		AA761B590805AFB8003C6E4A = {
+			fileRef = AA761B570805AFB8003C6E4A;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		AA9ACF7D08061D9D0028BFCC = {
+			isa = PBXFileReference;
+			lastKnownFileType = image.icns;
+			path = "muse-icon.icns";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		AA9ACF7E08061D9D0028BFCC = {
+			fileRef = AA9ACF7D08061D9D0028BFCC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		AAE5AE8408069517006FA613 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			path = carbon_common.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		AAE5AE8508069517006FA613 = {
+			fileRef = AAE5AE8408069517006FA613;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		AAECECDC08021710004C1C3F = {
+			explicitFileType = wrapper.application;
+			includeInIndex = 0;
+			isa = PBXFileReference;
+			path = "muse-osx.app";
+			refType = 3;
+			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 	};
 	rootObject = 20286C28FDCF999611CA2CEA;
