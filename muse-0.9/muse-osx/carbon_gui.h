@@ -18,9 +18,10 @@
 #ifndef __CARBON_GUI_H__
 #define __CARBON_GUI_H__
 
-#include <Carbon/Carbon.h>
 #include <gui.h>
+#include "carbon_common.h"
 #include <carbon_channel.h>
+#include <carbon_message.h>
 
 //OSStatus startCarbon(void *arg);
 
@@ -32,15 +33,15 @@ class CARBON_GUI : public GUI {
 
   int vuband, vumeter;
 
-   MPQueueID mpQueue;
-   MPTaskID threadID;
-    
    OSStatus		err;
-   CARBON_CHANNEL  	*channel[MAX_CHANNELS];
+   CarbonChannel	*channel[MAX_CHANNELS];
+   
  public:
   WindowRef 	window;
   IBNibRef 		nibRef;
   Stream_mixer *jmix;
+  ControlRef mainControls[MAIN_CONTROLS_NUM];
+  CarbonMessage *msg;
   
   CARBON_GUI(int argc, char **argv, Stream_mixer *mix);
   ~CARBON_GUI();
@@ -51,7 +52,7 @@ class CARBON_GUI : public GUI {
   void unlock() {  };
   void wait() { };
   void signal() {  };
-
+  
   void set_pos(unsigned int chan, float pos) { new_pos[chan] = true; };
   void set_lcd(unsigned int chan, char *lcd) { new_lcd[chan] = true; };
   void set_title(char *txt);
@@ -62,9 +63,14 @@ class CARBON_GUI : public GUI {
   void vumeter_set(int n) { vumeter = n; };
   bool meter_shown();
   void stop();
+    
+  bool new_channel();
+  bool new_channel(int idx);
+  bool remove_channel(int idx);
  // void start();
 protected:
   
+  bool CARBON_GUI::init_controls();
 
 };
 

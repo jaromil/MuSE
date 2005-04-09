@@ -16,32 +16,41 @@
  * Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef __CARBON_CHANNEL_H__
-#define __CARBON_CHANNEL_H__
+#ifndef __CARBON_COMMON_H__
+#define __CARBON_COMMON_H__
+
 #include <Carbon/Carbon.h>
 
-#include <jmixer.h>
-#include <jutils.h>
-#include "carbon_common.h"
-#include "carbon_message.h"
-#include <playlist.h>
 
-class CarbonChannel {
-	public:
-		CarbonChannel(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib,unsigned int chan);
-		~CarbonChannel();
-		WindowRef window;
-		Stream_mixer *jmix;
-		WindowRef parent;
-		Playlist *playList;
-		unsigned int chIndex;
-		MenuRef plMenu;
-		CarbonMessage *msg;
-		bool add_playlist(char *txt);
-	private:
-		ControlRef playListControl;
-		IBNibRef nibRef;
-	protected:
-};
+/* CONTROLS */
+#define CARBON_GUI_REMOVE_CHANNEL 'rmCh'
+#define CARBON_GUI_APP_SIGNATURE 'MuSE'
 
+/* MAIN WINDOW */
+#define MAIN_CONTROLS_NUM 6
+
+#define STREAM_BUT 0
+#define STREAM_BUT_ID 100
+#define NEWCH_BUT 1
+#define NEWCH_BUT_ID 101
+#define SNDOUT_BUT 2
+#define SNDOUT_BUT_ID 102
+#define SNDIN_BUT 3
+#define SNDIN_BUT_ID 103
+#define VOL_BUT 4
+#define VOL_BUT_ID 104
+#define ABOUT_BUT 5
+#define ABOUT_BUT_ID 105
+
+/* CHANNEL WINDOW */
+#define PLAYLIST_BOX_ID 307
+
+/* MSG WINDOW */
+
+
+/* EVENTS */
+
+#define CARBON_GUI_EVENT_CLASS	'MusE'
+#define CG_RMCH_EVENT	'rmCh'
+#define CG_RMCH_EVENT_PARAM	'cidx'
 #endif

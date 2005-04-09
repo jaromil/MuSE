@@ -15,33 +15,45 @@
  * this source code; if not, write to:
  * Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+ 
+#ifndef __CARBON_MESSAGE_H__
+#define __CARBON_MESSAGE_H__
 
-#ifndef __CARBON_CHANNEL_H__
-#define __CARBON_CHANNEL_H__
 #include <Carbon/Carbon.h>
-
-#include <jmixer.h>
 #include <jutils.h>
-#include "carbon_common.h"
-#include "carbon_message.h"
-#include <playlist.h>
 
-class CarbonChannel {
+
+#define CM_ERROR 0
+#define CM_ERROR_ID 600
+#define CM_WARNING 1
+#define CM_WARNING_ID 601
+#define CM_NOTIFY 2
+#define CM_NOTIFY_ID 602
+
+#define CM_MSG_MAXLEN 256
+
+#define CM_TYPE_MAX 2
+
+class CarbonMessage {
 	public:
-		CarbonChannel(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib,unsigned int chan);
-		~CarbonChannel();
-		WindowRef window;
-		Stream_mixer *jmix;
-		WindowRef parent;
-		Playlist *playList;
-		unsigned int chIndex;
-		MenuRef plMenu;
-		CarbonMessage *msg;
-		bool add_playlist(char *txt);
+		CarbonMessage(IBNibRef nib);
+		~CarbonMessage();
+		void error(const char *format, ... );
+		void warning(const char *format, ... );
+		void notify(const char *format, ... );
+		
 	private:
-		ControlRef playListControl;
-		IBNibRef nibRef;
 	protected:
+		void run(CFStringRef windowName,SInt32 textId,const char *msg );
+		void setText(const char *msg);
+		ControlRef textControl;
+		IBNibRef nibRef;
+		unsigned char type;
+		char text[CM_MSG_MAXLEN];
+		
+		
 };
 
+
 #endif
+
