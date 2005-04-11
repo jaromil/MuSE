@@ -370,6 +370,7 @@ bool OutChannel::dump() {
   fflush(fd);
   if(!encoded) return true;
   res = fwrite(buffer,1,encoded,fd);
+  fflush(fd); // Michel reported that closing MuSE fast the recorded file may get lost.
   if(res != encoded)
     warning("skipped %u bytes dumping to file %s",encoded - res,fd_name);
   return true;

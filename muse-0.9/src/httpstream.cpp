@@ -448,7 +448,7 @@ read_header( FILE *fd )
 		else if (ch == '\r') /*nothing*/;
 		else crlf = 0;
 	    //printf("%c", ch);
-
+		
 		header[used++] = ch;
 
 		if (used == len) {
@@ -458,7 +458,7 @@ read_header( FILE *fd )
 		}
 	}
 
-    header[used] = '\0';	
+    header[used] = '\0';
     return header;
 }
 
@@ -467,26 +467,27 @@ hstream
 stream_detect( const char *url )
 {
     FILE *fd;
-	char *hdr = NULL;
-	hstream ret = HS_NONE;
-	
-	notice("stream_detect: '%d'", ret);
+    char *hdr = NULL;
+    hstream ret = HS_NONE;
+    
     if (!url) return HS_NONE;
     if (!strstr(url, HTTP_PREFIX))  return HS_NONE;
-	if ((fd=http_open(url)) == NULL) return HS_NONE;
-	
-	hdr = read_header(fd);
-	fclose(fd);
-	if (!hdr) return HS_NONE;
-	
-	//FIXME: analyse header
-	if (strstr(hdr,"application/ogg")) 
-		ret = HS_OGG;
-	else if (strstr(hdr,"SHOUTcast") || strstr(hdr,"ICY 200")) 
-		ret = HS_MP3;
-	notice("stream_detect: '%d'", ret);
-
-	free(hdr);
+    if ((fd=http_open(url)) == NULL) return HS_NONE;
+    
+    hdr = read_header(fd);
+    func("stream detect got header:\n%s\n",hdr);
+    fclose(fd);
+    if (!hdr) return HS_NONE;
+    
+    // simple analysis of Content-Type:
+    if (strstr(hdr,"audio/mpeg"))
+      ret = HS_MP3;
+    else if (strstr(hdr,"application/ogg")) 
+      ret = HS_OGG;
+    else if (strstr(hdr,"SHOUTcast") || strstr(hdr,"ICY 200")) 
+      ret = HS_MP3;
+    
+    free(hdr);
     return ret;
 }
 

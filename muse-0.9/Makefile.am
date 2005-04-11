@@ -1,4 +1,4 @@
-SUBDIRS = po intl src
+SUBDIRS = src
 
 docs_DATA = README COPYING AUTHORS NEWS KNOWN-BUGS ChangeLog TODO USAGE
 docsdir = ${prefix}/doc/MuSE

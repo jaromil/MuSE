@@ -14,7 +14,7 @@ dnl Setup for automake
 dnl ==============================================================
 
 AM_SANITY_CHECK
-AM_INIT_AUTOMAKE(MuSE, 0.9-cvs)
+AM_INIT_AUTOMAKE(MuSE, 0.9.1-cvs)
 AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
@@ -129,8 +129,11 @@ AC_CHECK_LIB(m, cos, M_LIBS="-lm", M_LIBS="")
 dnl =================
 dnl CHECK FOR GETTEXT
 dnl =================
-AM_GNU_GETTEXT
-ALL_LINGUAS="it es"
+dnl removed until someone fixes the Makefile (TODO)
+dnl the current mess with locales prevents from compiling
+dnl and i couldn't figure out why // jrml 11apr05
+dnl AM_GNU_GETTEXT
+dnl ALL_LINGUAS="it es"
 
 dnl ====================
 dnl CHECK FOR LIBSNDFILE
@@ -594,9 +597,11 @@ src/ncursesgui/Makefile
 src/ncursesgui/libcdk/Makefile
 src/resample/Makefile
 src/portaudio/Makefile
-intl/Makefile
-po/Makefile
 ])
+
+dnl locales removed
+dnl intl/Makefile
+dnl po/Makefile
 
 echo
 
