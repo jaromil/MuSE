@@ -47,51 +47,55 @@ specify GUI \fIname\fP to use. Use \fIlist\fP to get a list of available GUIs
 
 .SH INPUT CHANNELS OPTIONS
 .IP "-i --live"
-mix soundcard live input, capturing from mic or line-in (default off) 
+mix soundcard live input: capture from mic or line-in - off by default
 .IP "-N --number"
-set the current input \fIchannel\fP number, starting from 1 to 6 (default 1)
-.IP "Options below affect the current \fIchannel\fP specified."	
+set the current input \fIchannel\fP number, starting from 1 to 6 - default 1
+.IP "Options below affect the current \fIchannel\fP specified."
 .IP "-V --volume"
-input channel volume, float from 0.0 to 1.0 (default 1.0)
+input channel volume, float from 0.0 to 1.0 - default 1.0
 .IP "-S --position"
-input channel starting position, float from 0.0 to 1.0 (default 0.0)
+input channel starting position, float from 0.0 to 1.0 - default 0.0
 .IP "-P --playmode"
-input channel playmode: play, cont, loop (default cont)
+input channel playmode: play, cont, loop - default 'cont'
 .IP \fIfiles\fP
-add \fIfiles\fP to the current input \fIchannel\fP playlist
+to append to the current input \fIchannel\fP playlist
 
 .SH ENCODER OPTIONS
 .IP "-e --encoder \fIenc\fP"
-select \fIenc\fP codec to use. Possible choices are ogg and mp3. default ogg
+select \fIenc\fP codec to use. Possible choices are ogg and mp3 - default ogg
 .IP "Options below affect the last \fIenc\fP specified."
 .IP "-b --bitrate \fIrate\fP"
-set codec bitrate in Kbit/s. default 24
+set codec bitrate in Kbit/s - default 24
 .IP "-r --frequency \fIfreq\fP"
 set encoding frequency to \fIfreq\fP. Possible choices are 0, 11000, 16000,
-22050 or 44100. 0 means auto. default auto
+22050 or 44100. 0 means auto - default auto
 .IP "-q --quality \fIqual\fP"
-set encoding quality to \fIqual\fP between 0.1 and 9.0 . default 4.0
+set encoding quality to \fIqual\fP between 0.1 and 9.0 - default 4.0
 .IP "-c --channels \fInum\fP"
-set number of audio channels to use, mono=1 stereo=2 (default 1)
+set number of audio channels to use: 1=mono 2=stereo - default 1
 .IP "-f --filedump \fIfile\fP"
 dump audio stream to \fIfile\fP
 
 .SH STREAM OPTIONS
-.IP "--server \fIserver\fP[:\fIport\fP]"
+.IP "-s --server \fIserver\fP[:\fIport\fP]"
 send stream to \fIserver\fP on port \fIport\fP.
 .br
 default port is 8000
 .IP "Options below affect the last \fIserver\fP specified."
 .IP "-m --mount \fImountpoint\fP"
-use mounpoint \fImountpoint\fP on \fIserver\fP. default live
+use mounpoint \fImountpoint\fP on \fIserver\fP - default 'live'
+.IP "-l --login \fIlogin type\fP"
+server login type: [ice1|ice2|icy] - default 'ice2'
+.IP "-U --user \fIusername\fP"
+account username on the \fIserver\fP - default 'source'
 .IP "-p --pass \fIpassword\fP"
-use encoder password \fIpassword\fP on \fIserver\fP
+account password on the \fIserver\fP
 .IP "-n --name \fIname\fP"
-set name of the stream to \fIname\fP
+descriptive \fIname\fP of the stream
 .IP "-u --url \fIurl\fP"
-set descriptive url of the stream to \fIurl\fP
+descriptive \fIurl\fP of the stream
 .IP "-d --desc \fIdesc\fP"
-set description of the stream to \fIdesc\fP
+full \fIdescription\fP of the stream
 
 .SH INPUT CHANNELS FORMAT
 MuSE offers a variety of formats for the input channels you are going
@@ -122,19 +126,32 @@ Therefore a muse commandline containing the options
 .br
 .B [...] -s stream.dyne.org:7090 -m my-radio.ogg
 .br
-will be available to be listened at the URL \fIhttp://stream.dyne.org:7090/my-radio.ogg\fP
-which should be simply typed in the 'Open Location' dialog of most audio players.
+will be available to be listened at the URL
+\fIhttp://stream.dyne.org:7090/my-radio.ogg\fP which should be simply
+typed in the 'Open Location' dialog of most audio players.
 
 .SH COMMANDLINE USAGE EXAMPLES
 
 .B muse -C -i -N1 -V0.5 test.wav -N2 -V0.7 test.ogg -e ogg -f record.ogg -s stream.dyne.org -m muse-example.ogg -l ice2 -p hackme
 .br
-The above command starts muse in commandline mode, recording from the soundcard input and continuously mixing two channes over it: the first playing test.wav at half volume, the second test.ogg at slightly higher volume. The resulting audio is then encoded in Ogg/Vorbis format and simultaneously recorder in the record.ogg file and streamed to the stream.dyne.org server, using mountpoint 'muse-example' and the icecast2 type login password 'hackme'.
-The stream will be available at the url \fIhttp://stream.dyne.org:8000/muse-example.ogg\fP
+The above command starts muse in commandline mode, recording from the
+soundcard input and continuously mixing two channes over it: the first
+playing test.wav at half volume, the second test.ogg at slightly
+higher volume. The resulting audio is then encoded in Ogg/Vorbis
+format and simultaneously recorder in the record.ogg file and streamed
+to the stream.dyne.org server, using mountpoint 'muse-example' and the
+icecast2 type login password 'hackme'.  The stream will be available
+at the url \fIhttp://stream.dyne.org:8000/muse-example.ogg\fP
 .br
 .B muse -C playlist.pls -e ogg -s stream.dyne.org:6969 -m my-music -l ice2 -p hackme
 .br
-The above (simplier) command plays continuously all files listed in the 'playlist.pls', encoding them in Ogg/Vorbis and streaming them to stream.dyne.org (port 6969) icecast2 server on mountpoint 'my-music' with password 'hackme'. The listening URL for the stream will therefore be http://stream.dyne.org:6969/my-music - you can also avoid to listen the music being streamed on your computer by using the -o flag at the very beginning of the commandline.
+The above (simplier) command plays continuously all files listed in
+the 'playlist.pls', encoding them in Ogg/Vorbis and streaming them to
+stream.dyne.org (port 6969) icecast2 server on mountpoint 'my-music'
+with password 'hackme'. The listening URL for the stream will
+therefore be http://stream.dyne.org:6969/my-music - you can also avoid
+to listen the music being streamed on your computer by using the -o
+flag at the very beginning of the commandline.
 
 .SH SCHEDULER
 
@@ -154,7 +171,7 @@ and wildcards supported - use it also as help for editing the schedule
 through the GUI. 
 
 .SH BUGS
-.nf
+
 Bug reporting is very welcome, especially if you know how to use the
 CVS version of this software. The sourcecode comes with memory fencing
 (dmalloc) and profiling functionalities, more information on how to
@@ -167,7 +184,7 @@ in the bugtracker system on \fIhttp://bugs.dyne.org\fP.
 Thanks much for your collaboration, we need expert people to
 consciously follow development and bugfixing: you can surely do if you
 understood all the above ;)
-.fi
+
 
 .SH AUTHORS
 .nf
@@ -179,11 +196,11 @@ Eugen Melinte - time program scheduler
 
 a full list of developers can be found in the AUTHOR file
 
-This manual page was written by Filippo "godog" Giunchedi and further
-edited by jaromil.
+This manual page was written by Filippo "godog" Giunchedi
+and further edited by jaromil.
 
-Join and write the mailinglist on \fIlists.dyne.org/muse\fR to contact
-developers.
+Join and write the mailinglist on \fIlists.dyne.org/muse\fR
+to contact users and developers.
 .fi
 
 .SH COPYING
