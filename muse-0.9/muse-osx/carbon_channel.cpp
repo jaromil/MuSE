@@ -18,20 +18,49 @@
  
 #include "carbon_channel.h"
 
-const ControlID dataBrowserId = { CARBON_GUI_APP_SIGNATURE, PLAYLIST_BOX_ID };
-
 /* local prototype for Carbon callbacks */
-OSStatus close (EventHandlerCallRef nextHandler,EventRef inEvent, void *userData);
+
+/* Event handlers */
+static OSStatus ChannelEventHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData);
+
+static OSStatus dataBrowserEventHandler(
+	EventHandlerCallRef nextHandler, EventRef event, void *userData);
+	
+static OSStatus channelCommandHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData);
+	
+/* DataBrowser handlers */
 OSStatus HandlePlaylist (ControlRef browser,DataBrowserItemID itemID,
 	DataBrowserPropertyID property,DataBrowserItemDataRef itemData,Boolean changeValue);
+
 Boolean HandleDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item);
+
 Boolean CheckDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item);
-void getPLMenu (ControlRef browser,MenuRef *menu,UInt32 *helpType,CFStringRef *helpItemString, AEDesc *selection);
-void selectPLMenu(ControlRef browser,MenuRef menu,UInt32 selectionType,SInt16 menuID,MenuItemIndex menuItem);
-/* END of prototypes
+
+void getPLMenu (ControlRef browser,MenuRef *menu,UInt32 *helpType,
+	CFStringRef *helpItemString, AEDesc *selection);
+
+void selectPLMenu(ControlRef browser,MenuRef menu,UInt32 selectionType,
+	SInt16 menuID,MenuItemIndex menuItem);
+
+/* END of prototypes */
 
 /* Globals */
-CarbonChannel *me = NULL;
+
+const ControlID dataBrowserId = { CARBON_GUI_APP_SIGNATURE, PLAYLIST_BOX_ID };
+#define CARBON_CHANNEL_EVENTS 4
+const EventTypeSpec windowEvents[] = {
+        { kEventClassWindow, kEventWindowActivated },
+		{ kEventClassWindow, kEventWindowGetClickActivation },
+		{ kEventClassWindow, kEventWindowClosed },
+};
+#define DATA_BROWSER_EVENTS 1
+const EventTypeSpec dataBrowserEvents[] = {
+		{kEventClassControl, kEventControlDragEnter}
+};
+
+CarbonChannel *activeChannel = NULL;
 	
 /* Start of CarbonChannel */
 
@@ -41,19 +70,22 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib,un
 	nibRef = nib;
 	chIndex = chan;
 	OSStatus err;
-	EventTypeSpec evtClose;
-	EventTypeSpec evtClick;
-	evtClose.eventClass = kEventClassWindow;
-	evtClose.eventKind = kEventWindowClose;
 	DataBrowserCallbacks  dbCallbacks;
 	playList = new Playlist();
 	msg = new CarbonMessage(nibRef);
-	me = this;
 	err = CreateWindowFromNib(nibRef, CFSTR("Channel"), &window);
+	err = CreateMenuFromNib (nibRef,CFSTR("PLMenu"),&plMenu);
+	if(err != noErr) {
+		msg->error("Can't create plMenu ref (%d)!!",err);
+	}
+	err = CreateMenuFromNib (nibRef,CFSTR("PLEntryMenu"),&plEntryMenu);
+	if(err != noErr) {
+		msg->error("Can't create plMenu ref (%d)!!",err);
+	}
 	
-	err = InstallEventHandler(GetWindowEventTarget(window),close,1,&evtClose,this,NULL);
+	err = InstallEventHandler(GetWindowEventTarget(window),ChannelEventHandler,CARBON_CHANNEL_EVENTS,windowEvents,this,NULL);
 	if(err != noErr) { 
-		msg->error("Can't close event handler for Channel control (%d)!!",err);
+		msg->error("Can't install event handler for Channel control (%d)!!",err);
 	}
 	
 	CFStringRef format = CFStringCreateWithCString(NULL,"Channel %d",0);
@@ -64,11 +96,9 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib,un
 	if(err != noErr) {
 		msg->error("Can't obtain dataBrowser ControlRef (%d)!!",err);
 	}
+	EventTargetRef dbTarget = GetControlEventTarget (playListControl);
+	err = InstallEventHandler(dbTarget,dataBrowserEventHandler,DATA_BROWSER_EVENTS,dataBrowserEvents,this,NULL);
 	
-	err = CreateMenuFromNib (nibRef,CFSTR("PLMenu"),&plMenu);
-	if(err != noErr) {
-		msg->error("Can't create plMenu ref (%d)!!",err);
-	}
 	/* installs databrowser callbacks */
 	dbCallbacks.version = kDataBrowserLatestCallbacks; 
     InitDataBrowserCallbacks (&dbCallbacks); 
@@ -80,8 +110,11 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib,un
 	/* Drag handler */
 	dbCallbacks.u.v1.receiveDragCallback=NewDataBrowserReceiveDragUPP(&HandleDrag);
     /* context menu handler */
-	dbCallbacks.u.v1.getContextualMenuCallback=NewDataBrowserGetContextualMenuUPP(&getPLMenu);
-	dbCallbacks.u.v1.selectContextualMenuCallback=NewDataBrowserSelectContextualMenuUPP(&selectPLMenu);
+	dbCallbacks.u.v1.getContextualMenuCallback=
+		NewDataBrowserGetContextualMenuUPP(&getPLMenu);
+	dbCallbacks.u.v1.selectContextualMenuCallback=
+		NewDataBrowserSelectContextualMenuUPP(&selectPLMenu);
+
 	/* register callbacks */
 	SetDataBrowserCallbacks(playListControl, &dbCallbacks); 
     SetAutomaticControlDragTrackingEnabledForWindow (window, true);
@@ -102,45 +135,75 @@ bool CarbonChannel::add_playlist(char *txt) {
 	AddDataBrowserItems (playListControl,kDataBrowserNoItem,1,&idx,kDataBrowserItemNoProperty);
 }
 
-/* End of CarbonChannel */
-
-/* *** CALLBACKS *** */
-OSStatus close (EventHandlerCallRef nextHandler,EventRef inEvent, void *userData) {
-	CarbonChannel *me = (CarbonChannel *)userData;
+void CarbonChannel::close () {
 	EventRef event;
 	OSStatus err;
 	err = CreateEvent (NULL,CARBON_GUI_EVENT_CLASS,CG_RMCH_EVENT,0,kEventAttributeUserEvent,&event);
-	if(err != noErr) me->msg->error("Can't create rmCh event!!");
-	SetEventParameter(event,CG_RMCH_EVENT_PARAM,typeCFIndex,sizeof(int),&me->chIndex);
-	err = SendEventToEventTarget(event,GetWindowEventTarget(me->parent));
+	if(err != noErr) this->msg->error("Can't create rmCh event!!");
+	SetEventParameter(event,CG_RMCH_EVENT_PARAM,typeCFIndex,sizeof(int),&this->chIndex);
+	err = SendEventToEventTarget(event,GetWindowEventTarget(this->parent));
 	if(err != noErr) {
+		this->msg->error("Can't send rmCh event to mainWin!!");
 	}
 	//delete me;
-	return CallNextEventHandler (nextHandler, inEvent);
 }
 
-OSStatus    HandlePlaylist (ControlRef browser,
-                DataBrowserItemID itemID, 
-                DataBrowserPropertyID property, 
-                DataBrowserItemDataRef itemData, 
-                Boolean changeValue)
+MenuRef CarbonChannel::get_pl_menu() {
+	if(playList->selected_pos()) {
+		return plEntryMenu;
+	}
+	else {
+		return plMenu;
+	}
+
+}
+/* End of CarbonChannel */
+
+/* *** CALLBACKS *** */
+
+OSStatus HandlePlaylist (ControlRef browser,DataBrowserItemID itemID, 
+	DataBrowserPropertyID property,DataBrowserItemDataRef itemData, 
+	Boolean changeValue)
 {  
     OSStatus status = noErr;
+	DataBrowserItemState state;
     Url *entry;
 	if (!changeValue) switch (property) 
     {
         case 'SONG':
-			entry = (Url *)me->playList->pick(itemID);
+			entry = (Url *)activeChannel->playList->pick(itemID);
 			status = SetDataBrowserItemDataText(itemData,
-				CFStringCreateWithCString(kCFAllocatorDefault,entry->path,kCFStringEncodingMacRoman));
+				CFStringCreateWithCString(kCFAllocatorDefault,
+					entry->path,kCFStringEncodingMacRoman));
+			break;
+		case kDataBrowserItemIsActiveProperty:
+			entry = (Url *)activeChannel->playList->pick(itemID);
+			GetDataBrowserItemState(browser,itemID,&state);
+			if(state == kDataBrowserItemIsSelected) {
+				if(activeChannel->playList->selected_pos() != itemID) {
+					activeChannel->playList->sel(itemID);
+					activeChannel->jmix->set_channel(activeChannel->chIndex,itemID);
+					printf("Selected playlist entry %d (%s)\n",property,entry->path);
+				}
+			}
+			else {
+				int selPos = activeChannel->playList->selected_pos();
+				if(selPos == itemID) {
+					entry = (Url *)activeChannel->playList->pick(activeChannel->playList->selected_pos());
+					GetDataBrowserItemState(browser,activeChannel->playList->selected_pos(),&state);
+					if(state != kDataBrowserItemIsSelected) {
+						printf("Deselected playlist entry %d (%s)\n",selPos,entry->path);
+						entry->sel(false);
+					}
+				}
+			}
 			break;
         default:
             status = errDataBrowserPropertyNotSupported;
             break;
     }
     else status = errDataBrowserPropertyNotSupported; 
-// 3
- return status;
+ 	return status;
 }
 
 Boolean HandleDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item){
@@ -158,7 +221,7 @@ Boolean HandleDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item){
 	
 	char fileName[kHFSPlusMaxFileNameChars]; /* MMMM... if not HFSPLUS fileName is too large */
 	err = FSRefMakePath(&fRef,(UInt8 *)fileName,kHFSPlusMaxFileNameChars);
-	return me->jmix->add_to_playlist(me->chIndex,fileName);
+	return activeChannel->jmix->add_to_playlist(activeChannel->chIndex,fileName);
 }
 
 Boolean CheckDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item) {
@@ -167,10 +230,83 @@ Boolean CheckDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item) {
 }
 
 void getPLMenu (ControlRef browser,MenuRef *menu,UInt32 *helpType,CFStringRef *helpItemString, AEDesc *selection) {
-	*menu = me->plMenu;
+	*menu = activeChannel->get_pl_menu();
 }
 
 void selectPLMenu (ControlRef browser,MenuRef menu,UInt32 selectionType,SInt16 menuID,MenuItemIndex menuItem) {
 
 }
+
+/* EVENT HANDLERS */
+
+static OSStatus ChannelEventHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData)
+{
+    OSStatus err = noErr;
+    CarbonChannel *me = (CarbonChannel *)userData;
+	switch (GetEventKind (event))
+    {
+        case kEventWindowClosed: 
+            me->close();
+            break;
+		default:
+            activeChannel = me;
+            break;
+    }
+    
+    return CallNextEventHandler(nextHandler,event);
+
+}
+
+static OSStatus dataBrowserEventHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData)
+{
+    OSStatus err = noErr;
+    CarbonChannel *me = (CarbonChannel *)userData;
+	switch (GetEventKind (event))
+    {
+		default:
+            activeChannel = me;
+            break;
+    }
+    
+    return CallNextEventHandler(nextHandler,event);
+
+}
+
+
+static OSStatus channelCommandHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData)
+{
+/*
+    HICommand command; 
+    OSStatus err = noErr;
+	SInt16 val;
+    CARBON_GUI *me = (CARBON_GUI *)userData;
+	err = GetEventParameter (event, kEventParamDirectObject,
+        typeHICommand, NULL, sizeof(HICommand), NULL, &command);
+    if(err != noErr) me->msg->error("Can't get event parameter!!");
+	switch (command.commandID)
+    {
+        case 'sndo':
+			val = GetControlValue(me->mainControls[SNDOUT_BUT]);
+            if(val) {
+				me->jmix->set_lineout(true);
+			}
+			else {
+				me->jmix->set_lineout(false);
+			}
+            break;
+		case 'newc':
+			me->new_channel();
+			break;
+		case 'stre':
+		case 'sndi':
+		case 'vol ':
+		case 'abou':
+        default:
+            err = eventNotHandledErr;
+            break;
+*/
+	}
 

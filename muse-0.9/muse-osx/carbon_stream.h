@@ -16,35 +16,44 @@
  * Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef __CARBON_CHANNEL_H__
-#define __CARBON_CHANNEL_H__
+#ifndef __CARBON_STREAM_H__
+#define __CARBON_STREAM_H__
+
 #include <Carbon/Carbon.h>
-
+#include <carbon_common.h>
 #include <jmixer.h>
-#include <jutils.h>
-#include "carbon_common.h"
-#include "carbon_message.h"
-#include <playlist.h>
+#include <outchannels.h>
+#define MAX_STREAM_SERVERS 64
 
-class CarbonChannel {
+class StreamServer {
 	public:
-		CarbonChannel(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib,unsigned int chan);
-		~CarbonChannel();
-		WindowRef window;
-		Stream_mixer *jmix;
-		WindowRef parent;
-		Playlist *playList;
-		unsigned int chIndex;
-		CarbonMessage *msg;
-		bool add_playlist(char *txt);
-		MenuRef get_pl_menu();
-		void close ();
+		StreamServer(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib,OutChannel *chan);
+		~StreamServer();
+		CFStringRef host;
+		CFStringRef port;
+		CFStringRef mnt;
+		CFStringRef name;
+		CFStringRef url;
+		CFStringRef description;
+		CFStringRef username;
+		CFStringRef password;
+	
+		unsigned char status;
 	private:
-		MenuRef plMenu;
-		MenuRef plEntryMenu;
-		ControlRef playListControl;
-		IBNibRef nibRef;
+		OutChannel *outChannel;
+};
+
+class CarbonStream {
+	public:
+		CarbonStream(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib);
+		~CarbonStream();
+		WindowRef window;
+		WindowRef parent;
+		Stream_mixer jmix;
+	private:
+		StreamServer *servers[MAX_STREAM_SERVERS];
 	protected:
+
 };
 
 #endif

@@ -24,6 +24,17 @@
 #include <config.h>
 
 
+/* HANDLED EVENTS */
+const EventTypeSpec events[] = {
+	{ kEventClassWindow, kEventWindowClosed },
+	{ CARBON_GUI_EVENT_CLASS, CARBON_GUI_REMOVE_CHANNEL},
+	{ kEventClassWindow, kEventWindowGetClickActivation }
+};
+	/* HANDLED COMMANDS */
+const EventTypeSpec commands[] = {
+	{ kEventClassCommand, kEventCommandProcess }
+};
+
 const ControlID mainControlsID[MAIN_CONTROLS_NUM] = {
 	{ CARBON_GUI_APP_SIGNATURE, STREAM_BUT_ID },  
 	{ CARBON_GUI_APP_SIGNATURE, NEWCH_BUT_ID },
@@ -102,10 +113,15 @@ bool CARBON_GUI::new_channel() {
 			if(new_channel(i)) return true;
 		}
 	}
+	msg->warning("Actually MuSE doesn't support more than %d concurrent input channels",MAX_CHANNELS);
 	return false;
 }
 
 bool CARBON_GUI::new_channel(int i) {
+	if(i > MAX_CHANNELS) {
+		msg->warning("Actually MuSE doesn't support more than %d concurrent input channels",MAX_CHANNELS);
+		return false;
+	}
 	if(jmix->chan[i]) {
 		msg->warning("Channel %d already exists :/",i);
 	}
@@ -165,10 +181,10 @@ bool CARBON_GUI::init_controls() {
 			msg->error("Can't get control for button %d (%d)",i,err);
 		}
 	}
+	
+	/* Now simulate a click to the SNDOUT button to let start checked */
 	HIViewRef kk;
 	HIViewFindByID(HIViewGetRoot(window),mainControlsID[SNDOUT_BUT],&kk);
-	EventRef newEvent;
-	CreateEvent(NULL,kEventClassMouse,kEventMouseDown,0,0,&newEvent);
 	ControlPartCode ka;
 	err = HIViewSimulateClick(kk,kControlButtonPart,0,&ka);
 	if(err != noErr) {
@@ -178,13 +194,7 @@ bool CARBON_GUI::init_controls() {
 	/* By default start with live output enabled */
 	jmix->set_lineout(true);
 	SetControlValue(mainControls[SNDOUT_BUT],1);
-	
-	/* HANDLED EVENTS */
-    const EventTypeSpec events[] = {
-        { kEventClassWindow, kEventWindowClosed },
-		{ CARBON_GUI_EVENT_CLASS, CARBON_GUI_REMOVE_CHANNEL}
-    };
-	
+
 	/* install main event handler+ */
 	err = InstallWindowEventHandler (window, 
             NewEventHandlerUPP (MainWindowEventHandler), 
@@ -192,11 +202,6 @@ bool CARBON_GUI::init_controls() {
             this, NULL);
 	if(err != noErr) msg->error("Can't install main eventHandler");
 	
-	/* HANDLED COMMANDS */
-	const EventTypeSpec commands[] = {
-        { kEventClassCommand, kEventCommandProcess }
-    };
-
 	/* install main command handler */
     err = InstallWindowEventHandler (window, 
             NewEventHandlerUPP (MainWindowCommandHandler), 
@@ -254,6 +259,10 @@ static OSStatus MainWindowEventHandler (
         case kEventWindowClosed: 
             QuitApplicationEventLoop();
             break;
+		case kEventWindowGetClickActivation:  /* TODO - propagate activation click to the right control */
+			/* XXX - still not handled */
+			return CallNextEventHandler(nextHandler,event);
+			break;
 		case CARBON_GUI_REMOVE_CHANNEL:
 			int idx;
 			GetEventParameter(event,'cidx',typeCFIndex,NULL,sizeof(int),NULL,&idx);
