@@ -79,23 +79,24 @@ bool Shouter::start() {
   if(shout_get_connected(ice)) {
     // if allready connected, reconnect
     func("icecast still connected: disconnecting");
-    shout_close(ice);
     shout_sync(ice);
+    shout_close(ice);
   }
   
   notice("Contacting %s server %s on port %u",srv,host(),port());
-  
+
+  shout_sync(ice);  
   res = shout_open(ice);
   func("Shouter::start() shout_open returns %i",res);
-  shout_sync(ice);
+
   
   if(res==SHOUTERR_SUCCESS) {
     notice("started streaming on %s",streamurl);
     running = true;
   } else {
     error("shout_open: %s",shout_get_error(ice));
-    shout_close(ice);
     shout_sync(ice);
+    shout_close(ice);
     running = false;
   }
   

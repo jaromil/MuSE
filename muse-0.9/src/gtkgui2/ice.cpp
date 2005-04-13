@@ -545,6 +545,7 @@ void prof2ice(gchar *name, struct icedata *i)
 			gtk_entry_set_text(GTK_ENTRY(
 				GTK_COMBO(i->logintype)->entry), 
 					tmp->logintype);
+			gtk_entry_set_text(GTK_ENTRY(i->user), tmp->username);
 			gtk_entry_set_text(GTK_ENTRY(i->pass), tmp->password);
 			break;
 		}
@@ -568,6 +569,7 @@ struct iceprof *ice2prof(gchar *name, struct icedata *i)
 	tmp->desc = gtk_editable_get_chars(GTK_EDITABLE(i->desc), 0, -1);
 	tmp->logintype = gtk_editable_get_chars(GTK_EDITABLE(
 				GTK_COMBO(i->logintype)->entry), 0, -1);
+	tmp->username = gtk_editable_get_chars(GTK_EDITABLE(i->user), 0, -1);
 	tmp->password = gtk_editable_get_chars(GTK_EDITABLE(i->pass), 0, -1);
 
 	return tmp;

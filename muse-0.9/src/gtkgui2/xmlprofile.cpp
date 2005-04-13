@@ -242,7 +242,7 @@ void ice_get_element(GMarkupParseContext *context, const gchar *element,
 	else if(element[0] == 'l')
 		icest = STATE_LOGINTYPE;
 	else if(element[0] == 's')
-	  icest == STATE_USERNAME;
+	  icest = STATE_USERNAME;
 	else if(element[0] == 'p')
 		icest = STATE_PASSWORD;
 
@@ -377,8 +377,9 @@ void profile_ice_write(void)
 {
 	gchar *file;
 	FILE *fp;
+	char tmp[512];
 	GList *listrunner;
-	struct iceprof *tmp;
+	struct iceprof *icetmp;
 
 	file = g_strconcat(home, "/.muse/ice.xml", NULL);
 	
@@ -390,23 +391,23 @@ void profile_ice_write(void)
 	listrunner = g_list_first(iceprof);
 
 	while(listrunner) {
-		tmp = (struct iceprof *) listrunner->data;
+		icetmp = (struct iceprof *) listrunner->data;
 		
-		  fprintf(fp, "<profile name=\"%s\">\n"
-		  "\t<host>%s</host>\n"
-		  "\t<port>%s</port>\n"
-		  "\t<mnt>%s</mnt>\n"
-		  "\t<name>%s</name>\n"
-		  "\t<url>%s</url>\n"
-		  "\t<desc>%s</desc>\n"
-		  "\t<logintype>%s</logintype>\n"
-		  "\t<source>%s</source>\n"
-		  "\t<password>%s</password>\n"
-		  "</profile>\n\n",
-		  tmp->name, tmp->host, tmp->port, tmp->mnt,
-		  tmp->stream_name, tmp->url, tmp->desc,
-		  tmp->logintype, tmp->username, tmp->password);
-		
+		snprintf(tmp,511, "<profile name=\"%s\">\n"
+			 "\t<host>%s</host>\n"
+			 "\t<port>%s</port>\n"
+			 "\t<mnt>%s</mnt>\n"
+			 "\t<name>%s</name>\n"
+			 "\t<url>%s</url>\n"
+			 "\t<desc>%s</desc>\n"
+			 "\t<logintype>%s</logintype>\n"
+			 "\t<source>%s</source>\n"
+			 "\t<password>%s</password>\n"
+			 "</profile>\n\n",
+			 icetmp->name, icetmp->host, icetmp->port, icetmp->mnt,
+			 icetmp->stream_name, icetmp->url, icetmp->desc,
+			 icetmp->logintype, icetmp->username, icetmp->password);
+		fputs(tmp,fp);
 		listrunner = g_list_next(listrunner);
 	}
 	fclose(fp);	
