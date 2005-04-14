@@ -152,6 +152,7 @@ char *help =
 " -s --server       stream to server[:port]     - default port 8000\n"
 " -m --mount        mounpoint on server         - default live\n"
 " -l --login        login type [ice1|ice2|icy]  - default ice1\n"
+" -U --user         username on server\n        - default source\n"
 " -p --pass         encoder password on server\n"
 " -n --name         name of the stream\n"
 " -u --url          descriptive url of the stream\n"
@@ -181,6 +182,7 @@ static const struct option long_options[] = {
   { "port", required_argument, NULL, 'p' },
   { "mount", required_argument, NULL, 'm' },
   { "login", required_argument, NULL, 'l' },
+  { "user", required_argument, NULL, 'U' },
   { "pass",required_argument, NULL, 'p' },
   { "name",required_argument, NULL, 'n' },
   { "url",required_argument, NULL, 'u' },
@@ -188,7 +190,7 @@ static const struct option long_options[] = {
   { 0, 0, 0, 0 }
 };
 
-char *short_options = "-hvD:ioCN:V:S:P:e:b:r:q:c:f:g:s:m:l:p:n:u:d:";
+char *short_options = "-hvD:ioCN:V:S:P:e:b:r:q:c:f:g:s:m:l:U:p:n:u:d:";
 
 /* misc settings */
 #define MAX_CLI_CHARS 9182
@@ -551,6 +553,22 @@ bool take_args(int argc, char **argv) {
       act("CLI: login type set to %s",optarg);
       break;
 
+    case 'U':
+      if(!outch) {
+        error("invalid command line argument: server password");
+        error("you must specify a codec first with the -e option");
+        break;
+      }
+      if(!iceid) {
+        error("invalid command line argument: server password");
+        error("you must specify a server first with the -s option");
+        break;
+      }
+      ice = outch->get_ice(iceid);
+      ice->user(optarg);
+      act("CLI: stream username: %s",optarg);
+      break;
+      
     case 'p':
       if(!outch) {
         error("invalid command line argument: server password");
@@ -708,8 +726,8 @@ int main(int argc, char **argv) {
   check_config();
 
   // setup soundcard
-  mix->set_live(micrec);
   mix->set_lineout(dspout);
+  mix->set_live(micrec);
   
   //  if(!snddev) {
   //    warning("no soundcard found");
