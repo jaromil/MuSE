@@ -149,11 +149,15 @@ void MuseCloseLog() {
 
 
 void jsleep(int sec, long nsec) {
+#ifdef HAVE_DARWIN
+  usleep(nsec*10);
+#else
   int ret;
   struct timespec timelap;
   timelap.tv_sec = sec;
   timelap.tv_nsec = nsec;
   do {ret = nanosleep(&timelap,NULL);} while (ret==-1 && errno==EINTR);
+#endif
 }
 
 double dtime() {

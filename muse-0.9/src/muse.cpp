@@ -152,7 +152,7 @@ char *help =
 " -s --server       stream to server[:port]     - default port 8000\n"
 " -m --mount        mounpoint on server         - default live\n"
 " -l --login        login type [ice1|ice2|icy]  - default ice1\n"
-" -U --user         username on server\n        - default source\n"
+" -U --user         username on server          - default source\n"
 " -p --pass         encoder password on server\n"
 " -n --name         name of the stream\n"
 " -u --url          descriptive url of the stream\n"

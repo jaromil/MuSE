@@ -50,8 +50,8 @@ case $uname in
      AC_MSG_RESULT(Darwin/OSX)
      AC_DEFINE(HAVE_DARWIN,1,[define if compiling for Apple Darwin OSX])
      have_darwin=yes
-     DARWIN_LIBS="-L/sw/lib -lintl -framework AudioToolbox -framework CoreAudio -loss"
-	 DARWIN_CFLAGS="-I/sw/include"
+     DARWIN_LIBS="-L/sw/lib -lintl -framework AudioToolbox -framework CoreAudio"
+     DARWIN_CFLAGS="-I/sw/include"
      ;;
      *)
      echo "[!] Your system architecture is not supported by MuSE"
@@ -564,6 +564,9 @@ if test x$have_lubrifications = xyes; then
      CFLAGS="$CFLAGS -ggdb"
    else
      CFLAGS="$CFLAGS -O3 -fomit-frame-pointer -ffast-math"
+     if test x$have_darwin = xyes; then
+	CFLAGS="$CFLAGS -mabi=altivec -maltivec"
+     fi
    fi
 else
    CFLAGS="$CFLAGS -O2 -ffast-math"

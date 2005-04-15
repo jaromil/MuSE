@@ -315,11 +315,7 @@ void Stream_mixer::cafudda()
      
      here we give fifos a bit of air and avoid tight loops
      making the mixing engine wait 20 nanosecs */
-#ifdef HAVE_DARWIN
-      usleep(200);
-#else
-	  jsleep(0,20);
-#endif
+  jsleep(0,20);
 }
 
 bool Stream_mixer::create_channel(int ch) {
