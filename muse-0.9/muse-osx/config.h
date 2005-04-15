@@ -7,7 +7,7 @@
 #define HAVE_VORBIS 1
 #define HAVE_LAME 1
 // #define HAVE_X11 1
-#define HAVE_COLOR 1
+// #define HAVE_COLOR 1
 // #define HAVE_LIBNCURSES 1
 #undef HAVE_XCURSES
 #define GUI_CARBON 1
@@ -20,12 +20,12 @@
 #define HAVE_SNDFILE 1
 /* #undef HAVE_JACK */
 /* Schedule in radio shows from other radio stations, MuSE channels, files, etc.  */
-#define HAVE_SCHEDULER 1
+/* #undef HAVE_SCHEDULER */
 /* #undef HAVE_LINUX */
 #define HAVE_DARWIN 1
 /* #undef HAVE_MMX */
 /* #undef HAVE_SSE */
-/* #undef ARCH_PPC */
+#define ARCH_PPC 1
 /* #undef ARCH_X86 */
 /* Define if you have the <dirent.h> header file. */
 #define HAVE_DIRENT_H 1
