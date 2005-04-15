@@ -15,34 +15,31 @@
  * this source code; if not, write to:
  * Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-
-#ifndef __CARBON_STREAM_H__
-#define __CARBON_STREAM_H__
+ 
+#ifndef __STREAM_SERVER_H__
+#define __STREAM_SERVER_H__
 
 #include <Carbon/Carbon.h>
-#include <carbon_common.h>
 #include <jmixer.h>
-#include <stream_server.h>
-#include <carbon_message.h>
+#include <outchannels.h>
 
-#define MAX_STREAM_SERVERS 64
-
-class CarbonStream {
+class StreamServer {
 	public:
-		CarbonStream(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib);
-		~CarbonStream();
-		void show();
-		void hide();
-		
-		WindowRef window;
-		WindowRef parent;
-		Stream_mixer *jmix;
-		CarbonMessage *msg;
+		StreamServer(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib,OutChannel *chan);
+		~StreamServer();
+		CFStringRef host;
+		CFStringRef port;
+		CFStringRef mnt;
+		CFStringRef name;
+		CFStringRef url;
+		CFStringRef description;
+		CFStringRef username;
+		CFStringRef password;
+	
+		unsigned char status;
 	private:
-		IBNibRef nibRef;
-		StreamServer *servers[MAX_STREAM_SERVERS];
-	protected:
-
+		OutChannel *outChannel;
 };
+
 
 #endif

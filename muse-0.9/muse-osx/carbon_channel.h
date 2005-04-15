@@ -26,24 +26,93 @@
 #include "carbon_message.h"
 #include <playlist.h>
 
+#define CARBON_MAX_PLAYLIST_ENTRIES 32000
+
+void channelLoop(EventLoopTimerRef inTimer,void *inUserData);
+/****************************************************************************/
+/* Event handlers  (carbon callbacks)*/
+/****************************************************************************/
+static OSStatus ChannelEventHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData);
+
+static OSStatus dataBrowserEventHandler(
+	EventHandlerCallRef nextHandler, EventRef event, void *userData);
+	
+static OSStatus channelCommandHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData);
+	
+/****************************************************************************/
+/* DataBrowser (playlist)  handlers (carbon callbacks)*/
+/****************************************************************************/
+/*
+DataBrowserTrackingResult PlaylistTracking (
+   ControlRef browser,
+   DataBrowserItemID itemID,
+   DataBrowserPropertyID property,
+   const Rect *theRect,
+   Point startPt,
+   EventModifiers modifiers
+);
+*/
+Boolean AddDrag (
+   ControlRef browser,
+   DragRef theDrag,
+   DataBrowserItemID item,
+   DragItemRef *itemRef
+);
+
+OSStatus HandlePlaylist (ControlRef browser,DataBrowserItemID itemID,
+	DataBrowserPropertyID property,DataBrowserItemDataRef itemData,Boolean changeValue);
+
+Boolean HandleDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item);
+
+Boolean CheckDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item);
+
+void HandleNotification (ControlRef browser,DataBrowserItemID item,
+   DataBrowserItemNotification message,DataBrowserItemDataRef itemData);
+
+void getPLMenu (ControlRef browser,MenuRef *menu,UInt32 *helpType,
+	CFStringRef *helpItemString, AEDesc *selection);
+
+void selectPLMenu(ControlRef browser,MenuRef menu,UInt32 selectionType,
+	SInt16 menuID,MenuItemIndex menuItem);
+	
+void RemovePlaylistItem (DataBrowserItemID item,DataBrowserItemState state,void *clientData);
+
+
 class CarbonChannel {
 	public:
 		CarbonChannel(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib,unsigned int chan);
 		~CarbonChannel();
+		bool add_playlist(char *txt);
+		MenuRef plGetMenu();
+		void close ();
+		void plSelect(int row);
+		void setLCD(char *lcd);
+		void setPos(int pos);
+		void activateMenuBar();
+		
+		int playListItems[CARBON_MAX_PLAYLIST_ENTRIES];
+		
 		WindowRef window;
 		Stream_mixer *jmix;
 		WindowRef parent;
+		ControlRef playListControl;
 		Playlist *playList;
 		unsigned int chIndex;
 		CarbonMessage *msg;
-		bool add_playlist(char *txt);
-		MenuRef get_pl_menu();
-		void close ();
+		Channel *inChannel;
+		int seek;
+		
 	private:
+		IBNibRef nibRef;
 		MenuRef plMenu;
 		MenuRef plEntryMenu;
-		ControlRef playListControl;
-		IBNibRef nibRef;
+		EventLoopTimerRef updater;
+		EventHandlerRef windowEventHandler;
+		EventHandlerRef playListEventHandler;
+		int getNextPlayListID();
+		char lcd[255];
 	protected:
 };
 

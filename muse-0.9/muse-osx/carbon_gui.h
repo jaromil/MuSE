@@ -21,6 +21,7 @@
 #include <gui.h>
 #include "carbon_common.h"
 #include <carbon_channel.h>
+#include <carbon_stream.h>
 #include <carbon_message.h>
 
 //OSStatus startCarbon(void *arg);
@@ -29,6 +30,8 @@ class CARBON_GUI : public GUI {
  private:
   bool new_pos[MAX_CHANNELS];
   bool new_lcd[MAX_CHANNELS];
+  int myPos[MAX_CHANNELS];
+  char myLcd[MAX_CHANNELS][255];
   unsigned int new_sel[MAX_CHANNELS];
 
   int vuband, vumeter;
@@ -40,21 +43,14 @@ class CARBON_GUI : public GUI {
   WindowRef 	window;
   IBNibRef 		nibRef;
   Stream_mixer *jmix;
-  ControlRef mainControls[MAIN_CONTROLS_NUM];
   CarbonMessage *msg;
-  
   CARBON_GUI(int argc, char **argv, Stream_mixer *mix);
   ~CARBON_GUI();
 
   void run();
- 
-  void lock() { };
-  void unlock() {  };
-  void wait() { };
-  void signal() {  };
   
-  void set_pos(unsigned int chan, float pos) { new_pos[chan] = true; };
-  void set_lcd(unsigned int chan, char *lcd) { new_lcd[chan] = true; };
+  void set_pos(unsigned int chan, float pos) {lock(); new_pos[chan] = true; unlock(); };
+  void set_lcd(unsigned int chan, char *lcd) { lock(); new_lcd[chan] = true; unlock(); };
   void set_title(char *txt);
   void set_status(char *txt); 
   void add_playlist(unsigned int ch, char *txt);

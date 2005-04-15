@@ -28,7 +28,8 @@
 const EventTypeSpec events[] = {
 	{ kEventClassWindow, kEventWindowClosed },
 	{ CARBON_GUI_EVENT_CLASS, CARBON_GUI_REMOVE_CHANNEL},
-	{ kEventClassWindow, kEventWindowGetClickActivation }
+	{ kEventClassWindow, kEventWindowGetClickActivation },
+	{ kEventClassWindow, kEventWindowActivated }
 };
 	/* HANDLED COMMANDS */
 const EventTypeSpec commands[] = {
@@ -44,6 +45,9 @@ const ControlID mainControlsID[MAIN_CONTROLS_NUM] = {
 	{ CARBON_GUI_APP_SIGNATURE, ABOUT_BUT_ID }
 };
 
+ControlRef mainControls[MAIN_CONTROLS_NUM];
+CarbonStream *streamHandler;
+
 
 static OSStatus MainWindowCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
@@ -53,19 +57,15 @@ static OSStatus MainWindowEventHandler (
 CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
   : GUI(argc,argv,mix) {
   	jmix = mix;
+	memset(myLcd,0,sizeof(myLcd));
+	memset(myPos,0,sizeof(myPos));
 	/* by default we want at leat one active channel */
 	if(!mix->chan[0]) mix->create_channel(0);
 	// Create a Nib reference 
     err = CreateNibReference(CFSTR("main"), &nibRef);
 	if(err != noErr) error("Can't get NIB reference to obtain gui controls!!");
     
-    // Once the nib reference is created, set the menu bar. "MainMenu" is the name of the menu bar
-    // object. This name is set in InterfaceBuilder when the nib is created.
-    err = SetMenuBarFromNib(nibRef, CFSTR("MenuBar"));
-	if(err != noErr) error("Can't get MenuBar!!");
-      
-    // Then create a window. "MainWindow" is the name of the window object. This name is set in 
-    // InterfaceBuilder when the nib is created.
+	// Create the MainWindow using nib resource file
     err = CreateWindowFromNib(nibRef, CFSTR("MainWindow"), &window);
 	if(err != noErr) error("Can't create MainWindow!!");
 	else {
@@ -93,6 +93,9 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 				channel[i] = NULL;
 			}
 		}
+		/* Ok, once MainWindow has been created and we have instantiated all acrive input channels,
+		* we need an instance of CarbonStream to control the stream option window */
+		streamHandler = new CarbonStream(jmix,window,nibRef);
 	}
 }
 
@@ -102,7 +105,31 @@ CARBON_GUI::~CARBON_GUI() {
 }
 
 void CARBON_GUI::run() {
+	int i;
 	while(!quit) {
+		for(i=0;i<MAX_CHANNELS;i++) {
+			lock();
+			if(channel[i]) {
+				if(new_pos[i]) {
+					int newPos = (int)(ch_pos[i]*1000);
+					//if(newPos != myPos[i]) {
+						//myPos[i] = newPos;
+						channel[i]->setPos(newPos);
+						new_pos[i] = false;
+					//}
+				}
+				if(new_lcd[i]) { 
+				//	if(strcmp(ch_lcd[i],myLcd[i]) != 0) {
+				//		strncpy(myLcd[i],ch_lcd[i],255);
+						channel[i]->setLCD(ch_lcd[i]);
+						new_lcd[i] = false;
+				//	}
+				}
+			}
+			unlock();
+		}
+		usleep(500);
+	//	jsleep(0,20);
 	}
  }
  
@@ -155,7 +182,8 @@ bool CARBON_GUI::remove_channel(int idx) {
  
 
 void CARBON_GUI::set_title(char *txt) {
-//  gtkgui_set_maintitle(txt);
+	CFStringRef title = CFStringCreateWithCString(NULL,txt,0);
+	SetWindowTitleWithCFString (window,title);
 }
  
 void CARBON_GUI::set_status(char *txt) {
@@ -163,11 +191,17 @@ void CARBON_GUI::set_status(char *txt) {
 }
 
 void CARBON_GUI::add_playlist(unsigned int ch, char *txt) {
+	lock();
 	if(channel[ch]) channel[ch]->add_playlist(txt);
+	unlock();
 }
 
 void CARBON_GUI::sel_playlist(unsigned int ch, int row) {
-//  new_sel[ch] = row;
+	lock();
+	if(channel[ch]) {
+		channel[ch]->plSelect(row);
+	}
+	unlock();
 }
 
 bool CARBON_GUI::meter_shown() { }
@@ -224,7 +258,7 @@ static OSStatus MainWindowCommandHandler (
 	switch (command.commandID)
     {
         case 'sndo':
-			val = GetControlValue(me->mainControls[SNDOUT_BUT]);
+			val = GetControlValue(mainControls[SNDOUT_BUT]);
             if(val) {
 				me->jmix->set_lineout(true);
 			}
@@ -236,6 +270,7 @@ static OSStatus MainWindowCommandHandler (
 			me->new_channel();
 			break;
 		case 'stre':
+				streamHandler->show();
 		case 'sndi':
 		case 'vol ':
 		case 'abou':
@@ -262,6 +297,10 @@ static OSStatus MainWindowEventHandler (
 		case kEventWindowGetClickActivation:  /* TODO - propagate activation click to the right control */
 			/* XXX - still not handled */
 			return CallNextEventHandler(nextHandler,event);
+			break;
+		case kEventWindowActivated:
+			err = SetMenuBarFromNib(me->nibRef, CFSTR("MenuBar"));
+			if(err != noErr) me->msg->error("Can't get MenuBar!!");
 			break;
 		case CARBON_GUI_REMOVE_CHANNEL:
 			int idx;

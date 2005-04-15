@@ -680,7 +680,7 @@ bool check_config() {
   return(true);
 }
 
-void *mainLoop() {
+void *mainLoop(void *) {
   while(!mix->quit)
     mix->cafudda();
    /* simple isn't it? */
@@ -854,7 +854,7 @@ int main(int argc, char **argv) {
   }
 #ifndef GUI_CARBON
   /* MAIN LOOP */
-  mainLoop();
+  mainLoop(NULL);
 #else
   /* XXX - this hack is needed because carbon event model,
    * in a multithreaded environment, sends GUI events just to the main thread eventloop 

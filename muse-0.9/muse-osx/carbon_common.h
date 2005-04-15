@@ -45,8 +45,8 @@
 /* CHANNEL WINDOW */
 #define PLAYLIST_BOX_ID 307
 
-#define SEEK_TIME 300
-#define SEEK_CONTROL 311
+#define SEEK_TIME_CONTROL 300
+#define SEEK_CONTROL 312
 #define PLAY_BUT 301
 #define PAUSE_BUT 302
 #define STOP_BUT 303
@@ -59,6 +59,17 @@
 #define REPEAT_BUT 308
 #define LOOP_BUT 309
 #define SHUFFLE_BUT 310
+#define SELECTED_SONG_CONTROL 311
+
+#define PLAY_CMD 'Play'
+#define STOP_CMD 'Stop'
+#define PAUSE_CMD 'Paus'
+#define PREV_CMD 'Prev'
+#define NEXT_CMD 'Next'
+#define VOL_CMD 'sVol'
+
+#define MENU_PLAY_CMD 'mPla'
+#define MENU_REMOVE_CMD 'sRem'
 
 /* STREAM WINDOW */
 #define ADD_STREAM_BUT 800

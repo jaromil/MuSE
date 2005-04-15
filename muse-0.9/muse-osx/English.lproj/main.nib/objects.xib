@@ -7,13 +7,13 @@
   <array count="146" name="allObjects">
     <object class="IBCarbonMenu" id="29">
       <string name="title">main</string>
-      <array count="4" name="items">
-        <object class="IBCarbonMenuItem" id="185">
+      <array count="3" name="items">
+        <object class="IBCarbonMenuItem" id="440">
           <string name="title">MuSE</string>
-          <object name="submenu" class="IBCarbonMenu" id="184">
+          <object name="submenu" class="IBCarbonMenu" id="442">
             <string name="title">MuSE</string>
             <array count="1" name="items">
-              <object class="IBCarbonMenuItem" id="187">
+              <object class="IBCarbonMenuItem" id="441">
                 <string name="title">About MuSE</string>
                 <int name="keyEquivalentModifier">0</int>
                 <ostype name="command">abou</ostype>
@@ -30,11 +30,12 @@
               <object class="IBCarbonMenuItem" id="139">
                 <string name="title">New</string>
                 <string name="keyEquivalent">n</string>
-                <ostype name="command">new </ostype>
+                <ostype name="command">newc</ostype>
               </object>
               <object class="IBCarbonMenuItem" id="134">
-                <string name="title">Open…</string>
-                <string name="keyEquivalent">o</string>
+                <string name="title">Close All</string>
+                <string name="keyEquivalent">q</string>
+                <int name="keyEquivalentModifier">1572864</int>
                 <ostype name="command">open</ostype>
               </object>
               <object class="IBCarbonMenuItem" id="133">
@@ -44,58 +45,6 @@
                 <string name="title">Close</string>
                 <string name="keyEquivalent">w</string>
                 <ostype name="command">clos</ostype>
-              </object>
-            </array>
-          </object>
-        </object>
-        <object class="IBCarbonMenuItem" id="152">
-          <string name="title">Edit</string>
-          <object name="submenu" class="IBCarbonMenu" id="147">
-            <string name="title">Edit</string>
-            <array count="10" name="items">
-              <object class="IBCarbonMenuItem" id="141">
-                <string name="title">Undo</string>
-                <string name="keyEquivalent">z</string>
-                <ostype name="command">undo</ostype>
-              </object>
-              <object class="IBCarbonMenuItem" id="146">
-                <string name="title">Redo</string>
-                <string name="keyEquivalent">Z</string>
-                <ostype name="command">redo</ostype>
-              </object>
-              <object class="IBCarbonMenuItem" id="142">
-                <boolean name="separator">TRUE</boolean>
-              </object>
-              <object class="IBCarbonMenuItem" id="143">
-                <string name="title">Cut</string>
-                <string name="keyEquivalent">x</string>
-                <ostype name="command">cut </ostype>
-              </object>
-              <object class="IBCarbonMenuItem" id="149">
-                <string name="title">Copy</string>
-                <string name="keyEquivalent">c</string>
-                <ostype name="command">copy</ostype>
-              </object>
-              <object class="IBCarbonMenuItem" id="144">
-                <string name="title">Paste</string>
-                <string name="keyEquivalent">v</string>
-                <ostype name="command">past</ostype>
-              </object>
-              <object class="IBCarbonMenuItem" id="151">
-                <string name="title">Delete</string>
-                <ostype name="command">clea</ostype>
-              </object>
-              <object class="IBCarbonMenuItem" id="148">
-                <string name="title">Select All</string>
-                <string name="keyEquivalent">a</string>
-                <ostype name="command">sall</ostype>
-              </object>
-              <object class="IBCarbonMenuItem" id="199">
-                <boolean name="separator">TRUE</boolean>
-              </object>
-              <object class="IBCarbonMenuItem" id="198">
-                <string name="title">Special Characters…</string>
-                <ostype name="command">chrp</ostype>
               </object>
             </array>
           </object>
@@ -149,16 +98,6 @@
     <reference idRef="133"/>
     <reference idRef="134"/>
     <reference idRef="139"/>
-    <reference idRef="141"/>
-    <reference idRef="142"/>
-    <reference idRef="143"/>
-    <reference idRef="144"/>
-    <reference idRef="146"/>
-    <reference idRef="147"/>
-    <reference idRef="148"/>
-    <reference idRef="149"/>
-    <reference idRef="151"/>
-    <reference idRef="152"/>
     <object class="IBCarbonWindow" id="166">
       <string name="windowRect">68 29 150 373 </string>
       <string name="title">MuSE</string>
@@ -173,7 +112,6 @@
             <int name="controlID">100</int>
             <ostype name="command">stre</ostype>
             <string name="helpTagText">Stream</string>
-            <unsigned_int name="behavior">256</unsigned_int>
             <int name="contentType">1</int>
             <int name="contentResID">-16460</int>
             <boolean name="rounded">TRUE</boolean>
@@ -244,9 +182,6 @@
       <boolean name="compositing">TRUE</boolean>
     </object>
     <reference idRef="167"/>
-    <reference idRef="184"/>
-    <reference idRef="185"/>
-    <reference idRef="187"/>
     <reference idRef="190"/>
     <reference idRef="191"/>
     <reference idRef="192"/>
@@ -255,8 +190,6 @@
     <reference idRef="195"/>
     <reference idRef="196"/>
     <reference idRef="197"/>
-    <reference idRef="198"/>
-    <reference idRef="199"/>
     <reference idRef="202"/>
     <reference idRef="203"/>
     <reference idRef="204"/>
@@ -264,15 +197,15 @@
     <reference idRef="206"/>
     <reference idRef="207"/>
     <object class="IBCarbonWindow" id="208">
-      <string name="windowRect">67 375 402 805 </string>
+      <string name="windowRect">62 373 513 895 </string>
       <string name="title">Channel</string>
       <object name="rootControl" class="IBCarbonRootControl" id="209">
-        <string name="bounds">0 0 335 430 </string>
-        <string name="viewFrame">0 0 430 335 </string>
-        <array count="13" name="subviews">
+        <string name="bounds">0 0 451 522 </string>
+        <string name="viewFrame">0 0 522 451 </string>
+        <array count="9" name="subviews">
           <object class="IBCarbonDBListView" id="210">
-            <string name="bounds">86 46 285 410 </string>
-            <string name="viewFrame">46 86 364 199 </string>
+            <string name="bounds">156 51 401 502 </string>
+            <string name="viewFrame">51 156 451 245 </string>
             <ostype name="controlSignature">MuSE</ostype>
             <int name="controlID">307</int>
             <string name="helpTagText">Playlist</string>
@@ -290,7 +223,7 @@
             <array count="1" name="listViewColumns">
               <object class="IBCarbonDBListViewColumn">
                 <ostype name="propertyID">SONG</ostype>
-                <int name="propertyFlags">65536</int>
+                <int name="propertyFlags">983040</int>
                 <int name="sortOrder">1</int>
                 <int name="maxWidth">2000</int>
                 <int name="textAlignment">0</int>
@@ -298,35 +231,9 @@
               </object>
             </array>
           </object>
-          <object class="IBCarbonSearchField" id="218">
-            <string name="bounds">56 25 78 110 </string>
-            <string name="viewFrame">25 56 85 22 </string>
-            <ostype name="controlSignature">MuSE</ostype>
-            <int name="controlID">300</int>
-            <string name="helpTagText">Time</string>
-            <object name="layoutInfo" class="IBCarbonHILayoutInfo">
-              <int name="bindingLeftKind">1</int>
-            </object>
-            <string name="descriptiveText">00:00:00</string>
-          </object>
-          <object class="IBCarbonBevelButton" id="243">
-            <string name="bounds">20 25 48 95 </string>
-            <string name="viewFrame">25 20 70 28 </string>
-            <ostype name="controlSignature">MuSE</ostype>
-            <int name="controlID">301</int>
-            <ostype name="command">Play</ostype>
-            <string name="helpTagText">Play</string>
-            <object name="layoutInfo" class="IBCarbonHILayoutInfo">
-              <int name="bindingTopKind">1</int>
-              <int name="bindingLeftKind">1</int>
-            </object>
-            <int name="contentType">1</int>
-            <int name="contentResID">-16449</int>
-            <boolean name="rounded">TRUE</boolean>
-          </object>
           <object class="IBCarbonSlider" id="244">
-            <string name="bounds">107 20 284 38 </string>
-            <string name="viewFrame">20 107 18 177 </string>
+            <string name="bounds">177 25 400 43 </string>
+            <string name="viewFrame">25 177 18 223 </string>
             <ostype name="controlSignature">MuSE</ostype>
             <int name="controlID">306</int>
             <ostype name="command">sVol</ostype>
@@ -334,11 +241,13 @@
             <object name="layoutInfo" class="IBCarbonHILayoutInfo">
               <int name="bindingTopKind">1</int>
               <int name="bindingLeftKind">1</int>
+              <int name="bindingBottomKind">2</int>
             </object>
+            <boolean name="isLive">TRUE</boolean>
           </object>
           <object class="IBCarbonStaticText" id="245">
-            <string name="bounds">86 14 99 44 </string>
-            <string name="viewFrame">14 86 30 13 </string>
+            <string name="bounds">156 20 169 43 </string>
+            <string name="viewFrame">20 156 23 13 </string>
             <boolean name="small">TRUE</boolean>
             <int name="controlSize">1</int>
             <string name="title">VOL</string>
@@ -347,77 +256,9 @@
               <int name="bindingLeftKind">1</int>
             </object>
           </object>
-          <object class="IBCarbonSlider" id="281">
-            <string name="bounds">59 118 78 410 </string>
-            <string name="viewFrame">118 59 292 19 </string>
-            <ostype name="controlSignature">MuSE</ostype>
-            <int name="controlID">311</int>
-            <ostype name="command">Seek</ostype>
-            <string name="helpTagText">Seek</string>
-            <object name="layoutInfo" class="IBCarbonHILayoutInfo">
-              <int name="bindingLeftKind">1</int>
-            </object>
-            <boolean name="isLive">TRUE</boolean>
-          </object>
-          <object class="IBCarbonBevelButton" id="290">
-            <string name="bounds">20 103 48 173 </string>
-            <string name="viewFrame">103 20 70 28 </string>
-            <ostype name="controlSignature">MuSE</ostype>
-            <int name="controlID">302</int>
-            <ostype name="command">Play</ostype>
-            <string name="helpTagText">Pause</string>
-            <object name="layoutInfo" class="IBCarbonHILayoutInfo">
-              <int name="bindingLeftKind">1</int>
-            </object>
-            <int name="contentType">1</int>
-            <int name="contentResID">-16448</int>
-            <boolean name="rounded">TRUE</boolean>
-          </object>
-          <object class="IBCarbonBevelButton" id="291">
-            <string name="bounds">20 181 48 251 </string>
-            <string name="viewFrame">181 20 70 28 </string>
-            <ostype name="controlSignature">MuSE</ostype>
-            <int name="controlID">303</int>
-            <ostype name="command">Play</ostype>
-            <string name="helpTagText">Stop</string>
-            <object name="layoutInfo" class="IBCarbonHILayoutInfo">
-              <int name="bindingLeftKind">1</int>
-            </object>
-            <int name="contentType">1</int>
-            <int name="contentResID">-16447</int>
-            <boolean name="rounded">TRUE</boolean>
-          </object>
-          <object class="IBCarbonBevelButton" id="292">
-            <string name="bounds">20 259 48 329 </string>
-            <string name="viewFrame">259 20 70 28 </string>
-            <ostype name="controlSignature">MuSE</ostype>
-            <int name="controlID">304</int>
-            <ostype name="command">Play</ostype>
-            <string name="helpTagText">Prev</string>
-            <object name="layoutInfo" class="IBCarbonHILayoutInfo">
-              <int name="bindingLeftKind">1</int>
-            </object>
-            <int name="contentType">1</int>
-            <int name="contentResID">-16443</int>
-            <boolean name="rounded">TRUE</boolean>
-          </object>
-          <object class="IBCarbonBevelButton" id="293">
-            <string name="bounds">20 337 48 407 </string>
-            <string name="viewFrame">337 20 70 28 </string>
-            <ostype name="controlSignature">MuSE</ostype>
-            <int name="controlID">305</int>
-            <ostype name="command">Play</ostype>
-            <string name="helpTagText">Next</string>
-            <object name="layoutInfo" class="IBCarbonHILayoutInfo">
-              <int name="bindingLeftKind">1</int>
-            </object>
-            <int name="contentType">1</int>
-            <int name="contentResID">-16444</int>
-            <boolean name="rounded">TRUE</boolean>
-          </object>
           <object class="IBCarbonBevelButton" id="302">
-            <string name="bounds">293 383 315 407 </string>
-            <string name="viewFrame">383 293 24 22 </string>
+            <string name="bounds">409 478 431 502 </string>
+            <string name="viewFrame">478 409 24 22 </string>
             <ostype name="controlSignature">MuSE</ostype>
             <int name="controlID">310</int>
             <string name="helpTagText">shuffle</string>
@@ -431,8 +272,8 @@
             <boolean name="rounded">TRUE</boolean>
           </object>
           <object class="IBCarbonBevelButton" id="304">
-            <string name="bounds">293 319 315 343 </string>
-            <string name="viewFrame">319 293 24 22 </string>
+            <string name="bounds">409 414 431 438 </string>
+            <string name="viewFrame">414 409 24 22 </string>
             <ostype name="controlSignature">MuSE</ostype>
             <int name="controlID">308</int>
             <string name="helpTagText">repeat</string>
@@ -446,8 +287,8 @@
             <boolean name="rounded">TRUE</boolean>
           </object>
           <object class="IBCarbonBevelButton" id="305">
-            <string name="bounds">293 351 315 375 </string>
-            <string name="viewFrame">351 293 24 22 </string>
+            <string name="bounds">409 446 431 470 </string>
+            <string name="viewFrame">446 409 24 22 </string>
             <ostype name="controlSignature">MuSE</ostype>
             <int name="controlID">309</int>
             <string name="helpTagText">loop</string>
@@ -460,18 +301,145 @@
             <int name="contentResID">-16442</int>
             <boolean name="rounded">TRUE</boolean>
           </object>
+          <object class="IBCarbonStaticText" id="413">
+            <string name="bounds">125 20 141 105 </string>
+            <string name="viewFrame">20 125 85 16 </string>
+            <boolean name="small">TRUE</boolean>
+            <int name="controlSize">1</int>
+            <string name="title">Current Song:</string>
+            <object name="layoutInfo" class="IBCarbonHILayoutInfo">
+              <int name="bindingLeftKind">1</int>
+            </object>
+          </object>
+          <object class="IBCarbonGroupBox" id="416">
+            <string name="bounds">20 20 110 502 </string>
+            <string name="viewFrame">20 20 482 90 </string>
+            <array count="7" name="subviews">
+              <object class="IBCarbonSlider" id="417">
+                <string name="bounds">85 146 97 450 </string>
+                <string name="viewFrame">126 65 304 12 </string>
+                <ostype name="controlSignature">MuSE</ostype>
+                <int name="controlID">312</int>
+                <boolean name="small">TRUE</boolean>
+                <int name="controlSize">1</int>
+                <ostype name="command">Seek</ostype>
+                <string name="helpTagText">Seek</string>
+                <object name="layoutInfo" class="IBCarbonHILayoutInfo">
+                  <int name="bindingLeftKind">1</int>
+                </object>
+                <boolean name="isLive">TRUE</boolean>
+                <int name="orientation">2</int>
+                <int name="maximumValue">1000</int>
+              </object>
+              <object class="IBCarbonBevelButton" id="419">
+                <string name="bounds">36 146 64 216 </string>
+                <string name="viewFrame">126 16 70 28 </string>
+                <ostype name="controlSignature">MuSE</ostype>
+                <int name="controlID">302</int>
+                <ostype name="command">Paus</ostype>
+                <string name="helpTagText">Pause</string>
+                <int name="contentType">1</int>
+                <int name="contentResID">-16448</int>
+                <boolean name="rounded">TRUE</boolean>
+              </object>
+              <object class="IBCarbonBevelButton" id="420">
+                <string name="bounds">36 68 64 138 </string>
+                <string name="viewFrame">48 16 70 28 </string>
+                <ostype name="controlSignature">MuSE</ostype>
+                <int name="controlID">301</int>
+                <ostype name="command">Play</ostype>
+                <string name="helpTagText">Play</string>
+                <int name="contentType">1</int>
+                <int name="contentResID">-16449</int>
+                <boolean name="rounded">TRUE</boolean>
+              </object>
+              <object class="IBCarbonBevelButton" id="421">
+                <string name="bounds">36 224 64 294 </string>
+                <string name="viewFrame">204 16 70 28 </string>
+                <ostype name="controlSignature">MuSE</ostype>
+                <int name="controlID">303</int>
+                <ostype name="command">Stop</ostype>
+                <string name="helpTagText">Stop</string>
+                <int name="contentType">1</int>
+                <int name="contentResID">-16447</int>
+                <boolean name="rounded">TRUE</boolean>
+              </object>
+              <object class="IBCarbonBevelButton" id="422">
+                <string name="bounds">36 302 64 372 </string>
+                <string name="viewFrame">282 16 70 28 </string>
+                <ostype name="controlSignature">MuSE</ostype>
+                <int name="controlID">304</int>
+                <ostype name="command">Prev</ostype>
+                <string name="helpTagText">Prev</string>
+                <int name="contentType">1</int>
+                <int name="contentResID">-16443</int>
+                <boolean name="rounded">TRUE</boolean>
+              </object>
+              <object class="IBCarbonBevelButton" id="423">
+                <string name="bounds">36 380 64 450 </string>
+                <string name="viewFrame">360 16 70 28 </string>
+                <ostype name="controlSignature">MuSE</ostype>
+                <int name="controlID">305</int>
+                <ostype name="command">Next</ostype>
+                <string name="helpTagText">Next</string>
+                <int name="contentType">1</int>
+                <int name="contentResID">-16444</int>
+                <boolean name="rounded">TRUE</boolean>
+              </object>
+              <object class="IBCarbonGroupBox" id="436">
+                <string name="bounds">80 68 99 138 </string>
+                <string name="viewFrame">48 60 70 19 </string>
+                <array count="1" name="subviews">
+                  <object class="IBCarbonStaticText" id="437">
+                    <string name="bounds">82 79 95 130 </string>
+                    <string name="viewFrame">11 2 51 13 </string>
+                    <ostype name="controlSignature">MuSE</ostype>
+                    <int name="controlID">300</int>
+                    <boolean name="small">TRUE</boolean>
+                    <int name="controlSize">1</int>
+                    <string name="title">00:00:00</string>
+                  </object>
+                </array>
+              </object>
+            </array>
+            <object name="layoutInfo" class="IBCarbonHILayoutInfo">
+              <int name="bindingLeftKind">1</int>
+            </object>
+          </object>
+          <object class="IBCarbonGroupBox" id="434">
+            <string name="bounds">125 102 140 502 </string>
+            <string name="viewFrame">102 125 400 15 </string>
+            <array count="1" name="subviews">
+              <object class="IBCarbonStaticText" id="435">
+                <string name="bounds">125 118 138 480 </string>
+                <string name="viewFrame">16 0 362 13 </string>
+                <ostype name="controlSignature">MuSE</ostype>
+                <int name="controlID">311</int>
+                <boolean name="small">TRUE</boolean>
+                <int name="controlSize">1</int>
+                <string name="title">none</string>
+                <object name="layoutInfo" class="IBCarbonHILayoutInfo">
+                  <int name="bindingLeftKind">1</int>
+                  <int name="bindingRightKind">2</int>
+                </object>
+              </object>
+            </array>
+            <object name="layoutInfo" class="IBCarbonHILayoutInfo">
+              <int name="bindingLeftKind">1</int>
+              <int name="bindingRightKind">2</int>
+            </object>
+          </object>
         </array>
       </object>
       <boolean name="receiveUpdates">FALSE</boolean>
       <boolean name="liveResize">TRUE</boolean>
       <boolean name="metal">TRUE</boolean>
       <boolean name="compositing">TRUE</boolean>
-      <boolean name="isConstrained">FALSE</boolean>
+      <int name="themeBrush">15</int>
+      <int name="windowPosition">1</int>
     </object>
     <reference idRef="209"/>
     <reference idRef="210"/>
-    <reference idRef="218"/>
-    <reference idRef="243"/>
     <reference idRef="244"/>
     <reference idRef="245"/>
     <object class="IBCarbonRootControl" id="246">
@@ -614,15 +582,19 @@
     <object class="IBCarbonMenuItem" id="273">
       <boolean name="updateSingleItem">TRUE</boolean>
       <string name="title">Play</string>
+      <string name="keyEquivalent">p</string>
+      <ostype name="command">mPla</ostype>
     </object>
     <object class="IBCarbonMenu" id="274">
       <string name="title">PLEntryMenu</string>
       <int name="menuID">10</int>
       <array count="3" name="items">
         <reference idRef="273"/>
-        <object class="IBCarbonMenuItem" id="275">
+        <object class="IBCarbonMenuItem" id="439">
           <boolean name="updateSingleItem">TRUE</boolean>
           <string name="title">Remove</string>
+          <string name="keyEquivalent">d</string>
+          <ostype name="command">sRem</ostype>
         </object>
         <object class="IBCarbonMenuItem" id="278">
           <boolean name="updateSingleItem">TRUE</boolean>
@@ -633,26 +605,26 @@
               <object class="IBCarbonMenuItem" id="279">
                 <boolean name="updateSingleItem">TRUE</boolean>
                 <string name="title">Up</string>
+                <string name="keyEquivalent">k</string>
+                <int name="keyEquivalentModifier">1572864</int>
+                <ostype name="command">MoUp</ostype>
               </object>
               <object class="IBCarbonMenuItem" id="280">
                 <boolean name="updateSingleItem">TRUE</boolean>
                 <string name="title">Down</string>
+                <string name="keyEquivalent">j</string>
+                <int name="keyEquivalentModifier">1572864</int>
+                <ostype name="command">MoDo</ostype>
               </object>
             </array>
           </object>
         </object>
       </array>
     </object>
-    <reference idRef="275"/>
     <reference idRef="277"/>
     <reference idRef="278"/>
     <reference idRef="279"/>
     <reference idRef="280"/>
-    <reference idRef="281"/>
-    <reference idRef="290"/>
-    <reference idRef="291"/>
-    <reference idRef="292"/>
-    <reference idRef="293"/>
     <object class="IBCarbonMenuItem" id="295">
       <boolean name="updateSingleItem">TRUE</boolean>
       <string name="title">Add</string>
@@ -662,10 +634,14 @@
           <object class="IBCarbonMenuItem" id="298">
             <boolean name="updateSingleItem">TRUE</boolean>
             <string name="title">Url</string>
+            <string name="keyEquivalent">u</string>
+            <ostype name="command">aURL</ostype>
           </object>
           <object class="IBCarbonMenuItem" id="300">
             <boolean name="updateSingleItem">TRUE</boolean>
             <string name="title">File</string>
+            <string name="keyEquivalent">f</string>
+            <ostype name="command">aFil</ostype>
           </object>
         </array>
       </object>
@@ -674,8 +650,47 @@
     <object class="IBCarbonMenu" id="297">
       <string name="title">PLMenu</string>
       <int name="menuID">11</int>
-      <array count="1" name="items">
+      <array count="2" name="items">
         <reference idRef="295"/>
+        <object class="IBCarbonMenuItem" id="445">
+          <boolean name="updateSingleItem">TRUE</boolean>
+          <string name="title">Control</string>
+          <object name="submenu" class="IBCarbonMenu" id="444">
+            <string name="title">Control</string>
+            <array count="5" name="items">
+              <object class="IBCarbonMenuItem" id="443">
+                <boolean name="updateSingleItem">TRUE</boolean>
+                <string name="title">Play</string>
+                <string name="keyEquivalent">l</string>
+                <ostype name="command">Play</ostype>
+              </object>
+              <object class="IBCarbonMenuItem" id="446">
+                <boolean name="updateSingleItem">TRUE</boolean>
+                <string name="title">Pause</string>
+                <string name="keyEquivalent">k</string>
+                <ostype name="command">Paus</ostype>
+              </object>
+              <object class="IBCarbonMenuItem" id="447">
+                <boolean name="updateSingleItem">TRUE</boolean>
+                <string name="title">Stop</string>
+                <string name="keyEquivalent">j</string>
+                <ostype name="command">Stop</ostype>
+              </object>
+              <object class="IBCarbonMenuItem" id="449">
+                <boolean name="updateSingleItem">TRUE</boolean>
+                <string name="title">Prev</string>
+                <string name="keyEquivalent">,</string>
+                <ostype name="command">Prev</ostype>
+              </object>
+              <object class="IBCarbonMenuItem" id="448">
+                <boolean name="updateSingleItem">TRUE</boolean>
+                <string name="title">Next</string>
+                <string name="keyEquivalent">.</string>
+                <ostype name="command">Next</ostype>
+              </object>
+            </array>
+          </object>
+        </object>
       </array>
     </object>
     <reference idRef="298"/>
@@ -1164,7 +1179,7 @@
       </array>
     </object>
     <object class="IBCarbonWindow" id="315">
-      <string name="windowRect">141 844 829 1398 </string>
+      <string name="windowRect">61 896 749 1450 </string>
       <string name="title">Streams</string>
       <reference name="rootControl" idRef="314"/>
       <boolean name="receiveUpdates">FALSE</boolean>
@@ -1172,6 +1187,7 @@
       <boolean name="liveResize">TRUE</boolean>
       <boolean name="metal">TRUE</boolean>
       <boolean name="compositing">TRUE</boolean>
+      <int name="windowPosition">1</int>
       <boolean name="isConstrained">FALSE</boolean>
       <boolean name="hideOnFullScreen">TRUE</boolean>
       <boolean name="hideOnSuspend">TRUE</boolean>
@@ -1236,6 +1252,29 @@
     <reference idRef="381"/>
     <reference idRef="410"/>
     <reference idRef="411"/>
+    <reference idRef="413"/>
+    <reference idRef="416"/>
+    <reference idRef="417"/>
+    <reference idRef="419"/>
+    <reference idRef="420"/>
+    <reference idRef="421"/>
+    <reference idRef="422"/>
+    <reference idRef="423"/>
+    <reference idRef="434"/>
+    <reference idRef="435"/>
+    <reference idRef="436"/>
+    <reference idRef="437"/>
+    <reference idRef="439"/>
+    <reference idRef="440"/>
+    <reference idRef="441"/>
+    <reference idRef="442"/>
+    <reference idRef="443"/>
+    <reference idRef="444"/>
+    <reference idRef="445"/>
+    <reference idRef="446"/>
+    <reference idRef="447"/>
+    <reference idRef="448"/>
+    <reference idRef="449"/>
   </array>
   <array count="146" name="allParents">
     <reference idRef="1"/>
@@ -1245,21 +1284,8 @@
     <reference idRef="131"/>
     <reference idRef="131"/>
     <reference idRef="131"/>
-    <reference idRef="147"/>
-    <reference idRef="147"/>
-    <reference idRef="147"/>
-    <reference idRef="147"/>
-    <reference idRef="147"/>
-    <reference idRef="152"/>
-    <reference idRef="147"/>
-    <reference idRef="147"/>
-    <reference idRef="147"/>
-    <reference idRef="29"/>
     <reference idRef="1"/>
     <reference idRef="166"/>
-    <reference idRef="185"/>
-    <reference idRef="29"/>
-    <reference idRef="184"/>
     <reference idRef="195"/>
     <reference idRef="195"/>
     <reference idRef="29"/>
@@ -1268,8 +1294,6 @@
     <reference idRef="192"/>
     <reference idRef="195"/>
     <reference idRef="195"/>
-    <reference idRef="147"/>
-    <reference idRef="147"/>
     <reference idRef="167"/>
     <reference idRef="167"/>
     <reference idRef="167"/>
@@ -1278,8 +1302,6 @@
     <reference idRef="167"/>
     <reference idRef="1"/>
     <reference idRef="208"/>
-    <reference idRef="209"/>
-    <reference idRef="209"/>
     <reference idRef="209"/>
     <reference idRef="209"/>
     <reference idRef="209"/>
@@ -1300,16 +1322,10 @@
     <reference idRef="256"/>
     <reference idRef="274"/>
     <reference idRef="1"/>
-    <reference idRef="274"/>
     <reference idRef="278"/>
     <reference idRef="274"/>
     <reference idRef="277"/>
     <reference idRef="277"/>
-    <reference idRef="209"/>
-    <reference idRef="209"/>
-    <reference idRef="209"/>
-    <reference idRef="209"/>
-    <reference idRef="209"/>
     <reference idRef="297"/>
     <reference idRef="295"/>
     <reference idRef="1"/>
@@ -1384,6 +1400,29 @@
     <reference idRef="328"/>
     <reference idRef="328"/>
     <reference idRef="319"/>
+    <reference idRef="209"/>
+    <reference idRef="209"/>
+    <reference idRef="416"/>
+    <reference idRef="416"/>
+    <reference idRef="416"/>
+    <reference idRef="416"/>
+    <reference idRef="416"/>
+    <reference idRef="416"/>
+    <reference idRef="209"/>
+    <reference idRef="434"/>
+    <reference idRef="416"/>
+    <reference idRef="436"/>
+    <reference idRef="274"/>
+    <reference idRef="29"/>
+    <reference idRef="442"/>
+    <reference idRef="440"/>
+    <reference idRef="444"/>
+    <reference idRef="445"/>
+    <reference idRef="297"/>
+    <reference idRef="444"/>
+    <reference idRef="444"/>
+    <reference idRef="444"/>
+    <reference idRef="444"/>
   </array>
   <dictionary count="29" name="nameTable">
     <string>AddURLWindow</string>
@@ -1396,8 +1435,8 @@
     <reference idRef="1"/>
     <string>IBCarbonMenuItem</string>
     <reference idRef="273"/>
-    <string>IBCarbonMenuItem1</string>
-    <reference idRef="275"/>
+    <string>IBCarbonMenuItem11</string>
+    <reference idRef="439"/>
     <string>ListView</string>
     <reference idRef="210"/>
     <string>MainWindow</string>
@@ -1417,15 +1456,15 @@
     <string>NSCustomView4</string>
     <reference idRef="207"/>
     <string>NSCustomView544</string>
-    <reference idRef="243"/>
+    <reference idRef="420"/>
     <string>NSCustomView5441</string>
-    <reference idRef="290"/>
+    <reference idRef="419"/>
     <string>NSCustomView5442</string>
-    <reference idRef="291"/>
+    <reference idRef="421"/>
     <string>NSCustomView5443</string>
-    <reference idRef="292"/>
+    <reference idRef="422"/>
     <string>NSCustomView5444</string>
-    <reference idRef="293"/>
+    <reference idRef="423"/>
     <string>NotifyWindow</string>
     <reference idRef="259"/>
     <string>PLEntryMenu</string>
@@ -1445,5 +1484,5 @@
     <string>WarnWindow</string>
     <reference idRef="251"/>
   </dictionary>
-  <unsigned_int name="nextObjectID">412</unsigned_int>
+  <unsigned_int name="nextObjectID">452</unsigned_int>
 </object>

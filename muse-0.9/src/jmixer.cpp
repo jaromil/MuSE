@@ -187,27 +187,13 @@ void Stream_mixer::cafudda()
 
   for(i=0;i<MAX_CHANNELS;i++) {
     if(chan[i] != NULL) {
-
-      /*
-      if(chan[i]->update) {
-	if(have_gui) 
-	  gui->sel_playlist
-	    (i,chan[i]->playlist->selected_pos());
-	chan[i]->update = false;
-      }
-      */
-
       if(chan[i]->on) {	
-
 	// this read from pipe is set to mix int32 down to the process_buffer
 	cc = chan[i]->erbapipa->read(MIX_CHUNK*2,process_buffer);
-
-
 	// if(cc!=MIX_CHUNK<<2) warning("hey! mix16stereo on ch[%u] returned %i",i,cc);
 	if(cc<0) continue;
 	//	c+=cc<<1;
 	c+=cc;
-
 	if(have_gui)
 	  if(chan[i]->update) {
 	    updchan(i);
@@ -329,8 +315,11 @@ void Stream_mixer::cafudda()
      
      here we give fifos a bit of air and avoid tight loops
      making the mixing engine wait 20 nanosecs */
-  jsleep(0,20);
-
+#ifdef HAVE_DARWIN
+      usleep(200);
+#else
+	  jsleep(0,20);
+#endif
 }
 
 bool Stream_mixer::create_channel(int ch) {
@@ -959,16 +948,25 @@ bool Stream_mixer::apply_enc(int id) {
 void Stream_mixer::updchan(int ch) {
   if(!chan[ch]) return;
   if(chan[ch]->seekable) {
+	gui->lock();
+	/* XXX - here gui should set values directly...they should not be setted by jmixer */
     snprintf(gui->ch_lcd[ch],9,"%02u:%02u:%02u",
 	     chan[ch]->time.h,chan[ch]->time.m,chan[ch]->time.s);
+	gui->unlock();
     //	if(strncmp(temp,gui->ch_lcd[ch],5)!=0) { // LCD changed */
     //strncpy(gui->ch_lcd[ch],temp,5);
     gui->set_lcd(ch, gui->ch_lcd[ch]);
     //	func("%i: %s %f",ch,gui->ch_lcd[ch],chan[ch]->state);
     //	}
     //	if(gui->ch_pos[ch] != chan[ch]->state) { /* POSITION changed */
+	gui->lock();
     gui->ch_pos[ch] = chan[ch]->state;
+	gui->unlock();
     gui->set_pos(ch, chan[ch]->state);
+/* XXX - I will remove this soon (just for testing - xant) */
+#ifdef CARBON_GUI
+	gui->sel_playlist(ch,chan[ch]->playlist->selected_pos());
+#endif
     //	}
   }
 }
