@@ -38,7 +38,8 @@ extern "C" {
 #define WARN 1 /* ... blkbblbl */
 
 // for native language support
-#define _(x)	gettext(x)
+#define _(x)	x
+//gettext(x)
 
 
   /**
@@ -67,10 +68,12 @@ if(var==in) return; \
 else var=in; \
 } \
 float func() { return var; };
-  
+
+#ifdef __cplusplus
   class GUI;
 
   void set_guimsg(GUI *g);
+#endif
   void MuseSetDebug(int lev);
   int MuseGetDebug();
   void MuseSetLog(char *file);

@@ -54,7 +54,8 @@
 #define DRAG_TAR_INFO_2		2
 /* end */
 
-#define _(x)	gettext(x)
+#define _(x)	x
+//gettext(x)
 #define N_(x)	x
 
 /* experimental */

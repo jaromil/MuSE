@@ -299,6 +299,7 @@ bool Entry::down() {
   return(true);
 }
 
+/* XXX - this is more a 'swap' than a 'move' !!! */
 bool Entry::move(int pos) {
   func("Entry::move(%i) - NEW LINKLIST MOVE");
   if(!list) return(false);

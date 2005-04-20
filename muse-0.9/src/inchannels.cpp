@@ -157,9 +157,12 @@ void Channel::run() {
 	else { // nothing comes out but we hang on
 	  //	  error("unknown state on %s channel",dec->name);
 	  //	  report(); state = 0.0;
-	jsleep(0,20);
-      }
-
+#ifdef HAVE_DARWIN
+      usleep(100);
+#else
+	  jsleep(0,20);
+#endif	
+	}
     } else { // if(on)
 
       // just hang on

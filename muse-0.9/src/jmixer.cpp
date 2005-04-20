@@ -797,7 +797,7 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
       warning("cannot stat %s : %s",temp,strerror(errno));
     } else if(prcd.st_mode & S_IFDIR) {
       func("it's a directory");
-      struct dirent **filelist;
+      const struct dirent **filelist;
       // this scandir had a problem browsing directories, now?
       int found = scandir(temp,&filelist,selector,alphasort);
       if(found<1) error("%i files found: %s",found,strerror(errno));
