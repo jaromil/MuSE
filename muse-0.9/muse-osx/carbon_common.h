@@ -42,6 +42,8 @@
 #define ABOUT_BUT 5
 #define ABOUT_BUT_ID 105
 
+#define NEWC_CMD 'newc'
+
 /* CHANNEL WINDOW */
 #define PLAYLIST_BOX_ID 307
 
@@ -55,6 +57,7 @@
 
 #define VOLUME_CONTROL 306
 #define PLAYLIST_BOX 307
+#define PLAYLIST_PROPERTY 'lCha'
 
 #define REPEAT_BUT 308
 #define LOOP_BUT 309
@@ -68,8 +71,16 @@
 #define NEXT_CMD 'Next'
 #define VOL_CMD 'sVol'
 
+#define OPEN_FILE_CMD 'oFil'
+#define OPEN_URL_CMD 'oUrl'
+
 #define MENU_PLAY_CMD 'mPla'
 #define MENU_REMOVE_CMD 'sRem'
+
+#define PLAYLIST_ITEM_DRAG_ID 'drIt'
+#define PLAYLIST_SENDER_DRAG_ID 'drSe'
+
+#define OPEN_DOCUMENT_DIALOG_PARAM 'dope'
 
 /* STREAM WINDOW */
 #define ADD_STREAM_BUT 800

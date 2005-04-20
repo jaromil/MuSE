@@ -52,7 +52,7 @@ void CarbonMessage::notify(const char *format, ... ) {
 	va_start(arg, format);
 	char msg[255];
 	vsnprintf(msg, 254, format, arg);
-	run(CFSTR("NotifyrWindow"),CM_NOTIFY_ID,msg);
+	run(CFSTR("NotifyWindow"),CM_NOTIFY_ID,msg);
 	va_end(arg);
 }
 void CarbonMessage::warning(const char *format, ... ) {

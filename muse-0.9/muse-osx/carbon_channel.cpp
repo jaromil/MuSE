@@ -17,11 +17,9 @@
  */
  
 #include "carbon_channel.h"
+#include "carbon_gui.h"
 
-/* local prototype for Carbon callbacks */
-
-
-/* END of prototypes */
+extern "C" OSStatus OpenFileWindow(WindowRef parent);
 
 /****************************************************************************/
 /* Globals */
@@ -33,13 +31,16 @@ const ControlID seekTimeId = { CARBON_GUI_APP_SIGNATURE, SEEK_TIME_CONTROL };
 const ControlID seekId = { CARBON_GUI_APP_SIGNATURE, SEEK_CONTROL };
 const ControlID volId = { CARBON_GUI_APP_SIGNATURE,VOLUME_CONTROL };
 
-#define CARBON_CHANNEL_EVENTS 3
+#define CARBON_CHANNEL_EVENTS 6
 const EventTypeSpec windowEvents[] = {
         { kEventClassWindow, kEventWindowActivated },
 		{ kEventClassWindow, kEventWindowGetClickActivation },
 		{ kEventClassWindow, kEventWindowClosed },
-		{ kEventClassWindow, kEventWindowActivated }
+		{ kEventClassWindow, kEventWindowBoundsChanging },
+		{ kEventClassWindow, kEventWindowDragCompleted },
+		{ kCoreEventClass, kAEOpenDocuments }
 };
+
 #define DATA_BROWSER_EVENTS 2
 const EventTypeSpec dataBrowserEvents[] = {
 		{kEventClassControl, kEventControlActivate},
@@ -50,21 +51,21 @@ const EventTypeSpec dataBrowserEvents[] = {
 const EventTypeSpec channelCommands[] = {
 	{ kEventClassCommand, kEventCommandProcess }
 };
-CarbonChannel *activeChannel = NULL;
 
 /* Start of CarbonChannel */
 
-CarbonChannel::CarbonChannel(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib,unsigned int chan) {
-	parent = mainWin;
+CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsigned int chan) {
+	parent = gui;
+	parentWin = parent->window;
 	jmix = mix;
 	nibRef = nib;
 	chIndex = chan;
 	OSStatus err;
-	playList = new Playlist();
 	jmix->set_playmode(chIndex,PLAYMODE_CONT);
 	inChannel = jmix->chan[chIndex];
-	
-	memset(playListItems,0,sizeof(playListItems));
+	neigh = NULL;
+	isAttached = false;
+	playList = inChannel->playlist; //new Playlist();
 	
 	msg = new CarbonMessage(nibRef);
 	err = CreateWindowFromNib(nibRef, CFSTR("Channel"), &window);
@@ -78,7 +79,8 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib,un
 		msg->error("Can't create plMenu ref (%d)!!",err);
 	}
 	
-	err = InstallEventHandler(GetWindowEventTarget(window),ChannelEventHandler,CARBON_CHANNEL_EVENTS,windowEvents,this,&windowEventHandler);
+	err = InstallWindowEventHandler(window,ChannelEventHandler,CARBON_CHANNEL_EVENTS,
+		windowEvents,this,NULL);
 	if(err != noErr) { 
 		msg->error("Can't install event handler for Channel control (%d)!!",err);
 	}
@@ -94,14 +96,71 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib,un
 	CFStringRef wName = CFStringCreateWithFormat(NULL,NULL,format,chan);
 	SetWindowTitleWithCFString (window,wName);
 	
+	/* and finally we can show the channelwindow */
+	ShowWindow(window);
+	BringToFront(window);
+	ControlRef volCtrl;
+	err = GetControlByID(window,&volId,&volCtrl);
+	SetControlValue(volCtrl,(int)(inChannel->volume*100));
+	EventLoopTimerUPP timerUPP = NewEventLoopTimerUPP(channelLoop);
+	err = InstallEventLoopTimer( GetCurrentEventLoop(),0,1,timerUPP,this,&updater);
+	if(err!=noErr) msg->error("Can't install the idle eventloop handler(%d)!!",err);
+
+	err = CreateWindowFromNib(nibRef,CFSTR("FaderWindow"),&fader);
+	if(err!=noErr) msg->error("Can't create fader drawer (%d)!!",err);
+	SetDrawerParent(fader,window);
+	SetDrawerPreferredEdge(fader,kWindowEdgeRight);
+	SetDrawerOffsets(fader,50,50);
+	
+	plSetup();
+
+	SetAutomaticControlDragTrackingEnabledForWindow (window, true);
+
+	//InstallReceiveHandler(NewDragReceiveHandlerUPP(&MyDragReceiveHandler),window,NULL);
+	//InstallTrackingHandler(NewDragTrackingHandlerUPP(&MyDragTrackingHandler),window,NULL);
+	
+	/* finally let's install an Apple Event Handler to manage file opening 
+	 *trough the file browser dialog */
+//	 openHandler=NewAEEventHandlerUPP(OpenFile);
+//	 CarbonChannel *self=this;
+	// err =AEInstallEventHandler(kCoreEventClass,kAEOpenDocuments,
+//		openHandler,self, false); /* XXX - converting a pointer to an SInt32 !!! */
+//	if(err!=noErr) msg->error("Can't install apple event handler to open files (%d)!!",err);
+}
+
+CarbonChannel::~CarbonChannel() {
+	/* remove the eventloop associated to our window */
+	AERemoveEventHandler (kCoreEventClass,kAEOpenDocuments,openHandler,false);
+	RemoveEventLoopTimer(updater);
+	RemoveEventHandler(windowEventHandler);
+	RemoveEventHandler(playListEventHandler);
+	
+	/* remove some local structures */
+	DisposeMenu(plMenu);
+	DisposeMenu(plEntryMenu);
+	delete msg;
+	RemoveControlProperty(playListControl,CARBON_GUI_APP_SIGNATURE,PLAYLIST_PROPERTY);
+	/* TODO - maybe more cleaning is needed */
+}
+
+
+void CarbonChannel::plSetup() {
+	OSStatus err;
 	err = GetControlByID(window,&dataBrowserId,&playListControl);
 	if(err != noErr) {
 		msg->error("Can't obtain dataBrowser ControlRef (%d)!!",err);
 	}
 
 	EventTargetRef dbTarget = GetControlEventTarget (playListControl);
+	
+	CarbonChannel *self=this;
+	err = SetControlProperty(playListControl,CARBON_GUI_APP_SIGNATURE,PLAYLIST_PROPERTY,
+		sizeof(CarbonChannel *),&self);
+	if(err!=noErr) msg->error("Can't attach CarbonChannel object to Playlist control (%d) !!",err);	
+	
 	/* installs databrowser event handler */
-	err = InstallEventHandler(dbTarget,dataBrowserEventHandler,DATA_BROWSER_EVENTS,dataBrowserEvents,this,&playListEventHandler);
+	err = InstallEventHandler(dbTarget,dataBrowserEventHandler,DATA_BROWSER_EVENTS,dataBrowserEvents,
+		this,&playListEventHandler);
 
 	DataBrowserCallbacks  dbCallbacks;
 	/* installs databrowser callbacks */
@@ -119,9 +178,9 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib,un
 		NewDataBrowserItemNotificationWithItemUPP(&HandleNotification);
 	/* context menu handler */
 	dbCallbacks.u.v1.getContextualMenuCallback=
-		NewDataBrowserGetContextualMenuUPP(&getPLMenu);
-	dbCallbacks.u.v1.selectContextualMenuCallback=
-		NewDataBrowserSelectContextualMenuUPP(&selectPLMenu);
+		NewDataBrowserGetContextualMenuUPP(&GetPLMenu);
+//	dbCallbacks.u.v1.selectContextualMenuCallback=
+//		NewDataBrowserSelectContextualMenuUPP(&SelectPLMenu);
 	/* drag starter */
 	dbCallbacks.u.v1.addDragItemCallback=NewDataBrowserAddDragItemUPP(&AddDrag);
 	
@@ -132,77 +191,57 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib,un
 //	dbCustomCallbacks.u.v1.trackingCallback=NewDataBrowserTrackingUPP(&PlaylistTracking);	
 	
 	/* register callbacks */
-	SetDataBrowserCallbacks(playListControl, &dbCallbacks); 
-//	SetDataBrowserCustomCallbacks(playListControl,&dbCustomCallbacks);
-    SetAutomaticControlDragTrackingEnabledForWindow (window, true);
-	SetControlDragTrackingEnabled(playListControl,true);
+	SetDataBrowserCallbacks(playListControl, &dbCallbacks);
 	
-	/* and finally we can show the channelwindow */
-	ShowWindow(window);
-	BringToFront(window);
-	ControlRef volCtrl;
-	err = GetControlByID(window,&volId,&volCtrl);
-	SetControlValue(volCtrl,(int)(inChannel->volume*100));
-	EventLoopTimerUPP timerUPP = NewEventLoopTimerUPP(channelLoop);
-	err = InstallEventLoopTimer( GetCurrentEventLoop(),0,1,timerUPP,this,&updater);
-	if(err!=noErr) msg->error("Can't install the idle eventloop handler(%d)!!",err);
-
+	SetControlDragTrackingEnabled(playListControl,true);
 }
 
-CarbonChannel::~CarbonChannel() {
-	/* remove the eventloop associated to our window */
-	RemoveEventLoopTimer(updater);
-	RemoveEventHandler(windowEventHandler);
-	RemoveEventHandler(playListEventHandler);
-	/* remove some local structures */
-	delete playList;
-	delete msg;
-	/* TODO - maybe more cleaning is needed */
-}
-
-int CarbonChannel::getNextPlayListID() {
+bool CarbonChannel::plUpdate() {
 	int i;
-	for (i=1;i<CARBON_MAX_PLAYLIST_ENTRIES;i++) {
-		if(playListItems[i] == 0) 
-			return i;
+	int len = playList->len();
+	DataBrowserItemID idList[len];
+	RemoveDataBrowserItems(playListControl,kDataBrowserNoItem,0,NULL,kDataBrowserItemNoProperty);
+	for(i=1;i<=len;i++) {
+	Url *entry = playList->pick(i);
+		idList[i-1] = i;
 	}
-	msg->warning("Too many entries in playlist...maximum is %d!!",CARBON_MAX_PLAYLIST_ENTRIES);
-	return -1;
+	AddDataBrowserItems(playListControl,kDataBrowserNoItem,len,idList,kDataBrowserItemNoProperty);
 }
 
-bool CarbonChannel::add_playlist(char *txt) {
-//	lock();
+bool CarbonChannel::plAdd(char *txt) {
 	playList->addurl(txt);
-	int idx = playList->len();
-	int id = getNextPlayListID();
-	if(id) {
+	int id = playList->len();
+	if(id) 
 		AddDataBrowserItems(playListControl,kDataBrowserNoItem,1,&id,kDataBrowserItemNoProperty);
-		playListItems[id] = idx;
-	}
-//	unlock();
 }
 
 void CarbonChannel::close () {
 	EventRef event;
 	OSStatus err;
 	err = CreateEvent (NULL,CARBON_GUI_EVENT_CLASS,CG_RMCH_EVENT,0,kEventAttributeUserEvent,&event);
-	if(err != noErr) this->msg->error("Can't create rmCh event!!");
-	SetEventParameter(event,CG_RMCH_EVENT_PARAM,typeCFIndex,sizeof(int),&this->chIndex);
-	err = SendEventToEventTarget(event,GetWindowEventTarget(this->parent));
+	if(err != noErr) msg->error("Can't create rmCh event!!");
+	SetEventParameter(event,CG_RMCH_EVENT_PARAM,typeCFIndex,sizeof(int),&chIndex);
+	err = SendEventToEventTarget(event,GetWindowEventTarget(parentWin));
 	if(err != noErr) {
-		this->msg->error("Can't send rmCh event to mainWin!!");
+		msg->error("Can't send rmCh event to mainWin!!");
 	}
 	//delete me;
 }
 
 MenuRef CarbonChannel::plGetMenu() {
 	int i;
-	for (i=1;i<=playList->length;i++) {
-		if(IsDataBrowserItemSelected(playListControl,i)) {
-			return plEntryMenu;
-		}
+	DataBrowserItemID first,last;
+	GetDataBrowserSelectionAnchor(playListControl,&first,&last);
+	if(first) {
+		return plEntryMenu;
 	}
 	return plMenu;
+}
+
+void CarbonChannel::activateMenuBar() {
+	OSStatus err;
+	err = SetMenuBarFromNib(nibRef, CFSTR("PLMenu"));
+	if(err != noErr) msg->error("Can't get MenuBar!!");
 }
 
 void CarbonChannel::setLCD(char *text) {
@@ -232,27 +271,122 @@ void CarbonChannel::plSelect(int row) {
 	ControlRef textControl;
 	OSStatus err;
 	if(playList->selected_pos()!=row) {
-		Url *entry = playList->pick(row);
-		err = GetControlByID(activeChannel->window,&selectedSongId,&textControl);
-		if(err != noErr) {
-			activeChannel->msg->error("Can't get selectedSong control ref (%d)!!",err);
-		}
 		playList->sel(row);
-		jmix->set_channel(chIndex,row);
-		func("Selected playlist entry %d (%s)\n",row,entry->path);
-		CFStringRef url = CFStringCreateWithCString(NULL,entry->path,kCFStringEncodingMacRoman);
-		err=SetControlData (textControl, 0, kControlStaticTextCFStringTag,sizeof(CFStringRef), &url);
-		if(err!=noErr) msg->warning("Can't set selectedSong text (%d)!!",err);
+	}
+	Url *entry = playList->pick(row);
+	err = GetControlByID(window,&selectedSongId,&textControl);
+	if(err != noErr) {
+		msg->error("Can't get selectedSong control ref (%d)!!",err);
+	}
+	/* XXX - lazy coding */
+	char *p = entry->path+strlen(entry->path);
+	while(*p!='/') {
+		if(p==entry->path) break;
+		p--;
+	}
+	if(*p=='/') p++;
+	func("Selected playlist entry %d (%s)\n",row,p);
+	CFStringRef url = CFStringCreateWithCString(NULL,p,kCFStringEncodingMacRoman);
+	err=SetControlData (textControl, 0, kControlStaticTextCFStringTag,sizeof(CFStringRef), &url);
+	if(err!=noErr) msg->warning("Can't set selectedSong text (%d)!!",err);
+}
+
+void CarbonChannel::plMove(int from, int dest) {
+	int start = from;
+	while(start != dest) {
+		if(start < dest) { /* move down */
+			playList->movedown(start);
+			start++;
+		}
+		else if(start > dest) {
+			playList->moveup(start);
+			start--;
+		}
+	}
+	plUpdate();
+}
+
+void CarbonChannel::plRemove(int pos) {
+	playList->rem(pos);
+	plUpdate();
+}
+
+void CarbonChannel::plRemoveSelection() {
+	DataBrowserItemID first,last;
+	GetDataBrowserSelectionAnchor(playListControl,&first,&last);
+	for (int i=first;i<=last;i++) {
+		plRemove(first);
 	}
 }
 
-void CarbonChannel::activateMenuBar() {
+AttractedChannel *CarbonChannel::checkNeighbours() {
+	if(!isAttached) return parent->attract_channels(chIndex);
+	return NULL;
+}
+
+void CarbonChannel::attractNeighbour(AttractedChannel *attracted) {
+	neigh=attracted;
+	OpenDrawer(fader,neigh->position==ATTACH_RIGHT?kWindowEdgeRight:kWindowEdgeLeft,false);
+	ActivateWindow(neigh->channel->window,true);
+}
+
+void CarbonChannel::stopAttracting() {
+	if(!isAttached) {
+	CloseDrawer(fader,false);
+	//SelectWindow(me->window);
+	if(neigh) {
+		ActivateWindow(neigh->channel->window,false);
+		free(neigh);
+		neigh=NULL;
+	}
+	}
+}
+
+void CarbonChannel::tryAttach() {
 	OSStatus err;
-	err = SetMenuBarFromNib(nibRef, CFSTR("PLMenu"));
-	if(err != noErr) msg->error("Can't get MenuBar!!");
+	if(neigh && !isAttached) {
+		neigh->channel->isAttached=true;
+		isAttached=true;
+		Rect myBounds;
+		err = GetWindowBounds(window,kWindowGlobalPortRgn,&myBounds);
+		MoveWindow(neigh->channel->window,myBounds.right+170,myBounds.top,false);
+		err=CreateWindowGroup(kWindowGroupAttrSelectAsLayer|kWindowGroupAttrMoveTogether|
+			kWindowGroupAttrSharedActivation|kWindowGroupAttrHideOnCollapse,&faderGroup);
+		if(err!=noErr) msg->warning("%d",err);
+		err=SetWindowGroup(window,faderGroup);
+		if(err!=noErr) msg->warning("%d",err);
+		err=SetWindowGroup(neigh->channel->window,faderGroup);
+		if(err!=noErr) msg->warning("%d",err);
+		err=SetWindowGroup(fader,faderGroup);
+		SetWindowGroupOwner(faderGroup,window);
+	}
 }
 
 /* End of CarbonChannel */
+
+// --------------------------------------------------------------------------------------------------------------
+
+/*
+OSErr MyDragTrackingHandler (   
+   DragTrackingMessage message, 
+   WindowRef theWindow,   
+   void * handlerRefCon,  
+   DragRef theDrag)
+{
+		Boolean likes = true;
+		return HandleControlDragTracking(activeChannel->playListControl,message,theDrag,&likes);
+}
+ 
+OSErr MyDragReceiveHandler (    
+   WindowRef theWindow,   
+   void * handlerRefCon,    
+   DragRef theDrag)
+{
+   return HandleControlDragReceive(activeChannel->playListControl,theDrag);
+}
+*/
+
+// --------------------------------------------------------------------------------------------------------------
 
 /****************************************************************************/
 /* LOOP TIMER */
@@ -269,32 +403,40 @@ void channelLoop(EventLoopTimerRef inTimer,void *inUserData) {
 	}*/
 }
 
+// --------------------------------------------------------------------------------------------------------------
+
 /****************************************************************************/
 /* CALLBACKS */
 /****************************************************************************/
-/*
-DataBrowserTrackingResult PlaylistTracking (
-   ControlRef browser,
-   DataBrowserItemID itemID,
-   DataBrowserPropertyID property,
-   const Rect *theRect,
-   Point startPt,
-   EventModifiers modifiers
-)
-{
-	return kDataBrowserNothingHit;
-}*/
 
-Boolean AddDrag (
-   ControlRef browser,
-   DragRef theDrag,
-   DataBrowserItemID item,
-   DragItemRef *itemRef
-)
+
+OSErr ForceDrag (Point *mouse,SInt16 *modifiers,void *userData,DragRef theDrag) 
+{
+	*modifiers = 256|cmdKeyBit;
+	return noErr;
+}
+
+
+Boolean AddDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item,DragItemRef *itemRef)
 {
 	DragItemRef refID = item;
-	OSStatus err = AddDragItemFlavor(theDrag,refID,CARBON_GUI_APP_SIGNATURE,&item,NULL,flavorSenderOnly);
-	if(err!=noErr) activeChannel->msg->error("Can't start drag (%d)!!",err);
+	CarbonChannel *senderChannel;
+	OSStatus err;
+	err = GetControlProperty(browser,CARBON_GUI_APP_SIGNATURE,PLAYLIST_PROPERTY,sizeof(CarbonChannel *),NULL,&senderChannel);
+	if(err!=noErr) { 
+	//	senderChannel->msg->warning("Can't get the CarbonChannel object associated to the playList control (%d)!!",err);
+		return false;
+	}
+	err = AddDragItemFlavor(theDrag,refID,PLAYLIST_ITEM_DRAG_ID,&item,sizeof(DataBrowserItemID),flavorSenderOnly);
+	if(err!=noErr) {
+		senderChannel->msg->warning("Can't add itemID falvour to new drag (%d)!!",err);
+		return false;
+	}
+	err = AddDragItemFlavor(theDrag,refID,PLAYLIST_SENDER_DRAG_ID,&senderChannel,sizeof(CarbonChannel),flavorSenderOnly);
+	if(err!=noErr) {
+		senderChannel->msg->warning("Can't start drag (%d)!!",err);
+		return false;
+	}
 	*itemRef = refID;
 	return true;
 }
@@ -306,15 +448,30 @@ OSStatus HandlePlaylist (ControlRef browser,DataBrowserItemID itemID,
     OSStatus status = noErr;
 	Url *entry;
 	DataBrowserItemState state;
+	OSStatus err;
+	CarbonChannel *me;
+	err = GetControlProperty(browser,CARBON_GUI_APP_SIGNATURE,PLAYLIST_PROPERTY,sizeof(CarbonChannel *),NULL,&me);
+	if(err!=noErr) { 
+		return err;
+	}
 	if (!changeValue) switch (property) 
     {
         case 'SONG':
-			entry = (Url *)activeChannel->playList->pick(activeChannel->playListItems[itemID]);
-			status = SetDataBrowserItemDataText(itemData,
-				CFStringCreateWithCString(kCFAllocatorDefault,
-					entry->path,kCFStringEncodingMacRoman));
-			if(activeChannel->playListItems[itemID]==1) { // First entry
-				activeChannel->plSelect(1);
+			entry = (Url *)me->playList->pick(itemID);
+			if(entry) {
+				/* XXX - lazy coding */
+				char *p = entry->path+strlen(entry->path);
+				while(*p!='/') {
+					if(p==entry->path) break;
+					p--;
+				}
+				if(*p=='/') p++;
+				status = SetDataBrowserItemDataText(itemData,
+					CFStringCreateWithCString(kCFAllocatorDefault,
+					p,kCFStringEncodingMacRoman));
+				if(itemID==1) { // First entry
+					me->plSelect(1);
+				}
 			}
 			break;
 		default:
@@ -332,40 +489,100 @@ Boolean HandleDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item) {
 	Size dataSize;
 	DataBrowserItemID movedItem;
 	DataBrowserItemState itemState = 0L;
-	OSErr err = GetDragItemReferenceNumber(theDrag,1,&dragItem);
-	if(err != noErr) {
-		printf("Can't get dragItem reference number (%d)",err);
-	}
-	err = GetFlavorType(theDrag,dragItem,1,&receivedType);
-	if(err!=noErr) activeChannel->msg->error("Can't get type of the received drag (%d)!!",err);
-	err = GetFlavorDataSize (theDrag,dragItem,receivedType,&dataSize);
-	if(receivedType==kDragFlavorTypeHFS) {
-//	if (item == kDataBrowserNoItem) {
-//		itemState = kDataBrowserContainerIsOpen;
-//		printf("EKKOMI\n");
-//	}
-		err = GetFlavorData(theDrag,dragItem,receivedType,&draggedData,&dataSize,0);
-		FSRef fRef;
-		err = FSpMakeFSRef (&draggedData.fileSpec,&fRef);
+	OSErr err;
+	int targetPos = item;
+	int itemsNum = 1;
+	CarbonChannel *me;
+	err = GetControlProperty(browser,CARBON_GUI_APP_SIGNATURE,PLAYLIST_PROPERTY,sizeof(CarbonChannel *),NULL,&me);
+	if(err!=noErr) return false;
+	int removed = 0;
+	while(GetDragItemReferenceNumber(theDrag,itemsNum,&dragItem) == noErr) itemsNum++;
+	for(itemsNum--;itemsNum>0;itemsNum--) {
+	    err = GetDragItemReferenceNumber(theDrag,itemsNum,&dragItem);
+		if(err != noErr) {
+			me->msg->warning("Can't get dragItem reference number at index %d (%d)",itemsNum,err);
+			break;
+		}
+		err = GetFlavorType(theDrag,dragItem,1,&receivedType);
+		if(err!=noErr) me->msg->error("Can't get type of the received drag (%d)!!",err);
+		err = GetFlavorDataSize (theDrag,dragItem,receivedType,&dataSize);
+		if(receivedType==kDragFlavorTypeHFS) {
+			err = GetFlavorData(theDrag,dragItem,receivedType,&draggedData,&dataSize,0);
+			FSRef fRef;
+			err = FSpMakeFSRef (&draggedData.fileSpec,&fRef);
 	
-		char fileName[kHFSPlusMaxFileNameChars]; /* MMMM... if not HFSPLUS fileName is too large */
-		err = FSRefMakePath(&fRef,(UInt8 *)fileName,kHFSPlusMaxFileNameChars);
-		return activeChannel->jmix->add_to_playlist(activeChannel->chIndex,fileName);
+			char fileName[kHFSPlusMaxFileNameChars]; /* MMMM... if not HFSPLUS fileName is too large */
+			err = FSRefMakePath(&fRef,(UInt8 *)fileName,kHFSPlusMaxFileNameChars);
+			if(!me->jmix->add_to_playlist(me->chIndex,fileName)) {
+				me->msg->warning("Can't add %s to playList",fileName);
+			}
+		}
+		else if(receivedType==PLAYLIST_ITEM_DRAG_ID) {
+			CarbonChannel *sender;
+			err = GetFlavorData(theDrag,dragItem,receivedType,&movedItem,&dataSize,0);
+			movedItem-=removed;
+			err = GetFlavorType(theDrag,dragItem,2,&receivedType);
+			if(err!=noErr) me->msg->error("Can't get type of the received drag (%d)!!",err);
+			err = GetFlavorData(theDrag,dragItem,receivedType,&sender,&dataSize,0);
+			if(sender != me) { /* receiving a drag from another channel window */
+				Url *entry = sender->playList->pick(movedItem);
+				if(entry) {
+				if (item == kDataBrowserNoItem) {
+					me->playList->addurl(entry->path);
+					entry->rem();
+					removed++;
+				}
+				else {
+					me->playList->insert(entry,targetPos);
+					removed++;
+				}
+				me->plUpdate();
+				sender->plUpdate();
+				}
+			}
+			else { /* internal drag ... just moving songs around inside our playlist */
+				if (item == kDataBrowserNoItem) {
+					printf("EKKOMI33 %d\n",me->chIndex);
+					itemState = kDataBrowserContainerIsOpen;
+				}
+				else {
+					me->plMove(movedItem,targetPos);
+				}
+			}
+			targetPos++;
+		}
+		else {
+			return false;
+		}
 	}
-	else if(receivedType==CARBON_GUI_APP_SIGNATURE) {
-		err = GetFlavorData(theDrag,dragItem,receivedType,&movedItem,&dataSize,0);
-	
-		return true;
-	}
-	else {
-		printf("CIAO \n\n\n\n");
-	}
-	return false;
+	return true;
 }
 
 Boolean CheckDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item) {
-	// DragItemRef dragItem;
-	return true;
+	DragItemRef dragItem;
+	FlavorType receivedType;
+	Size dataSize;
+	CarbonChannel *me;
+	OSErr err;
+	err = GetControlProperty(browser,CARBON_GUI_APP_SIGNATURE,PLAYLIST_PROPERTY,sizeof(CarbonChannel *),NULL,&me);
+	if(err!=noErr) return false;
+	err = GetDragItemReferenceNumber(theDrag,1,&dragItem);
+	if(err != noErr) me->msg->error("Can't get dragItem reference number (%d)",err);
+	
+	err = GetFlavorType(theDrag,dragItem,1,&receivedType);
+	if(err!=noErr) me->msg->error("Can't get type of the received drag (%d)!!",err);
+	err = GetFlavorDataSize (theDrag,dragItem,receivedType,&dataSize);
+	if(receivedType==kDragFlavorTypeHFS)
+		return true;
+	else if(receivedType==PLAYLIST_ITEM_DRAG_ID) {
+		if(item == kDataBrowserNoItem) {
+			err = SetDragInputProc(theDrag,NewDragInputUPP(&ForceDrag),NULL);
+			if(err!=noErr) me->msg->error("Can't set input proc for internal item(%d)!!",err);
+		}
+		return true;
+	}
+	
+	return false;
 }
 
 void HandleNotification (ControlRef browser,DataBrowserItemID itemID,
@@ -374,55 +591,40 @@ void HandleNotification (ControlRef browser,DataBrowserItemID itemID,
 	DataBrowserItemState state;
     Url *entry;
 	OSStatus err;
+	CarbonChannel *me;
+	err = GetControlProperty(browser,CARBON_GUI_APP_SIGNATURE,PLAYLIST_PROPERTY,sizeof(CarbonChannel *),NULL,&me);
+	if(err!=noErr) return;
 	switch (message) {
 		case kDataBrowserItemDoubleClicked:
-			int itemPos = activeChannel->playListItems[itemID];
-			entry = (Url *)activeChannel->playList->pick(itemPos);
+			entry = (Url *)me->playList->pick(itemID);
 			GetDataBrowserItemState(browser,itemID,&state);
 			if(state == kDataBrowserItemIsSelected) {
-				if(activeChannel->playList->selected_pos() != itemPos) {
+				if(me->playList->selected_pos() != itemID) {
 					ControlRef textControl;
-					err = GetControlByID(activeChannel->window,&selectedSongId,&textControl);
+					err = GetControlByID(me->window,&selectedSongId,&textControl);
 					if(err != noErr) {
-						activeChannel->msg->error("Can't get selectedSong control ref (%d)!!",err);
+						me->msg->error("Can't get selectedSong control ref (%d)!!",err);
 					}
-					activeChannel->playList->sel(itemPos);
-					activeChannel->jmix->set_channel(activeChannel->chIndex,itemPos);
-					printf("Selected playlist entry %d (%s)\n",itemPos,entry->path);
-					CFStringRef url = CFStringCreateWithCString(NULL,entry->path,kCFStringEncodingMacRoman);
-					err=SetControlData (textControl, 0, kControlStaticTextCFStringTag,sizeof(CFStringRef), &url);
-					if(err!=noErr) activeChannel->msg->warning("Can't set selectedSong text (%d)!!",err);
+					me->plSelect(itemID);
 				}
 			}
 			break;	
 	}
 }
 
-void getPLMenu (ControlRef browser,MenuRef *menu,UInt32 *helpType,CFStringRef *helpItemString, AEDesc *selection) {
-	*menu = activeChannel->plGetMenu();
+void GetPLMenu (ControlRef browser,MenuRef *menu,UInt32 *helpType,CFStringRef *helpItemString, AEDesc *selection) {
+	CarbonChannel *me;
+	OSStatus err = GetControlProperty(browser,CARBON_GUI_APP_SIGNATURE,PLAYLIST_PROPERTY,sizeof(CarbonChannel *),NULL,&me);
+	if(err!=noErr) return;
+	*menu = me->plGetMenu();
 }
-
-void selectPLMenu (ControlRef browser,MenuRef menu,UInt32 selectionType,SInt16 menuID,MenuItemIndex menuItem) {
+/*
+void SelectPLMenu (ControlRef browser,MenuRef menu,UInt32 selectionType,SInt16 menuID,MenuItemIndex menuItem) {
 
 }
+*/
 
-void RemovePlaylistItem (
-   DataBrowserItemID item,
-   DataBrowserItemState state,
-   void *clientData) 
-{
-	CarbonChannel *me = (CarbonChannel *)clientData;
-	int i = me->playListItems[item];
-	me->jmix->rem_from_playlist(me->chIndex,i);
-	me->playList->rem(i);
-	int n;
-	me->playListItems[i]=0;
-	for(n=1;n<CARBON_MAX_PLAYLIST_ENTRIES;n++) {
-		if(me->playListItems[n] > i) me->playListItems[n]--;
-	}
-	RemoveDataBrowserItems(me->playListControl,kDataBrowserNoItem,1,&item,kDataBrowserItemNoProperty);
-}
-
+// --------------------------------------------------------------------------------------------------------------
 
 /****************************************************************************/
 /* EVENT HANDLERS */
@@ -435,13 +637,27 @@ static OSStatus ChannelEventHandler (
     CarbonChannel *me = (CarbonChannel *)userData;
 	switch (GetEventKind (event))
     {
+		case kAEOpenDocuments:
+			OpenFile(event,me);
+			break;
         case kEventWindowClosed: 
             me->close();
             break;
 		case kEventWindowActivated:
 			me->activateMenuBar();
+			break;
+		case kEventWindowBoundsChanging:
+			AttractedChannel *neigh;
+			neigh = me->checkNeighbours();
+			if(neigh) me->attractNeighbour(neigh);
+			else me->stopAttracting();
+			break;
+		//case kEventWindowBoundsChanged:
+		case kEventWindowDragCompleted:
+			me->tryAttach();
+			break;
 		default:
-            activeChannel = me;
+            //activeChannel = me;
             break;
     }
     
@@ -457,13 +673,15 @@ static OSStatus dataBrowserEventHandler (
 	switch (GetEventKind (event))
     {
 		default:
-            activeChannel = me;
+            //activeChannel = me;
             break;
     }
     
     return CallNextEventHandler(nextHandler,event);
 
 }
+
+// --------------------------------------------------------------------------------------------------------------
 
 /****************************************************************************/
 /* COMMAND HANDLER */
@@ -522,17 +740,65 @@ static OSStatus channelCommandHandler (
 			}
 			else {
 				SInt16 vol = GetControlValue(volCtrl);
-				/* XXX - mmmm i'm not sure that this is a good int to float conversion */
 				func("Setting volume to %f for channel %d",((float)vol)/100,me->chIndex);
 				me->jmix->set_volume(me->chIndex,((float)vol)/100); 
 			}
 			break;
 		case MENU_REMOVE_CMD:
-			ForEachDataBrowserItem(me->playListControl,kDataBrowserNoItem,true,kDataBrowserItemIsSelected,
-				NewDataBrowserItemUPP(&RemovePlaylistItem), me);
+			me->plRemoveSelection();
+			break;
+		case OPEN_FILE_CMD:
+			err = OpenFileWindow(me->window);
+			break;
+		case OPEN_URL_CMD:
+		//	err = OpenUrlWindow();
+			break;
+		case NEWC_CMD:
+			me->parent->new_channel();
 			break;
 		default:
             err = eventNotHandledErr;
             break;
 	}
 }
+
+static  OSErr OpenFile(EventRef event,CarbonChannel *me)
+{
+
+	OSStatus		anErr;
+
+	AEDescList	docList;				// list of docs passed in
+	long		index, itemsInList;
+	Boolean		wasAlreadyOpen;
+
+	anErr = GetEventParameter( event, OPEN_DOCUMENT_DIALOG_PARAM, typeAEList,NULL,sizeof(AEDescList),NULL, &docList);
+	//nrequire(anErr, GetFileList);
+
+	anErr = AECountItems( &docList, &itemsInList);			// how many files passed in
+//	nrequire(anErr, CountDocs);
+	for (index = itemsInList; index > 0; index--)			// handle each file passed in
+	{	
+		AEKeyword	keywd;
+		DescType	returnedType;
+		Size		actualSize;
+		FSRef 		fileRef;
+		FSCatalogInfo	theCatInfo;
+		
+		anErr = AEGetNthPtr( &docList, index, typeFSRef, &keywd, &returnedType,
+						(Ptr)(&fileRef), sizeof( fileRef ), &actualSize );
+		//nrequire(anErr, AEGetNthPtr);
+
+		anErr = FSGetCatalogInfo( &fileRef, kFSCatInfoFinderInfo, &theCatInfo, NULL, NULL, NULL );
+		//nrequire(anErr, FSGetCatalogInfo);
+
+		if (anErr == noErr) {
+			char path[2048]; /* XXX - hardcoded max filename size */
+			FSRefMakePath (&fileRef,path,2048);
+			if(!me->jmix->add_to_playlist(me->chIndex,path)) {
+				me->msg->warning("Can't add %s to playList",path);
+			}
+		}
+	}
+
+	return anErr;
+} // OpenDocument

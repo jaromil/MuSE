@@ -80,14 +80,16 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 		unsigned int i;
 		for (i=0;i<MAX_CHANNELS;i++) {
 			if(jmix->chan[i]) { 
-					CarbonChannel *newChan = new CarbonChannel(jmix,window,nibRef,i);
+					CarbonChannel *newChan = new CarbonChannel(jmix,this,nibRef,i);
 					channel[i] = newChan;
+				/*	
 					if(i > 0) {
 						RepositionWindow(channel[i]->window,channel[i-1]->window,kWindowCascadeOnParentWindow);
 					}
-					//else {
-					//	RepositionWindow(channel[i],window,kWindowCascadeOnParentWindow);
-					//}
+					else {
+						RepositionWindow(channel[i],window,kWindowCascadeOnParentWindow);
+					}
+				*/
 			}
 			else {
 				channel[i] = NULL;
@@ -111,7 +113,7 @@ void CARBON_GUI::run() {
 			lock();
 			if(channel[i]) {
 				if(new_pos[i]) {
-					int newPos = (int)(ch_pos[i]*1000);
+					int newPos = (int)(ch_pos[i]*100);
 					//if(newPos != myPos[i]) {
 						//myPos[i] = newPos;
 						channel[i]->setPos(newPos);
@@ -156,11 +158,11 @@ bool CARBON_GUI::new_channel(int i) {
 		if(!jmix->create_channel(i)) {
 			msg->warning("Can't create new mixer channel %d",i);
 		}
-		CarbonChannel *newChan = new CarbonChannel(jmix,window,nibRef,i);
+		CarbonChannel *newChan = new CarbonChannel(jmix,this,nibRef,i);
 		channel[i] = newChan;
-		if(i > 0) {
-			RepositionWindow(channel[i]->window,channel[i-1]->window,kWindowCascadeOnParentWindow);
-		}
+	//	if(i > 0) {
+	//		RepositionWindow(channel[i]->window,channel[i-1]->window,kWindowCascadeOnParentWindow);
+	//	}
 		notice("created channel %d",i);
 		return true;
 	}
@@ -191,9 +193,7 @@ void CARBON_GUI::set_status(char *txt) {
 }
 
 void CARBON_GUI::add_playlist(unsigned int ch, char *txt) {
-	lock();
-	if(channel[ch]) channel[ch]->add_playlist(txt);
-	unlock();
+	if(channel[ch]) channel[ch]->plUpdate();
 }
 
 void CARBON_GUI::sel_playlist(unsigned int ch, int row) {
@@ -243,6 +243,38 @@ bool CARBON_GUI::init_controls() {
             this, NULL);
 	if(err != noErr) msg->error("Can't install main commandHandler");
 }
+
+AttractedChannel *CARBON_GUI::attract_channels(int chIndex) {
+	Rect bounds;
+	AttractedChannel *neigh = malloc(sizeof(AttractedChannel));
+	if(!channel[chIndex]) return false;
+	GetWindowBounds(channel[chIndex]->window,kWindowGlobalPortRgn,&bounds);
+	//printf(" KAZZO %d - %d  \n",bounds.top,bounds.bottom);
+	for ( int i = 0;i < MAX_CHANNELS;i++) {
+		if(i!=chIndex) {
+			if(channel[i]) {
+				Rect space;
+				GetWindowBounds(channel[i]->window,kWindowStructureRgn,&space);
+				if(bounds.top > space.top-20 && bounds.top < space.top+20) {
+					if(bounds.right > space.left-150 && bounds.right < space.left-130) {
+						neigh->position=ATTACH_RIGHT;
+						neigh->channel = channel[i];
+						return neigh;
+					}
+					if(bounds.left < space.right+150 && bounds.left > space.right+130) {
+						neigh->position=ATTACH_LEFT;
+						neigh->channel=channel[i];
+						return neigh;
+					}
+				}
+			}
+		}
+	}
+	return NULL;
+}
+
+/* END OF CARBON_GUI */
+
 
 /* COMMAND HANDLER */
 static OSStatus MainWindowCommandHandler (

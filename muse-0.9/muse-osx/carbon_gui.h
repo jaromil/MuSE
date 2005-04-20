@@ -25,6 +25,7 @@
 #include <carbon_message.h>
 
 //OSStatus startCarbon(void *arg);
+class CarbonChannel;
 
 class CARBON_GUI : public GUI {
  private:
@@ -63,6 +64,7 @@ class CARBON_GUI : public GUI {
   bool new_channel();
   bool new_channel(int idx);
   bool remove_channel(int idx);
+  AttractedChannel *attract_channels(int chIndex);
  // void start();
 protected:
   

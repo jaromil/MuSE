@@ -25,9 +25,82 @@
 #include "carbon_common.h"
 #include "carbon_message.h"
 #include <playlist.h>
-
 #define CARBON_MAX_PLAYLIST_ENTRIES 32000
+				
+class CARBON_GUI;
+class CarbonChannel;
 
+typedef struct {
+	CarbonChannel *channel;
+	unsigned char position;
+#define ATTACH_LEFT 0
+#define ATTACH_RIGHT 1
+} AttractedChannel;
+
+class CarbonChannel {
+	public:
+		CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsigned int chan);
+		~CarbonChannel();
+		bool add_playlist(char *txt) { return plAdd(txt); } /* just an accessor to support muse API */
+		MenuRef plGetMenu();
+		bool plAdd(char *txt);
+		void close ();
+		void plSetup();
+		void plSelect(int row);
+		void plMove(int from,int to);
+		void plRemove(int pos);
+		void plRemoveSelection();
+		bool plUpdate();
+		void setLCD(char *lcd);
+		void setPos(int pos);
+		void activateMenuBar();
+		
+		AttractedChannel *checkNeighbours();
+		void attractNeighbour(AttractedChannel *attracted);
+		void stopAttracting();
+		void tryAttach();
+		
+		WindowRef window;
+		WindowRef fader;
+		Stream_mixer *jmix;
+		CARBON_GUI *parent;
+		WindowRef parentWin;
+		AttractedChannel *neigh;
+		ControlRef playListControl;
+		Playlist *playList;
+		unsigned int chIndex;
+		CarbonMessage *msg;
+		Channel *inChannel;
+		int seek;
+		WindowGroupRef faderGroup;
+		bool isAttached;
+		
+	private:
+		IBNibRef nibRef;
+		MenuRef plMenu;
+		MenuRef plEntryMenu;
+		EventLoopTimerRef updater;
+		EventHandlerRef windowEventHandler;
+		EventHandlerRef playListEventHandler;
+		int getNextPlayListID();
+		char lcd[255];
+		AEEventHandlerUPP openHandler;
+	protected:
+};
+
+
+/*
+OSErr MyDragTrackingHandler (   
+   DragTrackingMessage message, 
+   WindowRef theWindow,   
+   void * handlerRefCon,  
+   DragRef theDrag);
+   
+OSErr MyDragReceiveHandler (    
+   WindowRef theWindow,   
+   void * handlerRefCon,    
+   DragRef theDrag);
+*/
 void channelLoop(EventLoopTimerRef inTimer,void *inUserData);
 /****************************************************************************/
 /* Event handlers  (carbon callbacks)*/
@@ -44,22 +117,9 @@ static OSStatus channelCommandHandler (
 /****************************************************************************/
 /* DataBrowser (playlist)  handlers (carbon callbacks)*/
 /****************************************************************************/
-/*
-DataBrowserTrackingResult PlaylistTracking (
-   ControlRef browser,
-   DataBrowserItemID itemID,
-   DataBrowserPropertyID property,
-   const Rect *theRect,
-   Point startPt,
-   EventModifiers modifiers
-);
-*/
-Boolean AddDrag (
-   ControlRef browser,
-   DragRef theDrag,
-   DataBrowserItemID item,
-   DragItemRef *itemRef
-);
+OSErr ForceDrag (Point *mouse,SInt16 *modifiers,void *userData,DragRef theDrag);
+
+Boolean AddDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item,DragItemRef *itemRef);
 
 OSStatus HandlePlaylist (ControlRef browser,DataBrowserItemID itemID,
 	DataBrowserPropertyID property,DataBrowserItemDataRef itemData,Boolean changeValue);
@@ -71,49 +131,18 @@ Boolean CheckDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item);
 void HandleNotification (ControlRef browser,DataBrowserItemID item,
    DataBrowserItemNotification message,DataBrowserItemDataRef itemData);
 
-void getPLMenu (ControlRef browser,MenuRef *menu,UInt32 *helpType,
+void GetPLMenu (ControlRef browser,MenuRef *menu,UInt32 *helpType,
 	CFStringRef *helpItemString, AEDesc *selection);
-
-void selectPLMenu(ControlRef browser,MenuRef menu,UInt32 selectionType,
+/*
+void SelectPLMenu(ControlRef browser,MenuRef menu,UInt32 selectionType,
 	SInt16 menuID,MenuItemIndex menuItem);
-	
+*/	
 void RemovePlaylistItem (DataBrowserItemID item,DataBrowserItemState state,void *clientData);
 
+/****************************************************************************/
+/* OpenDocument callbacks (called when opening from dialog */
+/****************************************************************************/
 
-class CarbonChannel {
-	public:
-		CarbonChannel(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib,unsigned int chan);
-		~CarbonChannel();
-		bool add_playlist(char *txt);
-		MenuRef plGetMenu();
-		void close ();
-		void plSelect(int row);
-		void setLCD(char *lcd);
-		void setPos(int pos);
-		void activateMenuBar();
-		
-		int playListItems[CARBON_MAX_PLAYLIST_ENTRIES];
-		
-		WindowRef window;
-		Stream_mixer *jmix;
-		WindowRef parent;
-		ControlRef playListControl;
-		Playlist *playList;
-		unsigned int chIndex;
-		CarbonMessage *msg;
-		Channel *inChannel;
-		int seek;
-		
-	private:
-		IBNibRef nibRef;
-		MenuRef plMenu;
-		MenuRef plEntryMenu;
-		EventLoopTimerRef updater;
-		EventHandlerRef windowEventHandler;
-		EventHandlerRef playListEventHandler;
-		int getNextPlayListID();
-		char lcd[255];
-	protected:
-};
-
+static OSErr OpenFile(EventRef event,CarbonChannel *me);
+	
 #endif
