@@ -19,6 +19,10 @@
 #include "carbon_channel.h"
 #include "carbon_gui.h"
 
+#define WINDOW_GROUP_ATTRIBUTES \
+	kWindowGroupAttrMoveTogether|kWindowGroupAttrLayerTogether|\
+	kWindowGroupAttrSharedActivation|kWindowGroupAttrHideOnCollapse
+
 extern "C" OSStatus OpenFileWindow(WindowRef parent);
 
 /****************************************************************************/
@@ -31,13 +35,15 @@ const ControlID seekTimeId = { CARBON_GUI_APP_SIGNATURE, SEEK_TIME_CONTROL };
 const ControlID seekId = { CARBON_GUI_APP_SIGNATURE, SEEK_CONTROL };
 const ControlID volId = { CARBON_GUI_APP_SIGNATURE,VOLUME_CONTROL };
 
-#define CARBON_CHANNEL_EVENTS 6
+#define CARBON_CHANNEL_EVENTS 8
 const EventTypeSpec windowEvents[] = {
         { kEventClassWindow, kEventWindowActivated },
 		{ kEventClassWindow, kEventWindowGetClickActivation },
 		{ kEventClassWindow, kEventWindowClosed },
 		{ kEventClassWindow, kEventWindowBoundsChanging },
 		{ kEventClassWindow, kEventWindowDragCompleted },
+		{ kEventClassWindow, kEventWindowResizeStarted },
+		{ kEventClassWindow, kEventWindowResizeCompleted },
 		{ kCoreEventClass, kAEOpenDocuments }
 };
 
@@ -49,6 +55,9 @@ const EventTypeSpec dataBrowserEvents[] = {
 };
 
 const EventTypeSpec channelCommands[] = {
+	{ kEventClassCommand, kEventCommandProcess }
+};
+const EventTypeSpec faderCommands[] = {
 	{ kEventClassCommand, kEventCommandProcess }
 };
 
@@ -63,13 +72,18 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 	OSStatus err;
 	jmix->set_playmode(chIndex,PLAYMODE_CONT);
 	inChannel = jmix->chan[chIndex];
-	neigh = NULL;
-	isAttached = false;
+	memset(&neigh,0,sizeof(neigh));
+	isAttached=false;
+	isSlave=false;
+	isResizing=false;
+	isDrawing=false;
 	playList = inChannel->playlist; //new Playlist();
 	
 	msg = new CarbonMessage(nibRef);
 	err = CreateWindowFromNib(nibRef, CFSTR("Channel"), &window);
-	
+	HISize minBounds = {CHANNEL_WINDOW_WIDTH_MIN,CHANNEL_WINDOW_HEIGHT_MIN};
+	HISize maxBounds = {CHANNEL_WINDOW_WIDTH_MAX,CHANNEL_WINDOW_HEIGHT_MAX};
+	SetWindowResizeLimits(window,&minBounds,&maxBounds);
 	err = CreateMenuFromNib (nibRef,CFSTR("PLMenu"),&plMenu);
 	if(err != noErr) {
 		msg->error("Can't create plMenu ref (%d)!!",err);
@@ -111,21 +125,16 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 	SetDrawerParent(fader,window);
 	SetDrawerPreferredEdge(fader,kWindowEdgeRight);
 	SetDrawerOffsets(fader,50,50);
-	
+	err = InstallWindowEventHandler (fader, 
+            NewEventHandlerUPP (faderCommandHandler), 
+            GetEventTypeCount(faderCommands), faderCommands, 
+            this, NULL);
+	err=CreateWindowGroup(0,&faderGroup);
+
+	/* setup playList control */
 	plSetup();
 
 	SetAutomaticControlDragTrackingEnabledForWindow (window, true);
-
-	//InstallReceiveHandler(NewDragReceiveHandlerUPP(&MyDragReceiveHandler),window,NULL);
-	//InstallTrackingHandler(NewDragTrackingHandlerUPP(&MyDragTrackingHandler),window,NULL);
-	
-	/* finally let's install an Apple Event Handler to manage file opening 
-	 *trough the file browser dialog */
-//	 openHandler=NewAEEventHandlerUPP(OpenFile);
-//	 CarbonChannel *self=this;
-	// err =AEInstallEventHandler(kCoreEventClass,kAEOpenDocuments,
-//		openHandler,self, false); /* XXX - converting a pointer to an SInt32 !!! */
-//	if(err!=noErr) msg->error("Can't install apple event handler to open files (%d)!!",err);
 }
 
 CarbonChannel::~CarbonChannel() {
@@ -140,6 +149,8 @@ CarbonChannel::~CarbonChannel() {
 	DisposeMenu(plEntryMenu);
 	delete msg;
 	RemoveControlProperty(playListControl,CARBON_GUI_APP_SIGNATURE,PLAYLIST_PROPERTY);
+	DisposeWindow(fader);
+	ReleaseWindowGroup(faderGroup);
 	/* TODO - maybe more cleaning is needed */
 }
 
@@ -245,7 +256,6 @@ void CarbonChannel::activateMenuBar() {
 }
 
 void CarbonChannel::setLCD(char *text) {
-	EventRef updateEvent;
 	OSStatus err;
 	ControlRef lcdControl;
 	if(strncmp(text,lcd,255) != 0) {
@@ -307,6 +317,9 @@ void CarbonChannel::plMove(int from, int dest) {
 }
 
 void CarbonChannel::plRemove(int pos) {
+	if(playList->selected_pos()==pos) {
+		inChannel->skip();
+	} 
 	playList->rem(pos);
 	plUpdate();
 }
@@ -319,72 +332,128 @@ void CarbonChannel::plRemoveSelection() {
 	}
 }
 
-AttractedChannel *CarbonChannel::checkNeighbours() {
-	if(!isAttached) return parent->attract_channels(chIndex);
-	return NULL;
+bool CarbonChannel::checkNeighbours() {
+	if(!isAttached) return parent->attract_channels(chIndex,&neigh);
+	return false;
 }
 
-void CarbonChannel::attractNeighbour(AttractedChannel *attracted) {
-	neigh=attracted;
-	OpenDrawer(fader,neigh->position==ATTACH_RIGHT?kWindowEdgeRight:kWindowEdgeLeft,false);
-	ActivateWindow(neigh->channel->window,true);
+void CarbonChannel::attractNeighbour() {
+	if(neigh.channel) {
+		OpenDrawer(fader,neigh.position==ATTACH_RIGHT?kWindowEdgeRight:kWindowEdgeLeft,false);
+		ActivateWindow(neigh.channel->window,true);
+	}
 }
 
 void CarbonChannel::stopAttracting() {
 	if(!isAttached) {
-	CloseDrawer(fader,false);
-	//SelectWindow(me->window);
-	if(neigh) {
-		ActivateWindow(neigh->channel->window,false);
-		free(neigh);
-		neigh=NULL;
+		CloseDrawer(fader,false);
+		//SelectWindow(me->window);
+		if(neigh.channel) {
+			ActivateWindow(neigh.channel->window,false);
+			memset(&neigh,0,sizeof(neigh));
+		//	isAttached=false;
+		//	isSlave=false;
+		}
 	}
+}
+
+void CarbonChannel::stopFading() {
+	if(isAttached) {
+		if(!isSlave) {
+			ChangeWindowGroupAttributes(faderGroup,0,WINDOW_GROUP_ATTRIBUTES);
+			CloseDrawer(fader,false);
+			Rect myBounds;
+		OSStatus err = GetWindowBounds(window,kWindowContentRgn,&myBounds);
+		if(err==noErr) {
+			SInt32 offset=neigh.position==ATTACH_LEFT?20:-20;
+			myBounds.left+=offset;
+		//	SetWindowBounds(window,kWindowContentRgn,&myBounds);
+			MoveWindow(window,myBounds.left+offset,myBounds.top-offset,false);
+		}
+			neigh.channel->stopFading();
+			memset(&neigh,0,sizeof(neigh));
+		}
+		isAttached=false;
+		isSlave=false;
 	}
 }
 
 void CarbonChannel::tryAttach() {
 	OSStatus err;
-	if(neigh && !isAttached) {
-		neigh->channel->isAttached=true;
+	if(neigh.channel && !isAttached) {
+		neigh.channel->gotAttached(this);
 		isAttached=true;
-		Rect myBounds;
-		err = GetWindowBounds(window,kWindowGlobalPortRgn,&myBounds);
-		MoveWindow(neigh->channel->window,myBounds.right+170,myBounds.top,false);
-		err=CreateWindowGroup(kWindowGroupAttrSelectAsLayer|kWindowGroupAttrMoveTogether|
-			kWindowGroupAttrSharedActivation|kWindowGroupAttrHideOnCollapse,&faderGroup);
+		err=ChangeWindowGroupAttributes(faderGroup,WINDOW_GROUP_ATTRIBUTES,0);
 		if(err!=noErr) msg->warning("%d",err);
 		err=SetWindowGroup(window,faderGroup);
 		if(err!=noErr) msg->warning("%d",err);
-		err=SetWindowGroup(neigh->channel->window,faderGroup);
+		err=SetWindowGroup(neigh.channel->window,faderGroup);
 		if(err!=noErr) msg->warning("%d",err);
 		err=SetWindowGroup(fader,faderGroup);
 		SetWindowGroupOwner(faderGroup,window);
+		redrawFader();
 	}
 }
 
+void CarbonChannel::redrawFader() {
+	OSStatus err;
+	Rect myBounds;
+	Rect neighBounds;
+	if(!isDrawing) {
+	isDrawing=true;
+	err = GetWindowBounds(window,kWindowContentRgn,&myBounds);
+	err = GetWindowBounds(neigh.channel->window,kWindowContentRgn,&neighBounds);
+	SInt32 width = neighBounds.right-neighBounds.left;
+	if(neigh.channel && isAttached) {
+		ChangeWindowGroupAttributes(!isSlave?faderGroup:neigh.channel->faderGroup,0,WINDOW_GROUP_ATTRIBUTES);
+		SInt32 edge = (neigh.position==ATTACH_LEFT)?(myBounds.left-140-width):(myBounds.right+140);
+		SInt32 offset=edge-neighBounds.left;
+		MoveWindow(neigh.channel->window,edge,myBounds.top,false);
+		if(isSlave) {
+			Rect faderBounds;
+			err = GetWindowBounds(neigh.channel->fader,kWindowContentRgn,&faderBounds);
+			MoveWindow(neigh.channel->fader,faderBounds.left+offset,faderBounds.top,false);
+		}
+		BringToFront(window);
+		BringToFront(neigh.channel->window);
+		ChangeWindowGroupAttributes(!isSlave?faderGroup:neigh.channel->faderGroup,WINDOW_GROUP_ATTRIBUTES,0);
+	}
+	isDrawing=false;
+	}
+}
+
+void CarbonChannel::gotAttached(CarbonChannel *channel) {
+	Rect neighBounds,myBounds;
+	if(!channel) return false;
+	GetWindowBounds(channel->window,kWindowContentRgn,&neighBounds);
+	GetWindowBounds(window,kWindowContentRgn,&myBounds);
+	isAttached = true;
+	neigh.channel = channel;
+	neigh.position = (myBounds.left < neighBounds.left)?ATTACH_RIGHT:ATTACH_LEFT;
+	isSlave = true;
+}
+
+bool CarbonChannel::attached() {
+	return isAttached;
+}
+
+void CarbonChannel::startResize() {
+	isResizing=true;
+}
+
+void CarbonChannel::stopResize() {
+	isResizing=false;
+}
+
+bool CarbonChannel::resizing() {
+	return isResizing;
+}
+
+bool CarbonChannel::slave() {
+	return isSlave;
+}
+
 /* End of CarbonChannel */
-
-// --------------------------------------------------------------------------------------------------------------
-
-/*
-OSErr MyDragTrackingHandler (   
-   DragTrackingMessage message, 
-   WindowRef theWindow,   
-   void * handlerRefCon,  
-   DragRef theDrag)
-{
-		Boolean likes = true;
-		return HandleControlDragTracking(activeChannel->playListControl,message,theDrag,&likes);
-}
- 
-OSErr MyDragReceiveHandler (    
-   WindowRef theWindow,   
-   void * handlerRefCon,    
-   DragRef theDrag)
-{
-   return HandleControlDragReceive(activeChannel->playListControl,theDrag);
-}
-*/
 
 // --------------------------------------------------------------------------------------------------------------
 
@@ -393,14 +462,7 @@ OSErr MyDragReceiveHandler (
 /****************************************************************************/
 
 void channelLoop(EventLoopTimerRef inTimer,void *inUserData) {
-	/*OSStatus err;
-	CarbonChannel *me = (CarbonChannel *)inUserData;
-	if(IsWindowVisible(me->window)) {
-		RgnHandle region;
-		err = GetWindowRegion(me->window,kWindowContentRgn,region);
-		if(err!=noErr) me->msg->error("Can't obtain window region (%4)!!",err);
-		UpdateControls(me->window,region);
-	}*/
+	/*OSStatus err;*/
 }
 
 // --------------------------------------------------------------------------------------------------------------
@@ -542,8 +604,7 @@ Boolean HandleDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item) {
 			}
 			else { /* internal drag ... just moving songs around inside our playlist */
 				if (item == kDataBrowserNoItem) {
-					printf("EKKOMI33 %d\n",me->chIndex);
-					itemState = kDataBrowserContainerIsOpen;
+					me->plMove(movedItem,me->playList->len());
 				}
 				else {
 					me->plMove(movedItem,targetPos);
@@ -647,14 +708,44 @@ static OSStatus ChannelEventHandler (
 			me->activateMenuBar();
 			break;
 		case kEventWindowBoundsChanging:
-			AttractedChannel *neigh;
-			neigh = me->checkNeighbours();
-			if(neigh) me->attractNeighbour(neigh);
-			else me->stopAttracting();
+			Rect myBounds;
+			err = GetWindowBounds(me->window,kWindowContentRgn,&myBounds);
+			if(myBounds.right-myBounds.left < CHANNEL_WINDOW_WIDTH_MIN ||
+				myBounds.bottom-myBounds.top < CHANNEL_WINDOW_HEIGHT_MIN)
+					{
+					printf("CIAO %d -- %d \n",myBounds.right-myBounds.left,myBounds.bottom-myBounds.top);
+					Rect newBounds;
+					newBounds.top = myBounds.top;
+					newBounds.left = myBounds.left;
+					newBounds.right = newBounds.left+CHANNEL_WINDOW_WIDTH_MIN;
+					newBounds.bottom = newBounds.top+CHANNEL_WINDOW_HEIGHT_MIN;
+					
+					//err = SetWindowBounds(me->window,kWindowContentRgn,&newBounds);
+					//if(err!=noErr) me->msg->warning("%d",err);
+					return noErr;
+				}
+			if(me->attached() && me->resizing()) {
+				//if(me->slave() && me->neigh.position==ATTACH_RIGHT)
+				//	me->neigh.channel->redrawFader();
+				//else 
+				me->redrawFader();
+			}
+			else {
+				AttractedChannel *neigh;
+				if(me->checkNeighbours()) me->attractNeighbour();
+				else me->stopAttracting();
+			}
 			break;
-		//case kEventWindowBoundsChanged:
+		case kEventWindowBoundsChanged:
 		case kEventWindowDragCompleted:
 			me->tryAttach();
+			break;
+		case kEventWindowResizeStarted:
+			me->startResize();
+			break;
+		case kEventWindowResizeCompleted:
+			me->stopResize();
+			if(me->attached()) me->redrawFader();
 			break;
 		default:
             //activeChannel = me;
@@ -760,6 +851,29 @@ static OSStatus channelCommandHandler (
             err = eventNotHandledErr;
             break;
 	}
+	return err;
+}
+
+static OSStatus faderCommandHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData)
+{
+    HICommand command; 
+    OSStatus err = noErr;
+	SInt16 val;
+	int i,curPos;
+    CarbonChannel *me = (CarbonChannel *)userData;
+	err = GetEventParameter (event, kEventParamDirectObject,
+        typeHICommand, NULL, sizeof(HICommand), NULL, &command);
+    if(err != noErr) me->msg->error("Can't get event parameter!!");
+	switch (command.commandID)
+    {
+		case FADER_CLOSE_CMD:
+			me->stopFading();
+			break;
+		default:
+			err = eventNotHandledErr;
+	}
+	return err;
 }
 
 static  OSErr OpenFile(EventRef event,CarbonChannel *me)

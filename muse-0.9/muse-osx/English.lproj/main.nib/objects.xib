@@ -4,7 +4,7 @@
   <object name="rootObject" class="NSCustomObject" id="1">
     <string name="customClass">NSApplication</string>
   </object>
-  <array count="156" name="allObjects">
+  <array count="159" name="allObjects">
     <object class="IBCarbonMenu" id="29">
       <string name="title">main</string>
       <array count="3" name="items">
@@ -204,8 +204,8 @@
         <string name="viewFrame">0 0 490 446 </string>
         <array count="9" name="subviews">
           <object class="IBCarbonDBListView" id="210">
-            <string name="bounds">156 51 401 470 </string>
-            <string name="viewFrame">51 156 419 245 </string>
+            <string name="bounds">156 56 401 470 </string>
+            <string name="viewFrame">56 156 414 245 </string>
             <ostype name="controlSignature">MuSE</ostype>
             <int name="controlID">307</int>
             <string name="helpTagText">Playlist</string>
@@ -232,8 +232,8 @@
             </array>
           </object>
           <object class="IBCarbonSlider" id="244">
-            <string name="bounds">177 25 400 43 </string>
-            <string name="viewFrame">25 177 18 223 </string>
+            <string name="bounds">176 23 402 48 </string>
+            <string name="viewFrame">23 176 25 226 </string>
             <ostype name="controlSignature">MuSE</ostype>
             <int name="controlID">306</int>
             <ostype name="command">sVol</ostype>
@@ -244,6 +244,7 @@
               <int name="bindingBottomKind">2</int>
             </object>
             <boolean name="isLive">TRUE</boolean>
+            <int name="numTickMarks">20</int>
           </object>
           <object class="IBCarbonStaticText" id="245">
             <string name="bounds">156 20 169 43 </string>
@@ -1315,19 +1316,40 @@
     <reference idRef="449"/>
     <reference idRef="452"/>
     <object class="IBCarbonRootControl" id="453">
-      <string name="bounds">0 0 342 182 </string>
-      <string name="viewFrame">0 0 182 342 </string>
-      <array count="1" name="subviews">
+      <string name="bounds">0 0 343 125 </string>
+      <string name="viewFrame">0 0 125 343 </string>
+      <array count="4" name="subviews">
         <object class="IBCarbonSlider" id="455">
-          <string name="bounds">14 80 322 105 </string>
-          <string name="viewFrame">80 14 25 308 </string>
+          <string name="bounds">39 54 302 79 </string>
+          <string name="viewFrame">54 39 25 263 </string>
           <boolean name="isLive">TRUE</boolean>
-          <int name="numTickMarks">50</int>
+          <int name="numTickMarks">20</int>
+        </object>
+        <object class="IBCarbonStaticText" id="462">
+          <string name="bounds">310 48 323 105 </string>
+          <string name="viewFrame">48 310 57 13 </string>
+          <boolean name="small">TRUE</boolean>
+          <int name="controlSize">1</int>
+          <string name="title">Channel</string>
+        </object>
+        <object class="IBCarbonStaticText" id="464">
+          <string name="bounds">18 48 31 105 </string>
+          <string name="viewFrame">48 18 57 13 </string>
+          <boolean name="small">TRUE</boolean>
+          <int name="controlSize">1</int>
+          <string name="title">Channel</string>
+        </object>
+        <object class="IBCarbonRoundButton" id="465">
+          <string name="bounds">15 20 35 40 </string>
+          <string name="viewFrame">20 15 20 20 </string>
+          <ostype name="controlSignature">MuSE</ostype>
+          <int name="controlID">321</int>
+          <ostype name="command">clFa</ostype>
         </object>
       </array>
     </object>
     <object class="IBCarbonWindow" id="454">
-      <string name="windowRect">107 209 449 391 </string>
+      <string name="windowRect">118 231 461 356 </string>
       <string name="title"></string>
       <reference name="rootControl" idRef="453"/>
       <boolean name="receiveUpdates">FALSE</boolean>
@@ -1349,8 +1371,11 @@
     <reference idRef="459"/>
     <reference idRef="460"/>
     <reference idRef="461"/>
+    <reference idRef="462"/>
+    <reference idRef="464"/>
+    <reference idRef="465"/>
   </array>
-  <array count="156" name="allParents">
+  <array count="159" name="allParents">
     <reference idRef="1"/>
     <reference idRef="29"/>
     <reference idRef="131"/>
@@ -1507,6 +1532,9 @@
     <reference idRef="457"/>
     <reference idRef="457"/>
     <reference idRef="297"/>
+    <reference idRef="453"/>
+    <reference idRef="453"/>
+    <reference idRef="453"/>
   </array>
   <dictionary count="30" name="nameTable">
     <string>AddURLWindow</string>
@@ -1532,7 +1560,7 @@
     <string>NSCustomView</string>
     <reference idRef="202"/>
     <string>NSCustomView1</string>
-    <reference idRef="205"/>
+    <reference idRef="465"/>
     <string>NSCustomView111</string>
     <reference idRef="203"/>
     <string>NSCustomView2</string>
@@ -1570,5 +1598,5 @@
     <string>WarnWindow</string>
     <reference idRef="251"/>
   </dictionary>
-  <unsigned_int name="nextObjectID">462</unsigned_int>
+  <unsigned_int name="nextObjectID">466</unsigned_int>
 </object>

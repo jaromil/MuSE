@@ -79,6 +79,7 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 		/* let's create a channel window for each active input channel */
 		unsigned int i;
 		for (i=0;i<MAX_CHANNELS;i++) {
+			strcpy(ch_lcd[i],"00:00:00");
 			if(jmix->chan[i]) { 
 					CarbonChannel *newChan = new CarbonChannel(jmix,this,nibRef,i);
 					channel[i] = newChan;
@@ -108,12 +109,13 @@ CARBON_GUI::~CARBON_GUI() {
 
 void CARBON_GUI::run() {
 	int i;
+	int o = 0;
 	while(!quit) {
 		for(i=0;i<MAX_CHANNELS;i++) {
 			lock();
 			if(channel[i]) {
 				if(new_pos[i]) {
-					int newPos = (int)(ch_pos[i]*100);
+					int newPos = (int)(ch_pos[i]*1000);
 					//if(newPos != myPos[i]) {
 						//myPos[i] = newPos;
 						channel[i]->setPos(newPos);
@@ -130,7 +132,7 @@ void CARBON_GUI::run() {
 			}
 			unlock();
 		}
-		usleep(500);
+		usleep(1000);
 	//	jsleep(0,20);
 	}
  }
@@ -244,33 +246,31 @@ bool CARBON_GUI::init_controls() {
 	if(err != noErr) msg->error("Can't install main commandHandler");
 }
 
-AttractedChannel *CARBON_GUI::attract_channels(int chIndex) {
+bool CARBON_GUI::attract_channels(int chIndex,AttractedChannel *neigh) {
 	Rect bounds;
-	AttractedChannel *neigh = malloc(sizeof(AttractedChannel));
 	if(!channel[chIndex]) return false;
 	GetWindowBounds(channel[chIndex]->window,kWindowGlobalPortRgn,&bounds);
-	//printf(" KAZZO %d - %d  \n",bounds.top,bounds.bottom);
 	for ( int i = 0;i < MAX_CHANNELS;i++) {
 		if(i!=chIndex) {
 			if(channel[i]) {
 				Rect space;
 				GetWindowBounds(channel[i]->window,kWindowStructureRgn,&space);
-				if(bounds.top > space.top-20 && bounds.top < space.top+20) {
-					if(bounds.right > space.left-150 && bounds.right < space.left-130) {
+				if(!channel[i]->attached() && bounds.top > space.top-50 && bounds.top < space.top+50) {
+					if(bounds.right > space.left-155 && bounds.right < space.left-90) {
 						neigh->position=ATTACH_RIGHT;
 						neigh->channel = channel[i];
-						return neigh;
+						return true;
 					}
-					if(bounds.left < space.right+150 && bounds.left > space.right+130) {
+					if(bounds.left < space.right+155 && bounds.left > space.right+90) {
 						neigh->position=ATTACH_LEFT;
 						neigh->channel=channel[i];
-						return neigh;
+						return true;
 					}
 				}
 			}
 		}
 	}
-	return NULL;
+	return false;
 }
 
 /* END OF CARBON_GUI */

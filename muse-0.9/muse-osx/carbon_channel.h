@@ -42,30 +42,41 @@ class CarbonChannel {
 		CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsigned int chan);
 		~CarbonChannel();
 		bool add_playlist(char *txt) { return plAdd(txt); } /* just an accessor to support muse API */
-		MenuRef plGetMenu();
-		bool plAdd(char *txt);
+		void setLCD(char *lcd);
+		void setPos(int pos);
+		void activateMenuBar();
 		void close ();
+		
+		/* playlist related methods */
+		bool plAdd(char *txt);
 		void plSetup();
 		void plSelect(int row);
 		void plMove(int from,int to);
 		void plRemove(int pos);
 		void plRemoveSelection();
 		bool plUpdate();
-		void setLCD(char *lcd);
-		void setPos(int pos);
-		void activateMenuBar();
+		MenuRef plGetMenu();
 		
-		AttractedChannel *checkNeighbours();
-		void attractNeighbour(AttractedChannel *attracted);
+		/* magnetic methods */
+		bool checkNeighbours();
+		void attractNeighbour();
 		void stopAttracting();
 		void tryAttach();
+		void redrawFader();
+		void gotAttached(CarbonChannel *);
+		void startResize();
+		void stopResize();
+		bool attached();
+		bool resizing();
+		bool slave();
+		void stopFading();
 		
 		WindowRef window;
 		WindowRef fader;
 		Stream_mixer *jmix;
 		CARBON_GUI *parent;
 		WindowRef parentWin;
-		AttractedChannel *neigh;
+		AttractedChannel neigh;
 		ControlRef playListControl;
 		Playlist *playList;
 		unsigned int chIndex;
@@ -73,9 +84,13 @@ class CarbonChannel {
 		Channel *inChannel;
 		int seek;
 		WindowGroupRef faderGroup;
+
+	private:
+		bool isDrawing;
+		bool isResizing;
+		bool isSlave;
 		bool isAttached;
 		
-	private:
 		IBNibRef nibRef;
 		MenuRef plMenu;
 		MenuRef plEntryMenu;
@@ -112,6 +127,9 @@ static OSStatus dataBrowserEventHandler(
 	EventHandlerCallRef nextHandler, EventRef event, void *userData);
 	
 static OSStatus channelCommandHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData);
+	
+static OSStatus faderCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
 	
 /****************************************************************************/
