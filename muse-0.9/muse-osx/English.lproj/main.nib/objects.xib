@@ -1322,12 +1322,17 @@
         <object class="IBCarbonSlider" id="455">
           <string name="bounds">39 54 302 79 </string>
           <string name="viewFrame">54 39 25 263 </string>
+          <ostype name="controlSignature">MuSE</ostype>
+          <int name="controlID">666</int>
+          <ostype name="command">fade</ostype>
           <boolean name="isLive">TRUE</boolean>
           <int name="numTickMarks">20</int>
         </object>
         <object class="IBCarbonStaticText" id="462">
           <string name="bounds">310 48 323 105 </string>
           <string name="viewFrame">48 310 57 13 </string>
+          <ostype name="controlSignature">MuSE</ostype>
+          <int name="controlID">665</int>
           <boolean name="small">TRUE</boolean>
           <int name="controlSize">1</int>
           <string name="title">Channel</string>
@@ -1335,6 +1340,8 @@
         <object class="IBCarbonStaticText" id="464">
           <string name="bounds">18 48 31 105 </string>
           <string name="viewFrame">48 18 57 13 </string>
+          <ostype name="controlSignature">MuSE</ostype>
+          <int name="controlID">667</int>
           <boolean name="small">TRUE</boolean>
           <int name="controlSize">1</int>
           <string name="title">Channel</string>
@@ -1343,7 +1350,7 @@
           <string name="bounds">15 20 35 40 </string>
           <string name="viewFrame">20 15 20 20 </string>
           <ostype name="controlSignature">MuSE</ostype>
-          <int name="controlID">321</int>
+          <int name="controlID">664</int>
           <ostype name="command">clFa</ostype>
         </object>
       </array>

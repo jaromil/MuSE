@@ -34,6 +34,9 @@ const ControlID selectedSongId = { CARBON_GUI_APP_SIGNATURE, SELECTED_SONG_CONTR
 const ControlID seekTimeId = { CARBON_GUI_APP_SIGNATURE, SEEK_TIME_CONTROL };
 const ControlID seekId = { CARBON_GUI_APP_SIGNATURE, SEEK_CONTROL };
 const ControlID volId = { CARBON_GUI_APP_SIGNATURE,VOLUME_CONTROL };
+const ControlID faderId = { CARBON_GUI_APP_SIGNATURE,FADER_ID };
+const ControlID faderChan1ID = { CARBON_GUI_APP_SIGNATURE, FADER_CHAN1_ID};
+const ControlID faderChan2ID = { CARBON_GUI_APP_SIGNATURE, FADER_CHAN2_ID};
 
 #define CARBON_CHANNEL_EVENTS 8
 const EventTypeSpec windowEvents[] = {
@@ -130,6 +133,14 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
             GetEventTypeCount(faderCommands), faderCommands, 
             this, NULL);
 	err=CreateWindowGroup(0,&faderGroup);
+	err = GetControlByID(fader,&faderId,&faderControl);
+	if(err != noErr) {
+		msg->error("Can't obtain dataBrowser ControlRef (%d)!!",err);
+	}
+	CarbonChannel *self=this;
+	err = SetControlProperty(faderControl,CARBON_GUI_APP_SIGNATURE,FADER_PROPERTY,
+		sizeof(CarbonChannel *),&self);
+	if(err!=noErr) msg->error("Can't attach CarbonChannel object to Fader control (%d) !!",err);	
 
 	/* setup playList control */
 	plSetup();
@@ -161,7 +172,6 @@ void CarbonChannel::plSetup() {
 	if(err != noErr) {
 		msg->error("Can't obtain dataBrowser ControlRef (%d)!!",err);
 	}
-
 	EventTargetRef dbTarget = GetControlEventTarget (playListControl);
 	
 	CarbonChannel *self=this;
@@ -236,6 +246,7 @@ void CarbonChannel::close () {
 	if(err != noErr) {
 		msg->error("Can't send rmCh event to mainWin!!");
 	}
+	if(isAttached) 	stopFading();
 	//delete me;
 }
 
@@ -363,22 +374,24 @@ void CarbonChannel::stopFading() {
 			ChangeWindowGroupAttributes(faderGroup,0,WINDOW_GROUP_ATTRIBUTES);
 			CloseDrawer(fader,false);
 			Rect myBounds;
-		OSStatus err = GetWindowBounds(window,kWindowContentRgn,&myBounds);
-		if(err==noErr) {
-			SInt32 offset=neigh.position==ATTACH_LEFT?20:-20;
-			myBounds.left+=offset;
-		//	SetWindowBounds(window,kWindowContentRgn,&myBounds);
-			MoveWindow(window,myBounds.left+offset,myBounds.top-offset,false);
-		}
-			neigh.channel->stopFading();
-			memset(&neigh,0,sizeof(neigh));
+			OSStatus err = GetWindowBounds(window,kWindowContentRgn,&myBounds);
+			if(err==noErr && neigh.channel) {
+				SInt32 offset=neigh.position==ATTACH_LEFT?20:-20;
+				myBounds.left+=offset;
+			//	SetWindowBounds(window,kWindowContentRgn,&myBounds);
+				MoveWindow(window,myBounds.left+offset,myBounds.top-20,false);
+			}
 		}
 		isAttached=false;
 		isSlave=false;
+		if(neigh.channel) {
+			neigh.channel->stopFading();
+			memset(&neigh,0,sizeof(neigh));
+		}
 	}
 }
 
-void CarbonChannel::tryAttach() {
+void CarbonChannel::doAttach() {
 	OSStatus err;
 	if(neigh.channel && !isAttached) {
 		neigh.channel->gotAttached(this);
@@ -391,8 +404,37 @@ void CarbonChannel::tryAttach() {
 		if(err!=noErr) msg->warning("%d",err);
 		err=SetWindowGroup(fader,faderGroup);
 		SetWindowGroupOwner(faderGroup,window);
+		crossFade(0);
+		ControlRef textControl;
+		err=GetControlByID(fader,&faderChan1ID,&textControl);
+		if(err != noErr) {
+		msg->error("Can't get faderChannel control ref (%d)!!",err);}
+		CFStringRef format = CFStringCreateWithCString(NULL,"Channel %d",0);
+		CFStringRef wName = CFStringCreateWithFormat(NULL,NULL,format,chIndex);
+		err=SetControlData (textControl, 0, kControlStaticTextCFStringTag,sizeof(CFStringRef), &wName);
+		err=GetControlByID(fader,&faderChan2ID,&textControl);
+		wName = CFStringCreateWithFormat(NULL,NULL,format,neigh.channel->chIndex);
+		err=SetControlData (textControl, 0, kControlStaticTextCFStringTag,sizeof(CFStringRef), &wName);
+		SetControlAction(faderControl,NewControlActionUPP(&faderHandler));
 		redrawFader();
 	}
+}
+
+void CarbonChannel::crossFade(int fadeVal) {
+	ControlRef volCtrl;
+	OSStatus err;
+	jmix->crossfade(chIndex,neigh.channel->chIndex,(float)(100-fadeVal)/100,(float)fadeVal/100);
+	err = GetControlByID(window,&volId,&volCtrl);
+	SetControlValue(volCtrl,100-fadeVal);
+	err = GetControlByID(neigh.channel->window,&volId,&volCtrl);
+	SetControlValue(volCtrl,fadeVal);
+}
+
+void CarbonChannel::setVol(int vol) {
+	ControlRef volCtrl;
+	OSStatus err = GetControlByID(window,&volId,&volCtrl);
+	SetControlValue(volCtrl,(int)(vol));
+	jmix->set_volume(chIndex,(float)vol/100);
 }
 
 void CarbonChannel::redrawFader() {
@@ -673,17 +715,31 @@ void HandleNotification (ControlRef browser,DataBrowserItemID itemID,
 	}
 }
 
-void GetPLMenu (ControlRef browser,MenuRef *menu,UInt32 *helpType,CFStringRef *helpItemString, AEDesc *selection) {
+void GetPLMenu (ControlRef browser,MenuRef *menu,UInt32 *helpType,
+	CFStringRef *helpItemString, AEDesc *selection) 
+{
 	CarbonChannel *me;
-	OSStatus err = GetControlProperty(browser,CARBON_GUI_APP_SIGNATURE,PLAYLIST_PROPERTY,sizeof(CarbonChannel *),NULL,&me);
+	OSStatus err = GetControlProperty(browser,CARBON_GUI_APP_SIGNATURE,
+		PLAYLIST_PROPERTY,sizeof(CarbonChannel *),NULL,&me);
 	if(err!=noErr) return;
 	*menu = me->plGetMenu();
 }
+
 /*
 void SelectPLMenu (ControlRef browser,MenuRef menu,UInt32 selectionType,SInt16 menuID,MenuItemIndex menuItem) {
 
 }
 */
+
+void faderHandler (ControlRef theControl, ControlPartCode partCode) {
+	CarbonChannel *me;
+	OSStatus err = GetControlProperty(theControl,CARBON_GUI_APP_SIGNATURE,
+		FADER_PROPERTY,sizeof(CarbonChannel *),NULL,&me);
+	if(err==noErr) {
+		me->crossFade(GetControlValue(theControl));
+	}
+}
+
 
 // --------------------------------------------------------------------------------------------------------------
 
@@ -738,7 +794,7 @@ static OSStatus ChannelEventHandler (
 			break;
 		case kEventWindowBoundsChanged:
 		case kEventWindowDragCompleted:
-			me->tryAttach();
+			me->doAttach();
 			break;
 		case kEventWindowResizeStarted:
 			me->startResize();
@@ -870,6 +926,9 @@ static OSStatus faderCommandHandler (
 		case FADER_CLOSE_CMD:
 			me->stopFading();
 			break;
+		case FADER_CMD:
+			me->crossFade(GetControlValue(me->faderControl));
+		break;
 		default:
 			err = eventNotHandledErr;
 	}

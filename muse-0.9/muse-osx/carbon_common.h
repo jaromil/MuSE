@@ -90,7 +90,10 @@
 
 #define FADER_CMD 'fade'
 #define FADER_CLOSE_CMD 'clFa'
-
+#define FADER_ID 666
+#define FADER_CHAN1_ID 665
+#define FADER_CHAN2_ID 667
+#define FADER_PROPERTY 'lFad'
 /* STREAM WINDOW */
 #define ADD_STREAM_BUT 800
 #define DEL_STREAM_BUT 801

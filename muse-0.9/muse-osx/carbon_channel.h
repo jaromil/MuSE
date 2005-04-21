@@ -61,15 +61,18 @@ class CarbonChannel {
 		bool checkNeighbours();
 		void attractNeighbour();
 		void stopAttracting();
-		void tryAttach();
+		void doAttach();
 		void redrawFader();
 		void gotAttached(CarbonChannel *);
 		void startResize();
 		void stopResize();
+		void stopFading();
 		bool attached();
 		bool resizing();
 		bool slave();
-		void stopFading();
+		
+		void setVol(int vol);
+		void crossFade(int fadeVal);
 		
 		WindowRef window;
 		WindowRef fader;
@@ -78,6 +81,7 @@ class CarbonChannel {
 		WindowRef parentWin;
 		AttractedChannel neigh;
 		ControlRef playListControl;
+		ControlRef faderControl;
 		Playlist *playList;
 		unsigned int chIndex;
 		CarbonMessage *msg;
@@ -156,6 +160,8 @@ void SelectPLMenu(ControlRef browser,MenuRef menu,UInt32 selectionType,
 	SInt16 menuID,MenuItemIndex menuItem);
 */	
 void RemovePlaylistItem (DataBrowserItemID item,DataBrowserItemState state,void *clientData);
+
+void faderHandler (ControlRef theControl, ControlPartCode partCode);
 
 /****************************************************************************/
 /* OpenDocument callbacks (called when opening from dialog */
