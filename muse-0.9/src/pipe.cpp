@@ -139,9 +139,9 @@ Pipe::Pipe(int size) {
   set_output_type("copy_byte");
   // set blocking timeout (ttl) defaults
   read_blocking = false;
-  read_blocking_time = 2000;
+  read_blocking_time = 20000;
   write_blocking = false;
-  write_blocking_time = 2000;
+  write_blocking_time = 20000;
 
   _thread_init();
   //unlock();
@@ -193,7 +193,7 @@ int Pipe::read(int length, void *data) {
     if(read_blocking) {
       unlock();
       if(!ttl) return -1;
-      jsleep(0,10000000); ttl -= 10;
+      jsleep(0,100); ttl -= 10;
       lock();
       _SIZE(buffered_bytes);
       buffered = buffered_bytes 
@@ -275,7 +275,7 @@ int Pipe::write(int length, void *data) {
     if(write_blocking) {
       unlock();
       if(!ttl) return -1; // block timeout
-      jsleep(0,10000000); ttl -= 10; // wait 10 milliseconds
+      jsleep(0,100); ttl -= 10;
       lock();
       // recalculate actual sizes
       _SPACE(space_bytes);

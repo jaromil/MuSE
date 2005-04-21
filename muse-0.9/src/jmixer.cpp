@@ -170,7 +170,6 @@ void Stream_mixer::cafudda()
 {
   int i, c=0, cc;
   int total_bitrate=0;
-
   /* here memset takes byte num
      max *4 (32bit) *2 (stereo) */
   memset(process_buffer,0,MIX_CHUNK*8);
@@ -315,7 +314,11 @@ void Stream_mixer::cafudda()
      
      here we give fifos a bit of air and avoid tight loops
      making the mixing engine wait 20 nanosecs */
+#ifdef CARBON_GUI
+usleep(200);
+#else
   jsleep(0,20);
+#endif
 }
 
 bool Stream_mixer::create_channel(int ch) {
