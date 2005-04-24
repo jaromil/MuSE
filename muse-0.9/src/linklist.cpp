@@ -237,8 +237,21 @@ Entry::Entry() {
   select = false;
 }
 
+Entry::Entry(void *val) {
+	Entry();
+	set_value(val);
+}
+
 Entry::~Entry() {
   rem();
+}
+
+void Entry::set_value(void *val) {
+	value=val;
+}
+
+void *Entry::get_value() {
+	return value;
 }
 
 
