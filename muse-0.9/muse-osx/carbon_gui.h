@@ -60,16 +60,16 @@ class CARBON_GUI : public GUI {
   void vumeter_set(int n) { vumeter = n; };
   bool meter_shown();
   void stop();
-    
+  void showStreamWindow();
   bool new_channel();
   bool new_channel(int idx);
   bool remove_channel(int idx);
   bool attract_channels(int chIndex,AttractedChannel *neigh);
  // void start();
-protected:
-  
+private:
   bool CARBON_GUI::init_controls();
 
+  CarbonStream *streamHandler;
 };
 
 #endif

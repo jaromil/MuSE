@@ -46,7 +46,6 @@ const ControlID mainControlsID[MAIN_CONTROLS_NUM] = {
 };
 
 ControlRef mainControls[MAIN_CONTROLS_NUM];
-CarbonStream *streamHandler;
 
 
 static OSStatus MainWindowCommandHandler (
@@ -107,6 +106,9 @@ CARBON_GUI::~CARBON_GUI() {
     DisposeNibReference(nibRef);
 }
 
+void CARBON_GUI::showStreamWindow() {
+	streamHandler->show();
+}
 void CARBON_GUI::run() {
 	int i;
 	int o = 0;
@@ -144,7 +146,7 @@ bool CARBON_GUI::new_channel() {
 			if(new_channel(i)) return true;
 		}
 	}
-	msg->warning("Actually MuSE doesn't support more than %d concurrent input channels",MAX_CHANNELS);
+	msg->warning("Actually MuSE doesn't support more than %d parallel input channels",MAX_CHANNELS);
 	return false;
 }
 
@@ -301,8 +303,8 @@ static OSStatus MainWindowCommandHandler (
 		case 'newc':
 			me->new_channel();
 			break;
-		case 'stre':
-				streamHandler->show();
+		case SHOW_STREAMS_CMD:
+				me->showStreamWindow();
 		case 'sndi':
 		case 'vol ':
 		case 'abou':

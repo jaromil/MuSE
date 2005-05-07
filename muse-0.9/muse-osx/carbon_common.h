@@ -43,6 +43,7 @@
 #define ABOUT_BUT_ID 105
 
 #define NEWC_CMD 'newc'
+#define SHOW_STREAMS_CMD 'stre'
 
 /* CHANNEL WINDOW */
 #define CHANNEL_WINDOW_HEIGHT_MIN 446
@@ -94,10 +95,13 @@
 #define FADER_CHAN1_ID 665
 #define FADER_CHAN2_ID 667
 #define FADER_PROPERTY 'lFad'
+
 /* STREAM WINDOW */
+
 #define ADD_STREAM_BUT 800
 #define DEL_STREAM_BUT 801
-#define STREAM_TAB_CONTROL 803
+#define STREAM_TAB_CONTROL 802
+#define ENCODER_SELECT_CONTROL 803
 #define QUALITY_CONTROL 804
 #define MODE_CONTROL 805
 #define STREAM_DESCR_CONTROL 806
@@ -117,13 +121,27 @@
 #define MNT_CONTROL 820
 #define NAME_CONTROL 821
 #define URL_CONTROL 822
-#define DECRIPTION_CONTROL 823
-#define LOGINT_TYPE_CONTROL 824
+#define DESCRIPTION_CONTROL 823
+#define LOGIN_TYPE_CONTROL 824
 #define USERNAME_CONTROL 825
 #define PASSWORD_CONTROL 826
 #define SERVER_STATUS_CONTROL 827
 #define CONNECT_BUTTON 828
 
+#define ADD_STREAM_CMD 'adst'
+#define DELETE_STREAM_CMD 'dest'
+#define ADD_SERVER_CMD 'adse'
+#define DELETE_SERVER_CMD 'dese'
+
+#define QUALITY_CMD 'squa'
+#define BITRATE_CMD 'sbit'
+#define FREQUENCY_CMD 'sfre'
+#define MODE_CMD 'smod'
+#define FREQ_FILTERING 'sfrf'
+#define LOWPASS_CMD 'slow'
+#define HIGHPASS_CMD 'shig'
+
+#define RECORD_CMD 
 /* MSG WINDOW */
 
 

@@ -15,30 +15,67 @@
  * this source code; if not, write to:
  * Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
- 
+
+#include <Carbon/Carbon.h>
+
 #ifndef __STREAM_SERVER_H__
 #define __STREAM_SERVER_H__
 
-#include <Carbon/Carbon.h>
-#include <jmixer.h>
+#define SERVER_STRING_BUFFER_LEN 256
 #include <outchannels.h>
+#include "stream_encoder.h"
 
-class StreamServer {
+class CarbonStreamEncoder;
+
+class CarbonStreamServer {
 	public:
-		StreamServer(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib,OutChannel *chan);
-		~StreamServer();
-		CFStringRef host;
-		CFStringRef port;
-		CFStringRef mnt;
-		CFStringRef name;
-		CFStringRef url;
-		CFStringRef description;
-		CFStringRef username;
-		CFStringRef password;
-	
-		unsigned char status;
+		CarbonStreamServer(CarbonStreamEncoder *enc);
+		CarbonStreamServer(CarbonStreamEncoder *enc,char *hostName,short tcpPort, char *mnt, 
+			char *streamName,char *streamUrl,char *descr,char *user,char *pass);
+		~CarbonStreamServer();
+		bool connect();
+		bool isConnected();
+		bool disconnect();
+		
+		/* get mathods */
+		char *host();
+		int port();
+		char *mount();
+		char *name();
+		char *url();
+		char *description();
+		int loginType();
+		char *username();
+		char *password();
+		int status();
+		
+		/* set methods */
+		void host(char *h);
+		void port(int p);
+		void mount(char *m);
+		void name(char *n);
+		void url(char *u);
+		void description(char *d);
+		void loginType(int lType);
+		void username(char *user);
+		void password(char *pass);
+		
 	private:
-		OutChannel *outChannel;
+		Shouter *getIce();
+		void applyIce();
+	
+		CarbonStreamEncoder *encoder;
+		char _host[SERVER_STRING_BUFFER_LEN];
+		int _port;
+		char _mount[SERVER_STRING_BUFFER_LEN];
+		char _name[SERVER_STRING_BUFFER_LEN];
+		char _url[SERVER_STRING_BUFFER_LEN];
+		char _description[SERVER_STRING_BUFFER_LEN];
+		int _loginType;
+		char _username[SERVER_STRING_BUFFER_LEN];
+		char _password[SERVER_STRING_BUFFER_LEN];
+		int _status;
+		int iceID;
 };
 
 

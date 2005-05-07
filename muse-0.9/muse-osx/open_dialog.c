@@ -22,8 +22,11 @@
 
 static NavDialogRef gOpenFileDialog = NULL;
 
-OSStatus OpenFileWindow(WindowRef parent)
-{
+OSStatus OpenUrlWindow(WindowRef parent,WindowRef openWin) {
+	ShowWindow(openWin);
+}
+
+OSStatus OpenFileWindow(WindowRef parent) {
 	short				numTypes;
 	OSType				typeList[20];
 	OSType				fileType = '????';
@@ -37,42 +40,32 @@ static pascal void MyPrivateEventProc( const NavEventCallbackMessage callbackSel
    NavCBRecPtr callbackParms,NavCallBackUserData callbackUD )
 {
 	WindowRef parent = (WindowRef)callbackUD;
-	switch ( callbackSelector )
-	{	
+	switch ( callbackSelector )	{	
 		case kNavCBEvent:
-		{
-			switch (callbackParms->eventData.eventDataParms.event->what)
-			{
+			switch (callbackParms->eventData.eventDataParms.event->what) {
 				case updateEvt:
 				case activateEvt:
 //					HandleEvent(callbackParms->eventData.eventDataParms.event);
 				break;
 			}
-		}
 		break;
 
 		case kNavCBUserAction:
-		{
-			if ( callbackParms->userAction == kNavUserActionOpen )
-			{
+			if ( NavDialogGetUserAction(gOpenFileDialog) == kNavUserActionChoose )	{
 				// This is an open files action, send an AppleEvent
 				NavReplyRecord	reply;
 				OSStatus		status;
-				
-				status = NavDialogGetReply( callbackParms->context, &reply );
+				status = NavDialogGetReply( gOpenFileDialog, &reply );
 				if ( status == noErr )
 				{
 					SendOpenEvent( reply.selection,parent );
 					NavDisposeReply( &reply );
 				}
 			}
-		}
 		break;
 		
 		case kNavCBTerminate:
-		{			
-			if ( callbackParms->context == gOpenFileDialog )
-			{
+			if ( callbackParms->context == gOpenFileDialog ) {
 				NavDialogDispose( gOpenFileDialog );
 				gOpenFileDialog = NULL;
 			}
@@ -80,33 +73,27 @@ static pascal void MyPrivateEventProc( const NavEventCallbackMessage callbackSel
 			// if after dismissing the dialog SimpleText has no windows open (so Activate event will not be sent) -
 			// call AdjustMenus ourselves to have at right menus enabled
 		//	if (FrontWindow() == nil) AdjustMenus(nil, true, false);
-		}
 		break;
 	}
 }
 
 
-static NavEventUPP GetPrivateEventUPP()
-{
+static NavEventUPP GetPrivateEventUPP() {
 	static NavEventUPP	privateEventUPP = NULL;				
-	if ( privateEventUPP == NULL )
-	{
+	if ( privateEventUPP == NULL )	{
 		privateEventUPP = NewNavEventUPP( MyPrivateEventProc );
 	}
 	return privateEventUPP;
 }
 
-static Handle NewOpenHandle(OSType applicationSignature, short numTypes, OSType typeList[])
-{
+static Handle NewOpenHandle(OSType applicationSignature, short numTypes, OSType typeList[]) {
 	Handle hdl = NULL;
 	
-	if ( numTypes > 0 )
-	{
+	if ( numTypes > 0 )	{
 	
 		hdl = NewHandle(sizeof(NavTypeList) + numTypes * sizeof(OSType));
 	
-		if ( hdl != NULL )
-		{
+		if ( hdl != NULL )	{
 			NavTypeListHandle open		= (NavTypeListHandle)hdl;
 			
 			(*open)->componentSignature = applicationSignature;
@@ -118,15 +105,12 @@ static Handle NewOpenHandle(OSType applicationSignature, short numTypes, OSType 
 	return hdl;
 }
 
-void TerminateDialog( NavDialogRef inDialog )
-{
+void TerminateDialog( NavDialogRef inDialog ) {
 	NavCustomControl( inDialog, kNavCtlTerminate, NULL );
 }
 
-void TerminateOpenFileDialog()
-{
-	if ( gOpenFileDialog != NULL )
-	{
+void TerminateOpenFileDialog() {
+	if ( gOpenFileDialog != NULL ) 	{
 		TerminateDialog( gOpenFileDialog );
 	}
 }
@@ -139,10 +123,8 @@ OSStatus OpenFileDialog(
 	NavDialogRef *outDialog,WindowRef parent )
 {
 	OSStatus theErr = noErr;
-	if ( gOpenFileDialog == NULL )
-	{
+	if ( gOpenFileDialog == NULL )	{
 		NavDialogCreationOptions	dialogOptions;
-		NavTypeListHandle			openList	= NULL;
 	
 		NavGetDefaultDialogCreationOptions( &dialogOptions );
 	
@@ -150,40 +132,27 @@ OSStatus OpenFileDialog(
 		dialogOptions.parentWindow=parent;
 		dialogOptions.clientName = CFStringCreateWithPascalString( NULL, LMGetCurApName(), GetApplicationTextEncoding());
 		
-		openList = (NavTypeListHandle)NewOpenHandle( applicationSignature, numTypes, typeList );
-		
-		theErr = NavCreateGetFileDialog( &dialogOptions, openList, GetPrivateEventUPP(), NULL, NULL, parent, &gOpenFileDialog );
+		theErr = NavCreateChooseObjectDialog( &dialogOptions, GetPrivateEventUPP(), NULL, NULL, parent, &gOpenFileDialog );
 
-		if ( theErr == noErr )
-		{
+		if ( theErr == noErr )	{
 			theErr = NavDialogRun( gOpenFileDialog );
-			if ( theErr != noErr )
-			{
+			if ( theErr != noErr )	{
 				NavDialogDispose( gOpenFileDialog );
 				gOpenFileDialog = NULL;
 			}
 		}
-
-		if (openList != NULL)
-		{
-			DisposeHandle((Handle)openList);
-		}
 		
-		if ( dialogOptions.clientName != NULL )
-		{
+		if ( dialogOptions.clientName != NULL )	{
 			CFRelease( dialogOptions.clientName );
 		}
 	}
-	else
-	{
-		if ( NavDialogGetWindow( gOpenFileDialog ) != NULL )
-		{
+	else {
+		if ( NavDialogGetWindow( gOpenFileDialog ) != NULL ) {
 			SelectWindow( NavDialogGetWindow( gOpenFileDialog ));
 		}
 	}
 	
-	if ( outDialog != NULL )
-	{
+	if ( outDialog != NULL ) {
 		*outDialog = gOpenFileDialog;
 	}
 
@@ -191,11 +160,9 @@ OSStatus OpenFileDialog(
 }
 
 
-OSStatus SendOpenEvent( AEDescList list,WindowRef parent )
-{
+OSStatus SendOpenEvent( AEDescList list,WindowRef parent ) {
 	OSStatus		err;
 	EventRef		theEvent;
-	
 	err=CreateEvent (NULL,kCoreEventClass,kAEOpenDocuments,0,kEventAttributeUserEvent,&theEvent);
 	SetEventParameter(theEvent,OPEN_DOCUMENT_DIALOG_PARAM,typeAEList,sizeof(AEDescList),&list);
 	err=SendEventToEventTarget(theEvent,GetWindowEventTarget(parent));

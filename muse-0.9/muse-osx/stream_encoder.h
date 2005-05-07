@@ -16,19 +16,41 @@
  * Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef __OPEN_DIALOG_H__
-#define __OPEN_DIALOG_H__
+#include <Carbon/Carbon.h>
 
-OSStatus OpenUrlWindow(WindowRef parent,WindowRef openWin);
-OSStatus OpenFileWindow(WindowRef parent);
+#ifndef __STREAM_ENCODER_H__
+#define __STREAM_ENCODER_H__
 
-OSStatus OpenFileDialog(OSType applicationSignature, short numTypes, 
-	OSType typeList[], NavDialogRef *outDialog,WindowRef parent );
-void TerminateOpenFileDialog();
-void TerminateDialog( NavDialogRef inDialog );
-static Handle NewOpenHandle(OSType applicationSignature, short numTypes, OSType typeList[]);
-static NavEventUPP GetPrivateEventUPP();
-static pascal void MyPrivateEventProc( const NavEventCallbackMessage callbackSelector, 
-	NavCBRecPtr callbackParms,NavCallBackUserData callbackUD );
-OSStatus SendOpenEvent( AEDescList list,WindowRef parent);
+#define DEFAULT_ENCODER OGG
+#include <outchannels.h>
+#include "carbon_message.h"
+#include <jmixer.h>
+
+class CarbonStreamEncoder {
+	public:
+		CarbonStreamEncoder(Stream_mixer *mix,CarbonMessage *cmsg);
+		~CarbonStreamEncoder();
+		bool saveToFile(char *fileName);
+		void stopSaving();
+				
+		enum codec type(); /* get the encoder type */
+		void type(enum codec t); /* set the encoder type */
+		OutChannel *getOutChannel();
+		
+		int bitRate;
+		int frequency;
+		int channels;
+		int lowpass;
+		int highpass;
+	private:
+	
+		void update();
+	
+		CarbonMessage *msg;
+		enum codec _type;
+		char *outFile;
+		Stream_mixer *jmix;
+		int encoderID;
+};
+
 #endif

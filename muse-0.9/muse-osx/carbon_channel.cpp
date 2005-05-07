@@ -24,6 +24,7 @@
 	kWindowGroupAttrSharedActivation|kWindowGroupAttrHideOnCollapse
 
 extern "C" OSStatus OpenFileWindow(WindowRef parent);
+extern "C" OSStatus OpenUrlWindow(WindowRef parent,WindowRef openWin);
 
 /****************************************************************************/
 /* Globals */
@@ -101,7 +102,7 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 	if(err != noErr) { 
 		msg->error("Can't install event handler for Channel control (%d)!!",err);
 	}
-	/* install tje channel command handler */
+	/* install the channel command handler */
     err = InstallWindowEventHandler (window, 
             NewEventHandlerUPP (channelCommandHandler), 
             GetEventTypeCount(channelCommands), channelCommands, 
@@ -146,6 +147,8 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 	plSetup();
 
 	SetAutomaticControlDragTrackingEnabledForWindow (window, true);
+
+	CreateWindowFromNib(nibRef, CFSTR("AddURLWindow"), &openUrl);
 }
 
 CarbonChannel::~CarbonChannel() {
@@ -223,7 +226,7 @@ bool CarbonChannel::plUpdate() {
 	DataBrowserItemID idList[len];
 	RemoveDataBrowserItems(playListControl,kDataBrowserNoItem,0,NULL,kDataBrowserItemNoProperty);
 	for(i=1;i<=len;i++) {
-	Url *entry = playList->pick(i);
+	Url *entry = (Url *)playList->pick(i);
 		idList[i-1] = i;
 	}
 	AddDataBrowserItems(playListControl,kDataBrowserNoItem,len,idList,kDataBrowserItemNoProperty);
@@ -233,7 +236,7 @@ bool CarbonChannel::plAdd(char *txt) {
 	playList->addurl(txt);
 	int id = playList->len();
 	if(id) 
-		AddDataBrowserItems(playListControl,kDataBrowserNoItem,1,&id,kDataBrowserItemNoProperty);
+		AddDataBrowserItems(playListControl,kDataBrowserNoItem,1,(const DataBrowserItemID *)&id,kDataBrowserItemNoProperty);
 }
 
 void CarbonChannel::close () {
@@ -294,7 +297,7 @@ void CarbonChannel::plSelect(int row) {
 	if(playList->selected_pos()!=row) {
 		playList->sel(row);
 	}
-	Url *entry = playList->pick(row);
+	Url *entry = (Url *)playList->pick(row);
 	err = GetControlByID(window,&selectedSongId,&textControl);
 	if(err != noErr) {
 		msg->error("Can't get selectedSong control ref (%d)!!",err);
@@ -373,6 +376,7 @@ void CarbonChannel::stopFading() {
 		if(!isSlave) {
 			ChangeWindowGroupAttributes(faderGroup,0,WINDOW_GROUP_ATTRIBUTES);
 			CloseDrawer(fader,false);
+			SetControlValue(faderControl,0);
 			Rect myBounds;
 			OSStatus err = GetWindowBounds(window,kWindowContentRgn,&myBounds);
 			if(err==noErr && neigh.channel) {
@@ -423,7 +427,10 @@ void CarbonChannel::doAttach() {
 void CarbonChannel::crossFade(int fadeVal) {
 	ControlRef volCtrl;
 	OSStatus err;
-	jmix->crossfade(chIndex,neigh.channel->chIndex,(float)(100-fadeVal)/100,(float)fadeVal/100);
+	/* XXX - jmix->crossfade() doesn't work properly?? :O */
+	//jmix->crossfade(chIndex,neigh.channel->chIndex,(float)(100-fadeVal)/100,(float)fadeVal/100);
+	setVol(100-fadeVal);
+	neigh.channel->setVol(fadeVal);
 	err = GetControlByID(window,&volId,&volCtrl);
 	SetControlValue(volCtrl,100-fadeVal);
 	err = GetControlByID(neigh.channel->window,&volId,&volCtrl);
@@ -466,7 +473,7 @@ void CarbonChannel::redrawFader() {
 
 void CarbonChannel::gotAttached(CarbonChannel *channel) {
 	Rect neighBounds,myBounds;
-	if(!channel) return false;
+	if(!channel) return;
 	GetWindowBounds(channel->window,kWindowContentRgn,&neighBounds);
 	GetWindowBounds(window,kWindowContentRgn,&myBounds);
 	isAttached = true;
@@ -629,7 +636,7 @@ Boolean HandleDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item) {
 			if(err!=noErr) me->msg->error("Can't get type of the received drag (%d)!!",err);
 			err = GetFlavorData(theDrag,dragItem,receivedType,&sender,&dataSize,0);
 			if(sender != me) { /* receiving a drag from another channel window */
-				Url *entry = sender->playList->pick(movedItem);
+				Url *entry = (Url *)sender->playList->pick(movedItem);
 				if(entry) {
 				if (item == kDataBrowserNoItem) {
 					me->playList->addurl(entry->path);
@@ -898,10 +905,13 @@ static OSStatus channelCommandHandler (
 			err = OpenFileWindow(me->window);
 			break;
 		case OPEN_URL_CMD:
-		//	err = OpenUrlWindow();
+			err = OpenUrlWindow(me->window,me->openUrl);
 			break;
 		case NEWC_CMD:
 			me->parent->new_channel();
+			break;
+		case SHOW_STREAMS_CMD:
+			me->parent->showStreamWindow();
 			break;
 		default:
             err = eventNotHandledErr;
@@ -966,7 +976,7 @@ static  OSErr OpenFile(EventRef event,CarbonChannel *me)
 
 		if (anErr == noErr) {
 			char path[2048]; /* XXX - hardcoded max filename size */
-			FSRefMakePath (&fileRef,path,2048);
+			FSRefMakePath (&fileRef,(UInt8 *)path,2048);
 			if(!me->jmix->add_to_playlist(me->chIndex,path)) {
 				me->msg->warning("Can't add %s to playList",path);
 			}

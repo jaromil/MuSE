@@ -22,10 +22,17 @@
 #include <Carbon/Carbon.h>
 #include <carbon_common.h>
 #include <jmixer.h>
-#include <stream_server.h>
+#include "stream_server.h"
+#include "stream_encoder.h"
 #include <carbon_message.h>
 
-#define MAX_STREAM_SERVERS 64
+#define MAX_STREAM_SERVERS 8
+#define MAX_STREAM_ENCODERS 8
+
+#define CS_NOT_CONNECTED 0
+#define CS_CONNECTED 1
+
+
 
 class CarbonStream {
 	public:
@@ -33,14 +40,42 @@ class CarbonStream {
 		~CarbonStream();
 		void show();
 		void hide();
+		void addStream();
+		void deleteStream(); /* delete selected stream */
+		void deleteStream(unsigned int idx); /* delete stream at index idx */
+		void addServer();
+		void deleteServer(); /* delete selected server for selected stream */
+		void deleteServer(unsigned int streamIndex,unsigned int serverIndex); /* delete a specific server in a specific stream */
+		bool updateStreamTab();
+		bool updateServerTab();
+		bool changeServerTab();
+		bool connectServer();
+		bool connectServer(unsigned int streamIndex,unsigned int serverIndex);
+		CarbonStreamEncoder *selectedStream();
+		CarbonStreamServer *selectedServer();
 		
 		WindowRef window;
 		WindowRef parent;
 		Stream_mixer *jmix;
 		CarbonMessage *msg;
+	
 	private:
+		ControlRef streamTabControl;
+		ControlRef serverTabControl;
+		int getTabValue(SInt32 controlID,int tab);
+		void setTabValue(SInt32 controlID,int tab,int val);
+		short _selectedStream;
+		short _selectedServer;
+		bool addTab(SInt32 controlID);
+		void delTab(SInt32 controlID,unsigned int idx);
+		int nextTabIndex(SInt32 controlID);
+		void saveServerInfo(CarbonStreamServer *server);
+		void updateServerInfo(CarbonStreamServer *server);
 		IBNibRef nibRef;
-		StreamServer *servers[MAX_STREAM_SERVERS];
+		CarbonStreamEncoder *enc[MAX_STREAM_ENCODERS];
+		CarbonStreamServer *servers[MAX_STREAM_ENCODERS][MAX_STREAM_SERVERS];
+		
+		
 	protected:
 
 };

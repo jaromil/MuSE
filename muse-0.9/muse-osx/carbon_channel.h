@@ -76,9 +76,11 @@ class CarbonChannel {
 		
 		WindowRef window;
 		WindowRef fader;
+		WindowRef parentWin;
+		WindowRef openUrl;
+		WindowGroupRef faderGroup;
 		Stream_mixer *jmix;
 		CARBON_GUI *parent;
-		WindowRef parentWin;
 		AttractedChannel neigh;
 		ControlRef playListControl;
 		ControlRef faderControl;
@@ -87,7 +89,6 @@ class CarbonChannel {
 		CarbonMessage *msg;
 		Channel *inChannel;
 		int seek;
-		WindowGroupRef faderGroup;
 
 	private:
 		bool isDrawing;
