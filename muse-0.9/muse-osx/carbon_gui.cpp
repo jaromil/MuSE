@@ -190,6 +190,7 @@ bool CARBON_GUI::remove_channel(int idx) {
 void CARBON_GUI::set_title(char *txt) {
 	CFStringRef title = CFStringCreateWithCString(NULL,txt,0);
 	SetWindowTitleWithCFString (window,title);
+	CFRelease(title);
 }
  
 void CARBON_GUI::set_status(char *txt) {

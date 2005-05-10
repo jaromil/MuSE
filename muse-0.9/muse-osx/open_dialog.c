@@ -20,6 +20,9 @@
 #include "open_dialog.h"
 #include "carbon_common.h"
 
+#define OPEN_FILE 0
+#define OPEN_FOLDER 1
+
 static NavDialogRef gOpenFileDialog = NULL;
 
 OSStatus OpenUrlWindow(WindowRef parent,WindowRef openWin) {
@@ -27,14 +30,18 @@ OSStatus OpenUrlWindow(WindowRef parent,WindowRef openWin) {
 }
 
 OSStatus OpenFileWindow(WindowRef parent) {
-	short				numTypes;
-	OSType				typeList[20];
-	OSType				fileType = '????';
 	NavDialogRef		navDialog;
 	
 	// Open as many documents as the user wishes through Appleevents
-	return OpenFileDialog( CARBON_GUI_APP_SIGNATURE, 0, NULL, &navDialog,parent );
+	return OpenDialog( CARBON_GUI_APP_SIGNATURE, 0, NULL, &navDialog,parent,OPEN_FILE );
 } // DoOpenWindow
+
+OSStatus OpenFolderWindow(WindowRef parent) {
+	NavDialogRef	navDialog;
+	
+	return OpenDialog( CARBON_GUI_APP_SIGNATURE,0,NULL,&navDialog,parent,OPEN_FOLDER);
+
+}
 
 static pascal void MyPrivateEventProc( const NavEventCallbackMessage callbackSelector, 
    NavCBRecPtr callbackParms,NavCallBackUserData callbackUD )
@@ -116,11 +123,8 @@ void TerminateOpenFileDialog() {
 }
 
 
-OSStatus OpenFileDialog(
-	OSType applicationSignature, 
-	short numTypes, 
-	OSType typeList[], 
-	NavDialogRef *outDialog,WindowRef parent )
+OSStatus OpenDialog(OSType applicationSignature,short numTypes,OSType typeList[],
+	NavDialogRef *outDialog,WindowRef parent,unsigned int mode)
 {
 	OSStatus theErr = noErr;
 	if ( gOpenFileDialog == NULL )	{
@@ -132,8 +136,15 @@ OSStatus OpenFileDialog(
 		dialogOptions.parentWindow=parent;
 		dialogOptions.clientName = CFStringCreateWithPascalString( NULL, LMGetCurApName(), GetApplicationTextEncoding());
 		
-		theErr = NavCreateChooseObjectDialog( &dialogOptions, GetPrivateEventUPP(), NULL, NULL, parent, &gOpenFileDialog );
-
+		if(mode==OPEN_FILE) {
+			theErr = NavCreateChooseObjectDialog( &dialogOptions, GetPrivateEventUPP(), NULL, NULL, parent, &gOpenFileDialog );
+		}
+		else if(mode==OPEN_FOLDER) {
+			theErr = NavCreateChooseFolderDialog( &dialogOptions, GetPrivateEventUPP(), NULL, parent, &gOpenFileDialog );
+		}
+		else {
+			return -1;
+		}
 		if ( theErr == noErr )	{
 			theErr = NavDialogRun( gOpenFileDialog );
 			if ( theErr != noErr )	{
@@ -158,6 +169,14 @@ OSStatus OpenFileDialog(
 
 	return NULL;
 }
+
+OSStatus OpenFileDialog(
+	OSType applicationSignature, 
+	short numTypes, 
+	OSType typeList[], 
+	NavDialogRef *outDialog,WindowRef parent )
+{
+	}
 
 
 OSStatus SendOpenEvent( AEDescList list,WindowRef parent ) {

@@ -84,7 +84,7 @@ Shouter *CarbonStreamServer::getIce() {
 
 void CarbonStreamServer::applyIce() {
 	OutChannel *chan=encoder->getOutChannel();
-	chan->apply_ice(iceID);
+	if(!isConnected()) chan->apply_ice(iceID);
 }
 
 char *CarbonStreamServer::host() {

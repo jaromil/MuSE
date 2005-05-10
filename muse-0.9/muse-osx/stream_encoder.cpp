@@ -26,10 +26,14 @@ CarbonStreamEncoder::CarbonStreamEncoder(Stream_mixer *mix,CarbonMessage *cmsg) 
 	jmix=mix;
 	msg=cmsg;
 	encoderID=0;
-	bitRate=16;
-	frequency=22050;
-	channels=1; /* defaults to mono */
+	/* DEFAULT ENCODER SETTINGS --- reflected in nib control defaults */
+	_bitrate=16;
+	_frequency=22050;
+	_quality=2;
+	strcpy(_qdescr,"16Kbit/s 22050Hz");
+	_channels=1; /* defaults to mono */
 	type(DEFAULT_ENCODER);
+	
 }
 
 CarbonStreamEncoder::~CarbonStreamEncoder() {
@@ -41,19 +45,25 @@ void CarbonStreamEncoder::update() {
 	OutChannel *enc = jmix->get_enc(encoderID);
 	if(enc) { /* encoder already exists */
 		if(enc->tipo!=_type) { /* codec change!! */
-			msg->warning(" KAKKA ");
+			if(enc->icelist.len()) msg->warning(" Can't change encoder codec while server exists ... delete all servers before trying to change it.");
+			else {
+				jmix->delete_enc(encoderID);
+				encoderID=jmix->create_enc(_type);
+				enc=jmix->get_enc(encoderID);
+			}
 		}
 	}
 	else {
 		encoderID=jmix->create_enc(_type);
 		enc=jmix->get_enc(encoderID);
 	}
-	enc->bps(bitRate);
-	enc->freq(frequency);
-	enc->channels(channels);
-	enc->lowpass(lowpass);
-	enc->highpass(highpass);
+	enc->bps(_bitrate);
+	enc->freq(_frequency);
+	enc->channels(_channels);
+	enc->lowpass(_lowpass);
+	enc->highpass(_highpass);
 	jmix->apply_enc(encoderID);
+	if(!enc->running) enc->start();
 }
 
 void CarbonStreamEncoder::type(enum codec t) {
@@ -63,4 +73,74 @@ void CarbonStreamEncoder::type(enum codec t) {
 
 OutChannel *CarbonStreamEncoder::getOutChannel() {
 	return jmix->get_enc(encoderID);
+}
+
+void CarbonStreamEncoder::mode(int chans) {
+	_channels=chans%2;
+	update();
+}
+
+int CarbonStreamEncoder::mode() {
+	return _channels;
+}
+
+void CarbonStreamEncoder::bitrate(int bps) {
+	_bitrate=bps;
+	jmix->apply_enc(encoderID);
+}
+
+void CarbonStreamEncoder::frequency(int freq) {
+	_frequency=freq;
+	jmix->apply_enc(encoderID);
+}
+void CarbonStreamEncoder::lowpass(int filter) {
+	_lowpass=filter;
+	jmix->apply_enc(encoderID);
+}
+void CarbonStreamEncoder::highpass(int filter) {
+	_highpass=filter;
+	jmix->apply_enc(encoderID);
+}
+
+int CarbonStreamEncoder::bitrate() {
+	return _bitrate;
+}
+int CarbonStreamEncoder::frequency() {
+	return _frequency;
+}
+int CarbonStreamEncoder::lowpass() {
+	return _lowpass;
+}
+int CarbonStreamEncoder::highpass() {
+	return _highpass;
+}
+
+int CarbonStreamEncoder::quality() {
+	return _quality;
+}
+
+enum codec CarbonStreamEncoder::type() {
+	OutChannel *enc=getOutChannel();
+	return enc->tipo;
+}
+/* just an accessor to OutChannel->quality()  [ 1 < q < 9 ]*/
+char *CarbonStreamEncoder::quality(int q) {
+	if(_quality!=q) {
+		OutChannel *chan = getOutChannel();
+		if(chan) {
+			char *descr=chan->quality(((float)q));
+			jmix->apply_enc(encoderID);
+			_quality=q;
+			strncpy(_qdescr,descr,255);
+			_qdescr[255]=0;
+			_bitrate=chan->bps();
+			_frequency=chan->freq();
+			return qualityString();
+		}
+	}
+	return NULL;
+}
+
+char *CarbonStreamEncoder::qualityString() {
+	return _qdescr;
 }

@@ -103,6 +103,7 @@
 #define STREAM_TAB_CONTROL 802
 #define ENCODER_SELECT_CONTROL 803
 #define QUALITY_CONTROL 804
+#define QUALITY_PROPERTY 'lQua'
 #define MODE_CONTROL 805
 #define STREAM_DESCR_CONTROL 806
 #define BITRATE_CONTROL 807
@@ -140,6 +141,9 @@
 #define FREQ_FILTERING 'sfrf'
 #define LOWPASS_CMD 'slow'
 #define HIGHPASS_CMD 'shig'
+#define CONNECT_CMD 'conn'
+#define BROWSE_OUTDIR_CMD 'brow'
+#define CHANGE_ENCTYPE_CMD 'senc'
 
 #define RECORD_CMD 
 /* MSG WINDOW */

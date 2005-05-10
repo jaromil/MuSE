@@ -113,7 +113,8 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 	CFStringRef format = CFStringCreateWithCString(NULL,"Channel %d",0);
 	CFStringRef wName = CFStringCreateWithFormat(NULL,NULL,format,chan);
 	SetWindowTitleWithCFString (window,wName);
-	
+	CFRelease(format);
+	CFRelease(wName);
 	/* and finally we can show the channelwindow */
 	ShowWindow(window);
 	BringToFront(window);
@@ -124,20 +125,24 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 	err = InstallEventLoopTimer( GetCurrentEventLoop(),0,1,timerUPP,this,&updater);
 	if(err!=noErr) msg->error("Can't install the idle eventloop handler(%d)!!",err);
 
+	/* install fader window */
 	err = CreateWindowFromNib(nibRef,CFSTR("FaderWindow"),&fader);
 	if(err!=noErr) msg->error("Can't create fader drawer (%d)!!",err);
 	SetDrawerParent(fader,window);
 	SetDrawerPreferredEdge(fader,kWindowEdgeRight);
-	SetDrawerOffsets(fader,50,50);
+	SetDrawerOffsets(fader,50,50); /* XXX - HC offsets ... should go in a #define */
 	err = InstallWindowEventHandler (fader, 
             NewEventHandlerUPP (faderCommandHandler), 
             GetEventTypeCount(faderCommands), faderCommands, 
             this, NULL);
+			
 	err=CreateWindowGroup(0,&faderGroup);
 	err = GetControlByID(fader,&faderId,&faderControl);
 	if(err != noErr) {
 		msg->error("Can't obtain dataBrowser ControlRef (%d)!!",err);
 	}
+	
+	/* associate a pointer to 'this' to the playlist ... for dragging purpose */
 	CarbonChannel *self=this;
 	err = SetControlProperty(faderControl,CARBON_GUI_APP_SIGNATURE,FADER_PROPERTY,
 		sizeof(CarbonChannel *),&self);
@@ -153,7 +158,7 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 
 CarbonChannel::~CarbonChannel() {
 	/* remove the eventloop associated to our window */
-	AERemoveEventHandler (kCoreEventClass,kAEOpenDocuments,openHandler,false);
+//	AERemoveEventHandler (kCoreEventClass,kAEOpenDocuments,openHandler,false);
 	RemoveEventLoopTimer(updater);
 	RemoveEventHandler(windowEventHandler);
 	RemoveEventHandler(playListEventHandler);
@@ -230,6 +235,24 @@ bool CarbonChannel::plUpdate() {
 		idList[i-1] = i;
 	}
 	AddDataBrowserItems(playListControl,kDataBrowserNoItem,len,idList,kDataBrowserItemNoProperty);
+	
+	/* update selected song */
+	ControlRef textControl;
+	OSStatus err = GetControlByID(window,&selectedSongId,&textControl);
+	if(err != noErr) {
+		msg->error("Can't get selectedSong control ref (%d)!!",err);
+	}
+	Url *entry = (Url *)playList->selected();
+	if(entry) {
+		/* XXX - lazy coding */
+		char *p = entry->path+strlen(entry->path);
+		while(*p!='/') {
+			if(p==entry->path) break;
+			p--;
+		}
+		if(*p=='/') p++;
+		err=SetControlData(textControl, 0, kControlStaticTextTextTag,strlen(p), p);
+	}
 }
 
 bool CarbonChannel::plAdd(char *txt) {
@@ -275,8 +298,7 @@ void CarbonChannel::setLCD(char *text) {
 	if(strncmp(text,lcd,255) != 0) {
 		strncpy(lcd,text,255);
 		GetControlByID(window,&seekTimeId,&lcdControl);
-		CFStringRef lcdText = CFStringCreateWithCString(NULL,text,kCFStringEncodingMacRoman);
-		SetControlData (lcdControl, 0, kControlStaticTextCFStringTag,sizeof(CFStringRef), &lcdText);
+		SetControlData (lcdControl, 0, kControlStaticTextTextTag,strlen(text), text);
 	}
 }
 
@@ -294,24 +316,29 @@ void CarbonChannel::setPos(int pos) {
 void CarbonChannel::plSelect(int row) {
 	ControlRef textControl;
 	OSStatus err;
-	if(playList->selected_pos()!=row) {
-		playList->sel(row);
-	}
-	Url *entry = (Url *)playList->pick(row);
 	err = GetControlByID(window,&selectedSongId,&textControl);
 	if(err != noErr) {
 		msg->error("Can't get selectedSong control ref (%d)!!",err);
 	}
-	/* XXX - lazy coding */
-	char *p = entry->path+strlen(entry->path);
-	while(*p!='/') {
-		if(p==entry->path) break;
-		p--;
+	if(row) {
+		if(playList->selected_pos()!=row) {
+			inChannel->sel(row);
+		}
+		Url *entry = (Url *)playList->selected();
+		if(entry) {
+			/* XXX - lazy coding */
+			char *p = entry->path+strlen(entry->path);
+			while(*p!='/') {
+				if(p==entry->path) break;
+				p--;
+			}
+			if(*p=='/') p++;
+			err=SetControlData (textControl, 0, kControlStaticTextTextTag,strlen(p), p);
+		}
 	}
-	if(*p=='/') p++;
-	func("Selected playlist entry %d (%s)\n",row,p);
-	CFStringRef url = CFStringCreateWithCString(NULL,p,kCFStringEncodingMacRoman);
-	err=SetControlData (textControl, 0, kControlStaticTextCFStringTag,sizeof(CFStringRef), &url);
+	else {
+		err=SetControlData (textControl, 0, kControlStaticTextTextTag,0, "");
+	}
 	if(err!=noErr) msg->warning("Can't set selectedSong text (%d)!!",err);
 }
 
@@ -332,8 +359,22 @@ void CarbonChannel::plMove(int from, int dest) {
 
 void CarbonChannel::plRemove(int pos) {
 	if(playList->selected_pos()==pos) {
-		inChannel->skip();
-	} 
+		if(playList->len() > 1) {
+			if(inChannel->state==1.0) inChannel->skip();
+			else {
+				if(pos==playList->len()) {
+					plSelect(pos-1);
+				}
+				else {
+					plSelect(pos+1);
+				}
+			}
+		}
+		else {
+			inChannel->stop();
+			plSelect(0);
+		}
+	}
 	playList->rem(pos);
 	plUpdate();
 }
@@ -408,17 +449,25 @@ void CarbonChannel::doAttach() {
 		if(err!=noErr) msg->warning("%d",err);
 		err=SetWindowGroup(fader,faderGroup);
 		SetWindowGroupOwner(faderGroup,window);
-		crossFade(0);
+		
+		crossFade(0); /* reset volume for channel members */
 		ControlRef textControl;
 		err=GetControlByID(fader,&faderChan1ID,&textControl);
 		if(err != noErr) {
 		msg->error("Can't get faderChannel control ref (%d)!!",err);}
+		
+		/* label master channel */
 		CFStringRef format = CFStringCreateWithCString(NULL,"Channel %d",0);
 		CFStringRef wName = CFStringCreateWithFormat(NULL,NULL,format,chIndex);
 		err=SetControlData (textControl, 0, kControlStaticTextCFStringTag,sizeof(CFStringRef), &wName);
+		CFRelease(wName);
 		err=GetControlByID(fader,&faderChan2ID,&textControl);
+		
+		/* label slave channel */
 		wName = CFStringCreateWithFormat(NULL,NULL,format,neigh.channel->chIndex);
 		err=SetControlData (textControl, 0, kControlStaticTextCFStringTag,sizeof(CFStringRef), &wName);
+		CFRelease(wName);
+		CFRelease(format);
 		SetControlAction(faderControl,NewControlActionUPP(&faderHandler));
 		redrawFader();
 	}
@@ -580,9 +629,9 @@ OSStatus HandlePlaylist (ControlRef browser,DataBrowserItemID itemID,
 				status = SetDataBrowserItemDataText(itemData,
 					CFStringCreateWithCString(kCFAllocatorDefault,
 					p,kCFStringEncodingMacRoman));
-				if(itemID==1) { // First entry
+				/*if(itemID==1 && me->playList->len()==1) { // First entry
 					me->plSelect(1);
-				}
+				}*/
 			}
 			break;
 		default:
@@ -855,6 +904,7 @@ static OSStatus channelCommandHandler (
 	switch (command.commandID)
     {
         case PLAY_CMD:
+			if(!me->playList->selected_pos()) me->plSelect(1);
 			if(me->jmix->play_channel(me->chIndex)) {
 				func("Playing channel %d",me->chIndex);
 			}
@@ -866,6 +916,8 @@ static OSStatus channelCommandHandler (
 		case STOP_CMD:
 			if(me->jmix->stop_channel(me->chIndex)) {
 				func("Channel %d stopped",me->chIndex);
+				me->setPos(0);
+				me->setLCD("00:00:00");
 			}
 			else {
 				me->msg->warning("Can't stop channel %d!!",me->chIndex);

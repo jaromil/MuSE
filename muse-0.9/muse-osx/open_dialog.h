@@ -21,9 +21,10 @@
 
 OSStatus OpenUrlWindow(WindowRef parent,WindowRef openWin);
 OSStatus OpenFileWindow(WindowRef parent);
+OSStatus OpenFolderWindow(WindowRef parent);
 
-OSStatus OpenFileDialog(OSType applicationSignature, short numTypes, 
-	OSType typeList[], NavDialogRef *outDialog,WindowRef parent );
+OSStatus OpenDialog(OSType applicationSignature, short numTypes, 
+	OSType typeList[], NavDialogRef *outDialog,WindowRef parent,unsigned int mode );
 void TerminateOpenFileDialog();
 void TerminateDialog( NavDialogRef inDialog );
 static Handle NewOpenHandle(OSType applicationSignature, short numTypes, OSType typeList[]);

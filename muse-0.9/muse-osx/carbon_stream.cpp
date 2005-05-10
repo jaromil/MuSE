@@ -19,15 +19,21 @@
 #include "carbon_stream.h"
 #include <jutils.h>
 
+extern "C" OSStatus OpenFolderWindow(WindowRef parent);
+void qualityHandler (ControlRef theControl, ControlPartCode partCode);
+
+/****************************************************************************/
+/* CarbonStream globals */
+/****************************************************************************/
+
 const ControlID streamTabID = { CARBON_GUI_APP_SIGNATURE, STREAM_TAB_CONTROL };
 const ControlID serverTabID = { CARBON_GUI_APP_SIGNATURE, SERVER_TAB_CONTROL };
 
-const ControlID serveLoginTypeID = { CARBON_GUI_APP_SIGNATURE, LOGIN_TYPE_CONTROL };
-const ControlID serverStatusID = { CARBON_GUI_APP_SIGNATURE, SERVER_STATUS_CONTROL };
-
-#define STREAM_EVENTS 1
+#define STREAM_EVENTS 3
 const EventTypeSpec windowEvents[] = {
-	{ kEventClassWindow, kEventWindowClose }
+	{ kEventClassWindow, kEventWindowActivated },
+	{ kEventClassWindow, kEventWindowClose },
+	{ kCoreEventClass, kAEOpenDocuments }
 };
 
 const EventTypeSpec streamCommands[] = {
@@ -51,7 +57,10 @@ OSStatus StreamTabEventHandler(EventHandlerCallRef inCallRef,
 OSStatus ServerTabEventHandler(EventHandlerCallRef inCallRef, 
 	EventRef inEvent, void* inUserData );
 
-
+#define CS_ALLOWED_BPS_NUM 8
+#define CS_ALLOWED_FREQ_NUM 4
+const int bps[CS_ALLOWED_BPS_NUM] = { 16,24,32,48,56,64,96,128 };
+const int freq[CS_ALLOWED_FREQ_NUM] = { 11000,16000,22050,44100 };
 
 /****************************************************************************/
 /* CarbonStream class */
@@ -92,6 +101,7 @@ CarbonStream::CarbonStream(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib) {
 		if(err!=noErr) msg->error("Can't install streamTab event handler (%d)!!",err);
 		HideControl(streamTabControl);
 		_selectedStream=0;
+		
 		/* setup server tab control */
 		err=GetControlByID(window,&serverTabID,&serverTabControl);
 		if(err!=noErr) msg->error("Can't get serverTabControl (%d)!!",err);
@@ -100,6 +110,17 @@ CarbonStream::CarbonStream(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib) {
 		if(err!=noErr) msg->error("Can't install serverTab event handler (%d)!!",err);
 		HideControl(serverTabControl);
 		_selectedServer=0;
+		
+		/* install and handler to allow live quality change */
+		ControlRef qualityControl;
+		const ControlID qualityID = { CARBON_GUI_APP_SIGNATURE, QUALITY_CONTROL };
+		err=GetControlByID(window,&qualityID,&qualityControl);
+		if(err!=noErr) msg->error("Can't get quality control (%d)!!",err);
+		CarbonStream *self=this;
+		err = SetControlProperty(qualityControl,CARBON_GUI_APP_SIGNATURE,QUALITY_PROPERTY,
+			sizeof(CarbonStream *),&self);
+		if(err!=noErr) msg->error("Can't attach CarbonChannel object to Fader control (%d) !!",err);
+		SetControlAction(qualityControl,NewControlActionUPP(&qualityHandler));
 }
 
 CarbonStream::~CarbonStream() {
@@ -253,8 +274,7 @@ void CarbonStream::addStream() {
 	
 		updateStreamTab();
 	}
-	else { /* new tab must be created */
-		if(addTab(STREAM_TAB_CONTROL)) {
+	else if(addTab(STREAM_TAB_CONTROL)) { /* new tab must be created */
 		int encIdx = getTabValue(STREAM_TAB_CONTROL,sNum+1)-1;
 		if(enc[encIdx]) {
 			delete enc[encIdx];
@@ -265,7 +285,6 @@ void CarbonStream::addStream() {
 			return;
 		}
 		updateStreamTab();
-		}
 	}
 }
 
@@ -282,8 +301,10 @@ void CarbonStream::deleteStream(unsigned int idx) {
 		//		deleteServer(idx,i+1);
 		//	}
 		//}
-		for(int i=numServers;i>0;i--) {
-			deleteServer(idx,i);
+		if(IsControlVisible(serverTabControl)) {
+			for(int i=numServers;i>0;i--) {
+				deleteServer(idx,i);
+			}
 		}
 		delete enc[encIdx];
 		enc[encIdx]=NULL;
@@ -355,6 +376,7 @@ bool CarbonStream::updateStreamTab() {
 	if(_selectedStream==val) return false; /* no changes ... */
 	changeServerTab();
 	_selectedStream=val;
+	updateStreamInfo(selectedStream());
 	return true;
 }
 
@@ -377,12 +399,11 @@ bool CarbonStream::updateServerTab() {
 bool CarbonStream::changeServerTab() {
 	SInt32 val = GetControl32BitValue(streamTabControl);
 	int newStreamIndex=getTabValue(STREAM_TAB_CONTROL,val)-1;
-	int oldStreamIndex=getTabValue(STREAM_TAB_CONTROL,_selectedStream)-1;
 	int oldServerIndex=getTabValue(SERVER_TAB_CONTROL,_selectedServer)-1;
-		
 	int sNum=0;
 	_selectedServer=1;
 	if(IsControlVisible(serverTabControl)) {
+		int oldStreamIndex=getTabValue(STREAM_TAB_CONTROL,_selectedStream)-1;
 		saveServerInfo(servers[oldStreamIndex][oldServerIndex]);
 	}
 	SetControl32BitMaximum(serverTabControl,1);
@@ -407,14 +428,14 @@ bool CarbonStream::changeServerTab() {
 	{\
 		cid.id=__id;\
 		err=GetControlByID(window,&cid,&control);\
-		err=GetControlData(control,0,kControlEditTextTextTag,SERVER_STRING_BUFFER_LEN,buffer,NULL);\
-		if(err!=noErr) msg->error("Can't get __name from text control (%d)!!",err);\
+		err=GetControlData(control,0,kControlEditTextTextTag,SERVER_STRING_BUFFER_LEN-1,buffer,NULL);\
+		if(err!=noErr) msg->error("Can't get %s from text control (%d)!!","__name",err);\
 	}
 #define SAVE_SERVER_TEXT_INFO(__id,__name,__func) \
 	{\
 		SAVE_SERVER_INFO(__id,__name) \
 		server->__func(buffer);\
-		*buffer=0;\
+		memset(buffer,0,sizeof(buffer));\
 	}
 #define SAVE_SERVER_INT_INFO(__id,__name,__func) \
 	{\
@@ -423,6 +444,7 @@ bool CarbonStream::changeServerTab() {
 		sscanf(buffer,"%d",&intBuffer);\
 		server->__func(intBuffer);\
 		intBuffer=0;\
+		memset(buffer,0,sizeof(buffer));\
 	}
 	
 void CarbonStream::saveServerInfo(CarbonStreamServer *server) {
@@ -434,7 +456,7 @@ void CarbonStream::saveServerInfo(CarbonStreamServer *server) {
 	ControlID cid;
 
 	cid.signature=CARBON_GUI_APP_SIGNATURE;
-	*buffer=0;
+	// memset(buffer,0,sizeof(buffer)); // should be useless
 	
 	/* port */
 	SAVE_SERVER_INT_INFO(PORT_CONTROL,port,port);
@@ -462,17 +484,35 @@ void CarbonStream::saveServerInfo(CarbonStreamServer *server) {
 		err=GetControlByID(window,&cid,&control);\
 		buffer = server->__func();\
 		len=buffer?strlen(buffer):0;\
-		err=SetControlData(control,0,kControlEditTextTextTag,len,buffer);\
-		if(err!=noErr) msg->warning("Can't set __name from text control (%d)!!",err);\
+		err=SetControlData(control,0,(__id==PASSWORD_CONTROL)?kControlEditTextPasswordTag:\
+			kControlEditTextTextTag,len,buffer);\
+		if(err!=noErr) msg->warning("Can't set %s for text control (%d)!!","__name",err);\
 		buffer=NULL;\
 	}
 
+#define UPDATE_SERVER_INT_INFO(__id,__name,__func) \
+	{\
+		cid.id=__id;\
+		err=GetControlByID(window,&cid,&control);\
+		if(err!=noErr) msg->error("Can't get control (%d)!!",err);\
+		intBuf = server->__func();\
+		if(intBuf) sprintf(intBufStr,"%d",intBuf);\
+		else *intBufStr=0;\
+		len=strlen(intBufStr);\
+		err=SetControlData(control,0,kControlEditTextTextTag,len,intBufStr);\
+		if(err!=noErr) msg->warning("Can't set %s from text control (%d)!!","__name",err);\
+		intBuf=0;\
+		*intBufStr=0;\
+	}
+	
 void CarbonStream::updateServerInfo(CarbonStreamServer *server) {
 	ControlRef control;
 	ControlID cid;
 	int len;
 	OSStatus err;
 	char *buffer=NULL;
+	int intBuf=0;
+	char intBufStr[256];
 	cid.signature=CARBON_GUI_APP_SIGNATURE;
 
 	/* host */
@@ -490,11 +530,251 @@ void CarbonStream::updateServerInfo(CarbonStreamServer *server) {
 	/* password */
 	UPDATE_SERVER_TEXT_INFO(PASSWORD_CONTROL,password,password);
 	
+	/*port */
+	UPDATE_SERVER_INT_INFO(PORT_CONTROL,port,port);
+	
+	/* connect button */
+	ControlID cbutID={ CARBON_GUI_APP_SIGNATURE, CONNECT_BUTTON };
+	cid.id=CONNECT_BUTTON;
+	err=GetControlByID(window,&cid,&control);
+	if(err!=noErr) msg->error("Can't get connect button control (%d)!!",err);
+	if(server->isConnected()) {
+		SetControlTitleWithCFString(control,CFSTR("Disconnect"));
+	}
+	else {
+		SetControlTitleWithCFString(control,CFSTR("Connect"));
+	}
+}
+
+bool CarbonStream::doConnect() {
+	CarbonStreamServer *server=selectedServer();
+	saveServerInfo(server);
+	ControlID cbutID={ CARBON_GUI_APP_SIGNATURE, CONNECT_BUTTON };
+	ControlRef cbutControl;
+	OSStatus err=GetControlByID(window,&cbutID,&cbutControl);
+	if(err!=noErr) msg->error("Can't get connect button control (%d)!!",err);
+
+	if(server->isConnected() && disconnectServer(server)) {
+		SetControlTitleWithCFString(cbutControl,CFSTR("Connect"));
+	}
+	else if(connectServer(server)) {
+		SetControlTitleWithCFString(cbutControl,CFSTR("Disconnect"));
+	}
+}
+
+bool CarbonStream::disconnectServer(CarbonStreamServer *server) {
+	if(server) return server->disconnect();
+}
+
+bool CarbonStream::connectServer(CarbonStreamServer *server) {
+	if(server) return server->connect();
+}
+
+CarbonStreamServer *CarbonStream::selectedServer() {
+	SInt32 selectedStream=GetControl32BitValue(streamTabControl);
+	SInt32 selectedServer=GetControl32BitValue(serverTabControl);
+	int encIdx=getTabValue(STREAM_TAB_CONTROL,selectedStream)-1;
+	int serIdx=getTabValue(SERVER_TAB_CONTROL,selectedServer)-1;
+	return servers[encIdx][serIdx];
+}
+
+CarbonStreamEncoder *CarbonStream::selectedStream() {
+	SInt32 selectedStream=GetControl32BitValue(streamTabControl);
+	int encIdx=getTabValue(STREAM_TAB_CONTROL,selectedStream)-1;
+	return enc[encIdx];
+}
+
+void CarbonStream::updateQuality() {
+	ControlRef qualityControl,descrControl;
+	OSStatus err;
+	const ControlID qualityID = { CARBON_GUI_APP_SIGNATURE, QUALITY_CONTROL };
+	const ControlID descrID = { CARBON_GUI_APP_SIGNATURE, STREAM_DESCR_CONTROL };
+	CarbonStreamEncoder *enc = selectedStream();
+	
+	/* get controls */
+	err=GetControlByID(window,&qualityID,&qualityControl);
+	if(err!=noErr) msg->error("Can't get quality control (%d)!!",err);
+	err=GetControlByID(window,&descrID,&descrControl);
+	if(err!=noErr) msg->error("Can't get quality descr control (%d)!!",err);
+	
+	/* get selected value */
+	SInt32 quality = GetControlValue(qualityControl);
+	enc->quality(quality);
+	updateStreamInfo(enc);
+}
+
+void CarbonStream::updateBitrate() {
+	CarbonStreamEncoder *enc=selectedStream();
+	ControlRef bpsControl;
+	const ControlID bpsID = { CARBON_GUI_APP_SIGNATURE,BITRATE_CONTROL };
+	OSStatus err=GetControlByID(window,&bpsID,&bpsControl);
+	if(err!=noErr) msg->error("Can't get bps control (%d)!!",err);
+	SInt32 val = GetControlValue(bpsControl);
+	enc->bitrate(bps[val-1]);
+}
+
+void CarbonStream::updateFrequency() {
+	CarbonStreamEncoder *enc=selectedStream();
+	ControlRef freqControl;
+	const ControlID freqID = { CARBON_GUI_APP_SIGNATURE,FREQUENCY_CONTROL };
+	OSStatus err=GetControlByID(window,&freqID,&freqControl);
+	if(err!=noErr) msg->error("Can't get frequency control (%d)!!",err);
+	SInt32 val = GetControlValue(freqControl);
+	enc->frequency(freq[val-1]);
+}
+
+void CarbonStream::updateMode() {
+	CarbonStreamEncoder *enc=selectedStream();
+	ControlRef modeControl;
+	const ControlID modeID = { CARBON_GUI_APP_SIGNATURE,MODE_CONTROL };
+	OSStatus err=GetControlByID(window,&modeID,&modeControl);
+	if(err!=noErr) msg->error("Can't get mode control (%d)!!",err);
+	SInt32 val = GetControlValue(modeControl);
+	enc->mode(val);
+}
+
+void CarbonStream::recordStreamPath(char *path) {
+	ControlRef recordNameControl;
+	SInt32 selectedStream=GetControl32BitValue(streamTabControl);
+	int encIdx=getTabValue(STREAM_TAB_CONTROL,selectedStream)-1;
+	const ControlID recordNameID = { CARBON_GUI_APP_SIGNATURE, RECORD_STREAM_FILENAME };
+	OSStatus err=GetControlByID(window,&recordNameID,&recordNameControl);
+	if(err!=noErr) msg->error("Can't get recordName text control (%d)!!",err);
+	char *outFilename = (char *)malloc(strlen(path)+12); /* XXX - HC LEN */
+	sprintf(outFilename,"%s/Stream_%d",path,selectedStream);
+	err=SetControlData(recordNameControl,0,kControlEditTextTextTag,strlen(outFilename),outFilename);
+	if(err!=noErr) msg->warning("Can't set record filename control (%d)!!",err);
+	free(outFilename);
+}
+
+void CarbonStream::recordStream(bool on) {
+}
+
+void CarbonStream::codecChange() {
+	CarbonStreamEncoder *enc=selectedStream();
+	ControlRef typeControl;
+	const ControlID typeID = { CARBON_GUI_APP_SIGNATURE,ENCODER_SELECT_CONTROL };
+	OSStatus err=GetControlByID(window,&typeID,&typeControl);
+	if(err!=noErr) msg->error("Can't get type control (%d)!!",err);
+	SInt32 val = GetControlValue(typeControl);
+	enc->type((val==1)?OGG:MP3);
+	updateStreamInfo(enc);
+}
+
+void CarbonStream::updateStreamInfo(CarbonStreamEncoder *encoder) {
+	int i;
+	OSStatus err;
+	ControlRef control;
+	ControlID cid={CARBON_GUI_APP_SIGNATURE,0};
+	if(!encoder) return;
+	
+	/* encoder type */
+	cid.id=ENCODER_SELECT_CONTROL;
+	err=GetControlByID(window,&cid,&control);
+	if(err!=noErr) msg->error("Can't get type control (%d)!!",err);
+	SetControlValue(control,(encoder->type()==OGG)?1:2);
+
+	/* quality */
+	cid.id=QUALITY_CONTROL;
+	err=GetControlByID(window,&cid,&control);
+	if(err!=noErr) msg->error("Can't get quality control (%d)!!",err);
+	SetControlValue(control,encoder->quality());
+	
+	/* quality descr */
+	cid.id=STREAM_DESCR_CONTROL;
+	err=GetControlByID(window,&cid,&control);
+	if(err!=noErr) msg->error("Can't get qualityString control (%d)!!",err);
+	char *descr=encoder->qualityString();
+	if(descr) {
+		CFStringRef sdescr = CFStringCreateWithCString(NULL,descr,kCFStringEncodingMacRoman);
+		SetControlData(control,0,kControlStaticTextCFStringTag,sizeof(CFStringRef),&sdescr);
+		CFRelease(sdescr);	
+	}
+	
+	/* bitrate */
+	cid.id=BITRATE_CONTROL;
+	err=GetControlByID(window,&cid,&control);
+	if(err!=noErr) msg->error("Can't get bps control (%d)!!",err);
+	for (i=0;i<CS_ALLOWED_BPS_NUM;i++) {
+		if(bps[i]==encoder->bitrate()) {
+			SetControlValue(control,i+1);
+			break;
+		}
+	}	
+	
+	/* frequency */
+	cid.id=FREQUENCY_CONTROL;
+	err=GetControlByID(window,&cid,&control);
+	if(err!=noErr) msg->error("Can't get frequency control (%d)!!",err);
+	for (i=0;i<CS_ALLOWED_FREQ_NUM;i++) {
+		if(freq[i]==encoder->frequency()) {
+			SetControlValue(control,i+1);
+			break;
+		}
+	}
+	
+	/* channels (stereo/mono) */
+	cid.id=MODE_CONTROL;
+	err=GetControlByID(window,&cid,&control);
+	if(err!=noErr) msg->error("Can't get mode control (%d)!!",err);
+	SetControlValue(control,encoder->mode());
+	
+}
+
+void CarbonStream::activateMenuBar() {
+	OSStatus err;
+	err = SetMenuBarFromNib(nibRef, CFSTR("StreamMenu"));
+	if(err != noErr) msg->error("Can't get MenuBar!!");
 }
 
 /****************************************************************************/
 /* EVENT HANDLERS */
 /****************************************************************************/
+
+void qualityHandler (ControlRef theControl, ControlPartCode partCode) {
+	CarbonStream *me;
+	OSStatus err = GetControlProperty(theControl,CARBON_GUI_APP_SIGNATURE,
+		QUALITY_PROPERTY,sizeof(CarbonStream *),NULL,&me);
+	if(err==noErr) {
+		me->updateQuality();
+	}
+}
+
+static  OSErr ChooseFolder(EventRef event,CarbonStream *me)
+{
+
+	OSStatus		anErr;
+
+	AEDescList	docList;				// list of docs passed in
+	long		index, itemsInList;
+	Boolean		wasAlreadyOpen;
+
+	anErr = GetEventParameter( event, OPEN_DOCUMENT_DIALOG_PARAM, typeAEList,NULL,sizeof(AEDescList),NULL, &docList);
+
+//	anErr = AECountItems( &docList, &itemsInList);			// how many files passed in
+//	for (index = itemsInList; index > 0; index--)			// handle each file passed in
+//	{	
+		AEKeyword	keywd;
+		DescType	returnedType;
+		Size		actualSize;
+		FSRef 		fileRef;
+		FSCatalogInfo	theCatInfo;
+		
+//		anErr = AEGetNthPtr( &docList, index, typeFSRef, &keywd, &returnedType,
+		anErr = AEGetNthPtr( &docList, 1, typeFSRef, &keywd, &returnedType,
+						(Ptr)(&fileRef), sizeof( fileRef ), &actualSize );
+		
+		anErr = FSGetCatalogInfo( &fileRef, kFSCatInfoFinderInfo, &theCatInfo, NULL, NULL, NULL );
+		
+		if (anErr == noErr) {
+			char path[2048]; /* XXX - hardcoded max filename size */
+			FSRefMakePath (&fileRef,(UInt8 *)path,2048);
+			me->recordStreamPath(path);
+		}
+//	}
+
+	return anErr;
+} // ChooseFloder
 
 static OSStatus StreamEventHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData)
@@ -507,6 +787,12 @@ static OSStatus StreamEventHandler (
 			me->hide();
 			return noErr;
             break;
+		case kAEOpenDocuments:
+			ChooseFolder(event,me);
+			break;
+		case kEventWindowActivated:
+			me->activateMenuBar();
+			break;
 		default:
             break;
     }
@@ -539,13 +825,32 @@ static OSStatus streamCommandHandler (
     HICommand command; 
     OSStatus err = noErr;
 	SInt16 val;
+	bool k;
     CarbonStream *me = (CarbonStream *)userData;
 	err = GetEventParameter (event, kEventParamDirectObject,
         typeHICommand, NULL, sizeof(HICommand), NULL, &command);
     if(err != noErr) me->msg->error("Can't get event parameter!!");
 	switch (command.commandID)
     {
-        case ADD_STREAM_CMD:
+		case CHANGE_ENCTYPE_CMD:
+			me->codecChange();
+			break;
+		case QUALITY_CMD:
+			me->updateQuality();
+			break;
+		case BITRATE_CMD:
+			me->updateBitrate();
+			break;
+		case FREQUENCY_CMD:
+			me->updateFrequency();
+			break;
+		case MODE_CMD:
+			me->updateMode();
+			break;
+		case BROWSE_OUTDIR_CMD:
+			OpenFolderWindow(me->window);
+			break;
+		  case ADD_STREAM_CMD:
 			me->addStream();
 			break;
 		case ADD_SERVER_CMD:
@@ -556,6 +861,9 @@ static OSStatus streamCommandHandler (
 			break;
 		case DELETE_SERVER_CMD:
 			me->deleteServer();
+			break;
+		case CONNECT_CMD:
+			me->doConnect();
 			break;
 		default:
 			err = eventNotHandledErr;

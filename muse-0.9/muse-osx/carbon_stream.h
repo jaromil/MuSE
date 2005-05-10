@@ -49,10 +49,19 @@ class CarbonStream {
 		bool updateStreamTab();
 		bool updateServerTab();
 		bool changeServerTab();
-		bool connectServer();
-		bool connectServer(unsigned int streamIndex,unsigned int serverIndex);
+		bool doConnect();
+		bool connectServer(CarbonStreamServer *server);
+		bool disconnectServer(CarbonStreamServer *server);
 		CarbonStreamEncoder *selectedStream();
 		CarbonStreamServer *selectedServer();
+		void updateQuality(); 
+		void updateBitrate();
+		void updateFrequency();
+		void updateMode();
+		void recordStreamPath(char *path);
+		void recordStream(bool on);
+		void activateMenuBar();
+		void codecChange();
 		
 		WindowRef window;
 		WindowRef parent;
@@ -71,10 +80,11 @@ class CarbonStream {
 		int nextTabIndex(SInt32 controlID);
 		void saveServerInfo(CarbonStreamServer *server);
 		void updateServerInfo(CarbonStreamServer *server);
+		void updateStreamInfo(CarbonStreamEncoder *encoder);
 		IBNibRef nibRef;
 		CarbonStreamEncoder *enc[MAX_STREAM_ENCODERS];
 		CarbonStreamServer *servers[MAX_STREAM_ENCODERS][MAX_STREAM_SERVERS];
-		
+		MenuRef streamMenu;
 		
 	protected:
 
