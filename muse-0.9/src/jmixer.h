@@ -161,7 +161,7 @@ class Stream_mixer {
   ///< set the volumes of two channels at once
 
   bool set_playmode(int ch, int mode);
-  ///< set the playmode of a channel (LOOP,CONT,PLAY)
+  ///< set the playmode of a channel (LOOP,CONT,PLAY,PLAYLIST)
 
   void set_speed(int ch, int speed);
   ///< this is VERY EXPERIMENTAL, but we might get there soon
