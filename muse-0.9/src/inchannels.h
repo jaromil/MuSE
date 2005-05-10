@@ -122,7 +122,11 @@ class Channel {
   /* ============== end of decoder implementation wrappers */
 
 
-  void skip();
+  void skip(); ///< just an accessor to next(). Maintained for backward compatibility 
+  void next();  ///< select and load the next track in the playlist 
+  void prev(); ///< the same of next() but tries to select the previous track instead of the next
+  void sel(int newpos); ///< select and load a specific position in the playlist (if present) 
+  
   float upd_time();
   void upd_eos();
   void upd_err();
@@ -152,7 +156,9 @@ class Channel {
   
   int frames; ///< number of 16bit audio values (double if stereo)
 
-  uint8_t playmode;
+  uint8_t playmode; /* possible values are : 
+                     * PLAYMODE_PLAY (play one shot song) , PLAYMODE_LOOP (loop on one song) , 
+                     * PLAYMODE_CONT (continuos play), PLAYMODE_PLAYLIST (play entire playlist and then stop) */
 
   bool opened;
   bool on;

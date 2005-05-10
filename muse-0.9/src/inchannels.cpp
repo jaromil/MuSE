@@ -454,30 +454,54 @@ float Channel::upd_time() {
   return(res);
 }
 
-void Channel::skip() {
-  switch(playmode) {
-  case PLAYMODE_PLAY:
-    stop();
-    break;
-  case PLAYMODE_LOOP:
-    pos(0.0);
-    break;
-  case PLAYMODE_CONT:
-    Url *n;
-    stop();
-    n = (Url*)playlist->selected();
-    if(n) do {
-      n->sel(false); n = (Url*)n->next;
-      if(!n) n = (Url*)playlist->begin();
-      if(!n) break;
-      n->sel(true);
-    } while( ! load(n->path) );
-    if(n) {
-      play();
-      update = true;
+void Channel::skip() { /* here just for backward compatibility */
+	next();
+}
+
+void Channel::next() {
+  int selection = playlist->selected_pos();
+  if(selection < playlist->len()) sel(selection+1);
+  else sel(1);
+}
+
+void Channel::prev() {
+  int selection = playlist->selected_pos();
+  if(selection>1) sel(selection-1);
+  else sel(playlist->len());
+}
+
+void Channel::sel(int newpos) {
+  float st=state;
+  if(newpos) {
+    switch(playmode) {
+    case PLAYMODE_PLAY:
+      stop();
+      break;
+    case PLAYMODE_LOOP:
+      pos(0.0);
+      break;
+	case PLAYMODE_PLAYLIST:
+	  if(newpos==1 && playlist->selected_pos()==playlist->len()) break;
+	case PLAYMODE_CONT:
+      Url *n;
+      stop();
+      n = (Url*)playlist->pick(newpos);
+      if(n && playlist->sel(newpos)) { 
+	    while( ! load(n->path) ) {
+          n->sel(false); n = (Url*)n->next;
+		  if(!n && playmode==PLAYMODE_PLAYLIST) break;
+          if(!n) n = (Url*)playlist->begin();
+          if(!n) break;
+          n->sel(true);
+        }
+	  }
+      if(n) {
+        if(st!=0.0) play();
+        update = true;
+      }
+      break;
+    default: break;
     }
-    break;
-  default: break;
   }
 }
 
