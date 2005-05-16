@@ -82,6 +82,13 @@ CarbonStream::CarbonStream(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib) {
 		if(err != noErr) { 
 			msg->error("Can't create the stream configuration window (%d)!!",err);
 		}
+		
+		/* Create a window group and put the stream window inside it ...
+		 * this is done just to let Quartz handle window layering correctly */
+		err=CreateWindowGroup(kWindowGroupAttrMoveTogether|kWindowGroupAttrLayerTogether|
+			kWindowGroupAttrSharedActivation|kWindowGroupAttrHideOnCollapse,&streamGroup);
+		err=SetWindowGroup(window,streamGroup);
+		
 		err = InstallEventHandler(GetWindowEventTarget(window),StreamEventHandler,STREAM_EVENTS,windowEvents,this,NULL);
 		if(err != noErr) { 
 			msg->error("Can't install event handler for Channel control (%d)!!",err);
@@ -124,7 +131,17 @@ CarbonStream::CarbonStream(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib) {
 }
 
 CarbonStream::~CarbonStream() {
+	int i,n;
+	ReleaseWindowGroup(streamGroup);
 	DisposeWindow(window);
+	for(i=0;i<MAX_STREAM_ENCODERS;i++) {
+		if(enc[i]) {
+			for(n=0;n<MAX_STREAM_SERVERS;n++) {
+				if(servers[i][n]) delete servers[i][n];
+			}
+			delete enc[i];
+		}
+	}
 }
 
 void CarbonStream::show() {

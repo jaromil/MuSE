@@ -22,12 +22,13 @@
 #include <Carbon/Carbon.h>
 
 
+#define CANCEL_CMD 'not!'
 /* CONTROLS */
 #define CARBON_GUI_REMOVE_CHANNEL 'rmCh'
 #define CARBON_GUI_APP_SIGNATURE 'MuSE'
 
 /* MAIN WINDOW */
-#define MAIN_CONTROLS_NUM 6
+#define MAIN_CONTROLS_NUM 7
 
 #define STREAM_BUT 0
 #define STREAM_BUT_ID 100
@@ -39,11 +40,25 @@
 #define SNDIN_BUT_ID 103
 #define VOL_BUT 4
 #define VOL_BUT_ID 104
-#define ABOUT_BUT 5
-#define ABOUT_BUT_ID 105
+#define STATUS_BUT 5
+#define STATUS_BUT_ID 105
+#define ABOUT_BUT 6
+#define ABOUT_BUT_ID 106
 
 #define NEWC_CMD 'newc'
 #define SHOW_STREAMS_CMD 'stre'
+#define SHOW_STATUS_CMD 'shlo'
+#define CLOSE_STATUS_CMD 'cllo'
+#define CLEAR_STATUS_CMD 'clel'
+
+#define STATUS_TEXT_ID 199
+
+/* VUMETER WINDOW */
+#define VUMETER_VOL 777
+#define VUMETER_VOL_DESCR 778
+#define VUMETER_BITRATE 779
+#define VUMETER_BITRATE_DESCR 780
+
 
 /* CHANNEL WINDOW */
 #define CHANNEL_WINDOW_HEIGHT_MIN 446
@@ -69,7 +84,7 @@
 #define REPEAT_BUT 308
 #define LOOP_BUT 309
 #define SHUFFLE_BUT 310
-#define SELECTED_SONG_CONTROL 311
+#define SELECTED_SONG_CONTROL 313
 
 #define PLAY_CMD 'Play'
 #define STOP_CMD 'Stop'
@@ -146,8 +161,13 @@
 #define CHANGE_ENCTYPE_CMD 'senc'
 
 #define RECORD_CMD 
+
 /* MSG WINDOW */
 
+/* OPEN URL DIALOG */
+#define OPEN_URL_BUTTON_ID 911
+#define OPEN_URL_BUTTON_CMD 'urla'
+#define OPEN_URL_TEXT_CONTROL 900
 
 /* EVENTS */
 

@@ -28,28 +28,12 @@
 class CarbonChannel;
 
 class CARBON_GUI : public GUI {
- private:
-  bool new_pos[MAX_CHANNELS];
-  bool new_lcd[MAX_CHANNELS];
-  int myPos[MAX_CHANNELS];
-  char myLcd[MAX_CHANNELS][255];
-  unsigned int new_sel[MAX_CHANNELS];
 
-  int vuband, vumeter;
-
-   OSStatus		err;
-   CarbonChannel	*channel[MAX_CHANNELS];
-   
  public:
-  WindowRef 	window;
-  IBNibRef 		nibRef;
-  Stream_mixer *jmix;
-  CarbonMessage *msg;
   CARBON_GUI(int argc, char **argv, Stream_mixer *mix);
   ~CARBON_GUI();
 
   void run();
-  
   void set_pos(unsigned int chan, float pos) {lock(); new_pos[chan] = true; unlock(); };
   void set_lcd(unsigned int chan, char *lcd) { lock(); new_lcd[chan] = true; unlock(); };
   void set_title(char *txt);
@@ -58,16 +42,47 @@ class CARBON_GUI : public GUI {
   void sel_playlist(unsigned int ch, int row);
   void bpsmeter_set(int n) { vuband = n; };
   void vumeter_set(int n) { vumeter = n; };
-  bool meter_shown();
+  bool meter_shown() { return meterShown(); } /* just an accessor to meterShown ... here for muse API compatibility */
   void stop();
   void showStreamWindow();
   bool new_channel();
-  bool new_channel(int idx);
   bool remove_channel(int idx);
   bool attract_channels(int chIndex,AttractedChannel *neigh);
+  void showVumeters(bool flag);
+  void showStatus(bool flag);
+  void toggleStatus();
+  void toggleVumeters();
+  void clearStatus();
+  bool meterShown();
+  bool statusShown(); 
+  
  // void start();
+
+  WindowRef 	window;
+  IBNibRef 		nibRef;
+  Stream_mixer *jmix;
+  CarbonMessage *msg;
+
 private:
-  bool CARBON_GUI::init_controls();
+  bool init_controls();
+  void setupVumeters();
+  void updateVumeters();
+  void setupStatusWindow();
+  bool new_channel(int idx);
+
+  bool new_pos[MAX_CHANNELS];
+  bool new_lcd[MAX_CHANNELS];
+  int myPos[MAX_CHANNELS];
+  char myLcd[MAX_CHANNELS][255];
+  unsigned int new_sel[MAX_CHANNELS];
+
+  int vuband, vumeter;
+  WindowRef vumeterWindow;
+  WindowRef statusWindow;
+  WindowGroupRef mainGroup;
+
+  OSStatus		err;
+  CarbonChannel	*channel[MAX_CHANNELS];
 
   CarbonStream *streamHandler;
 };

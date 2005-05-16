@@ -22,9 +22,18 @@
 #include <jmixer.h>
 #include <jutils.h>
 #include <config.h>
+#include <unistd.h>
 
 
 /* HANDLED EVENTS */
+const EventTypeSpec vumeterEvents[] = {
+	{ kEventClassWindow, kEventWindowClose }
+};
+
+const EventTypeSpec statusEvents[] = {
+	{ kEventClassWindow, kEventWindowClose }
+};
+
 const EventTypeSpec events[] = {
 	{ kEventClassWindow, kEventWindowClosed },
 	{ CARBON_GUI_EVENT_CLASS, CARBON_GUI_REMOVE_CHANNEL},
@@ -42,6 +51,7 @@ const ControlID mainControlsID[MAIN_CONTROLS_NUM] = {
 	{ CARBON_GUI_APP_SIGNATURE, SNDOUT_BUT_ID }, 
 	{ CARBON_GUI_APP_SIGNATURE, SNDIN_BUT_ID },
 	{ CARBON_GUI_APP_SIGNATURE, VOL_BUT_ID },
+	{ CARBON_GUI_APP_SIGNATURE, STATUS_BUT_ID },
 	{ CARBON_GUI_APP_SIGNATURE, ABOUT_BUT_ID }
 };
 
@@ -52,12 +62,20 @@ static OSStatus MainWindowCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
 static OSStatus MainWindowEventHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
+static OSStatus VumeterWindowEventHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData);
+static OSStatus StatusWindowCommandHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData);
+static OSStatus StatusWindowEventHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData);
 
-CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
-  : GUI(argc,argv,mix) {
+CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix) 
+ : GUI(argc,argv,mix) {
   	jmix = mix;
 	memset(myLcd,0,sizeof(myLcd));
 	memset(myPos,0,sizeof(myPos));
+	vumeter=0;
+	vuband=0;
 	/* by default we want at leat one active channel */
 	if(!mix->chan[0]) mix->create_channel(0);
 	// Create a Nib reference 
@@ -75,6 +93,15 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 		// The window was created hidden so show it.
 		ShowWindow( window );
 		
+		/* install vumeter controls */
+		setupVumeters();
+		setupStatusWindow();
+		err=CreateWindowGroup(kWindowGroupAttrMoveTogether|kWindowGroupAttrLayerTogether|
+			kWindowGroupAttrSharedActivation|kWindowGroupAttrHideOnCollapse,&mainGroup);
+		err=SetWindowGroup(window,mainGroup);
+		err=SetWindowGroup(vumeterWindow,mainGroup);
+		err=SetWindowGroup(statusWindow,mainGroup);
+	//	SetWindowGroupOwner(mainGroup,window);
 		/* let's create a channel window for each active input channel */
 		unsigned int i;
 		for (i=0;i<MAX_CHANNELS;i++) {
@@ -106,51 +133,128 @@ CARBON_GUI::~CARBON_GUI() {
     DisposeNibReference(nibRef);
 }
 
+void CARBON_GUI::setupStatusWindow() {
+	OSStatus err=CreateWindowFromNib(nibRef,CFSTR("StatusWindow"),&statusWindow);
+	if(err!=noErr) msg->error("Can't create status window (%d)!!",err);
+	SetDrawerParent(statusWindow,window);
+	SetDrawerPreferredEdge(statusWindow,kWindowEdgeBottom);
+	SetDrawerOffsets(statusWindow,20,20);
+	err = InstallWindowEventHandler (statusWindow, 
+		NewEventHandlerUPP (StatusWindowEventHandler), 
+		GetEventTypeCount(statusEvents), statusEvents, this, NULL);
+	if(err != noErr) msg->error("Can't install vumeter eventHandler");
+	err=InstallWindowEventHandler(statusWindow,NewEventHandlerUPP(StatusWindowCommandHandler),
+		GetEventTypeCount(commands),commands,this,NULL);
+}
+
+void CARBON_GUI::setupVumeters() {
+	/* instance vumeters window that will be used later if user request it */
+	OSStatus err=CreateWindowFromNib(nibRef, CFSTR("VumeterWindow"),&vumeterWindow);
+	SetDrawerParent(vumeterWindow,window);
+	SetDrawerPreferredEdge(vumeterWindow,kWindowEdgeTop);
+	SetDrawerOffsets(vumeterWindow,20,20);
+	if(err!=noErr) msg->error("Can't create vumeter window");
+	/* install vmeter event handler+ */
+	err = InstallWindowEventHandler (vumeterWindow, 
+		NewEventHandlerUPP (VumeterWindowEventHandler), 
+		GetEventTypeCount(vumeterEvents), vumeterEvents, this, NULL);
+	if(err != noErr) msg->error("Can't install vumeter eventHandler");
+}
+
 void CARBON_GUI::showStreamWindow() {
 	streamHandler->show();
 }
 void CARBON_GUI::run() {
 	int i;
 	int o = 0;
+	UInt32 finalTicks;
 	while(!quit) {
+		lock(); /* lock before iterating on channel array ... if all is sane
+				 * nobody can modify the channel list while we are managing it */
 		for(i=0;i<MAX_CHANNELS;i++) {
-			lock();
 			if(channel[i]) {
 				if(new_pos[i]) {
 					int newPos = (int)(ch_pos[i]*1000);
-					//if(newPos != myPos[i]) {
-						//myPos[i] = newPos;
-						channel[i]->setPos(newPos);
-						new_pos[i] = false;
-					//}
+					channel[i]->setPos(newPos);
+					new_pos[i] = false;
 				}
 				if(new_lcd[i]) { 
-				//	if(strcmp(ch_lcd[i],myLcd[i]) != 0) {
-				//		strncpy(myLcd[i],ch_lcd[i],255);
-						channel[i]->setLCD(ch_lcd[i]);
-						new_lcd[i] = false;
-				//	}
+					channel[i]->setLCD(ch_lcd[i]);
+					new_lcd[i] = false;
 				}
+				channel[i]->run();
+				//QDFlushPortBuffer(GetWindowPort(channel[i]->window),NULL);
 			}
-			unlock();
 		}
-		usleep(1000);
-	//	jsleep(0,20);
+		unlock();
+		if(meterShown()) updateVumeters();
+		Delay(2,&finalTicks);
 	}
  }
- 
+
+void CARBON_GUI::updateVumeters() {
+	ControlID cid= { CARBON_GUI_APP_SIGNATURE , 0 };
+	ControlRef control;
+	SInt32 val;
+	OSStatus err;
+	/* volume */
+	cid.id=VUMETER_VOL;
+	err=GetControlByID(vumeterWindow,&cid,&control);
+	if(err!=noErr) msg->error("Can't get vbar control (%d)!!",err);
+	val=GetControl32BitValue(control);
+	if(val!=vumeter) {
+		char vdescr[256];
+		SetControl32BitValue(control,vumeter);
+		cid.id=VUMETER_VOL_DESCR;
+		err=GetControlByID(vumeterWindow,&cid,&control);
+		if(err!=noErr) msg->error("Can't get volume descr control (%d)!!",err);
+		sprintf(vdescr,"%d",vumeter);
+		err=SetControlData(control,0,kControlStaticTextTextTag,strlen(vdescr),vdescr);
+	}
+	
+	/* bitrate */
+	cid.id=VUMETER_BITRATE;
+	err=GetControlByID(vumeterWindow,&cid,&control);
+	if(err!=noErr) msg->error("Can't get vbar control (%d)!!",err);
+	val=GetControl32BitValue(control);
+	if(val!=vuband) {
+		char bpsdescr[256];
+		SetControl32BitValue(control,vuband);
+		cid.id=VUMETER_BITRATE_DESCR;
+		err=GetControlByID(vumeterWindow,&cid,&control);
+		if(err!=noErr) msg->error("Can't get bps descr control (%d)!!",err);
+		if(vuband<1000) {
+			sprintf(bpsdescr,"%d B/s",vuband);
+		}
+		else if(vuband>1000 && vuband <1000000) {
+			sprintf(bpsdescr,"%d KB/s",vuband/1000);
+		}
+		else {
+			sprintf(bpsdescr,"%d MB/s",vuband/1000000);
+		}
+		err=SetControlData(control,0,kControlStaticTextTextTag,strlen(bpsdescr),bpsdescr);
+	}
+}
+
 bool CARBON_GUI::new_channel() {
 	int i;
+	lock();
 	for (i=0;i<MAX_CHANNELS;i++) {
 		if(channel[i] == NULL) {
-			if(new_channel(i)) return true;
+			if(new_channel(i)) {
+				unlock();
+				return true;
+			}
 		}
 	}
+	unlock();
 	msg->warning("Actually MuSE doesn't support more than %d parallel input channels",MAX_CHANNELS);
 	return false;
 }
 
 bool CARBON_GUI::new_channel(int i) {
+	/* this is a private method....locking is managed by generic one new_channel() ... beware 
+	 * if you use this method directly ... you will have to manage locks */
 	if(i > MAX_CHANNELS) {
 		msg->warning("Actually MuSE doesn't support more than %d concurrent input channels",MAX_CHANNELS);
 		return false;
@@ -174,14 +278,17 @@ bool CARBON_GUI::new_channel(int i) {
 }
 
 bool CARBON_GUI::remove_channel(int idx) {
+	lock();
 	if(channel[idx]) {
 		delete channel[idx];
 		channel[idx] = NULL;
+		unlock(); /* unlock mutex asap */
 		jmix->stop_channel(idx);
 		jmix->delete_channel(idx);
 		notice("deleted channel %d",idx);
 		return true;
 	}
+	unlock();
 	return false;
 }
 
@@ -194,7 +301,20 @@ void CARBON_GUI::set_title(char *txt) {
 }
  
 void CARBON_GUI::set_status(char *txt) {
-//  gtkgui_set_statustext(txt);
+	HIViewRef statusTextView;
+	TXNObject statusText;
+	const ControlID txtid={ CARBON_GUI_APP_SIGNATURE, STATUS_TEXT_ID };
+	err= HIViewFindByID(HIViewGetRoot(statusWindow), txtid, &statusTextView);
+	if(err!=noErr) msg->warning("Can't get textView for status window (%d)!!",err);
+	statusText = HITextViewGetTXNObject(statusTextView);
+	if(!statusText) {
+		msg->error("Can't get statusText object from status window!!");
+	}
+	if(txt) {
+		TXNSetData(statusText,kTXNTextData,"[*] ",4,kTXNEndOffset,kTXNEndOffset);
+		TXNSetData(statusText,kTXNTextData,txt,strlen(txt),kTXNEndOffset,kTXNEndOffset);
+		TXNSetData(statusText,kTXNTextData,"\n",1,kTXNEndOffset,kTXNEndOffset);
+	}
 }
 
 void CARBON_GUI::add_playlist(unsigned int ch, char *txt) {
@@ -209,7 +329,9 @@ void CARBON_GUI::sel_playlist(unsigned int ch, int row) {
 	unlock();
 }
 
-bool CARBON_GUI::meter_shown() { }
+bool CARBON_GUI::meterShown() { 
+	return IsWindowVisible(vumeterWindow);
+}
 
 bool CARBON_GUI::init_controls() {
 	int i;
@@ -219,15 +341,6 @@ bool CARBON_GUI::init_controls() {
 		//	printf("%d - %d - %d \n",i,mainControlsID[i].id,err);
 			msg->error("Can't get control for button %d (%d)",i,err);
 		}
-	}
-	
-	/* Now simulate a click to the SNDOUT button to let start checked */
-	HIViewRef kk;
-	HIViewFindByID(HIViewGetRoot(window),mainControlsID[SNDOUT_BUT],&kk);
-	ControlPartCode ka;
-	err = HIViewSimulateClick(kk,kControlButtonPart,0,&ka);
-	if(err != noErr) {
-		/* TODO - Error messages */
 	}
 	
 	/* By default start with live output enabled */
@@ -276,10 +389,70 @@ bool CARBON_GUI::attract_channels(int chIndex,AttractedChannel *neigh) {
 	return false;
 }
 
+void CARBON_GUI::showVumeters(bool flag) {
+	OSStatus err;
+	if(flag) {
+		OpenDrawer(vumeterWindow,kWindowEdgeTop,false);
+	}
+	else {
+		CloseDrawer(vumeterWindow,false);
+	//	HideWindow(vumeterWindow);
+	}
+}
+
+void CARBON_GUI::showStatus(bool flag) {
+	OSStatus err;
+	if(flag) { 
+		OpenDrawer(statusWindow,kWindowEdgeBottom,false);
+
+	}
+	else {
+		CloseDrawer(statusWindow,false);
+	}
+}
+
+void CARBON_GUI::toggleStatus() {
+	ToggleDrawer(statusWindow);
+}
+
+void CARBON_GUI::toggleVumeters() {
+	ToggleDrawer(vumeterWindow);
+}
+
+void CARBON_GUI::clearStatus() {
+}
+
+
+
 /* END OF CARBON_GUI */
 
 
 /* COMMAND HANDLER */
+static OSStatus StatusWindowCommandHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData)
+{
+	HICommand command; 
+    OSStatus err = noErr;
+	SInt16 val;
+    CARBON_GUI *me = (CARBON_GUI *)userData;
+	err = GetEventParameter (event, kEventParamDirectObject,
+        typeHICommand, NULL, sizeof(HICommand), NULL, &command);
+    if(err != noErr) me->msg->error("Can't get event parameter!!");
+	switch (command.commandID)
+    {
+		case CLOSE_STATUS_CMD:
+			me->showStatus(false);
+			break;
+		case CLEAR_STATUS_CMD:
+			me->clearStatus();
+			break;
+		default:
+            err = eventNotHandledErr;
+            break;
+	}
+	return err;
+}
+
 static OSStatus MainWindowCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData)
 {
@@ -294,31 +467,68 @@ static OSStatus MainWindowCommandHandler (
     {
         case 'sndo':
 			val = GetControlValue(mainControls[SNDOUT_BUT]);
-            if(val) {
-				me->jmix->set_lineout(true);
-			}
-			else {
-				me->jmix->set_lineout(false);
-			}
+            me->jmix->set_lineout(val?true:false);
             break;
 		case 'newc':
 			me->new_channel();
 			break;
 		case SHOW_STREAMS_CMD:
 				me->showStreamWindow();
-		case 'sndi':
+			break;
 		case 'vol ':
+		//	val = GetControlValue(mainControls[VOL_BUT]);
+		//	me->showVumeters(val?true:false);
+			me->toggleVumeters();
+			break;
+		case SHOW_STATUS_CMD:
+		//	val = GetControlValue(mainControls[STATUS_BUT]);
+		//	me->showStatus(val?true:false);
+			me->toggleStatus();
+			break;
+		case 'sndi':
 		case 'abou':
         default:
             err = eventNotHandledErr;
             break;
     }
-    
-CantGetParameter:
     return err;
 }
 
 /* EVENT HANDLER */
+static OSStatus StatusWindowEventHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData)
+{
+    OSStatus err = noErr;
+    CARBON_GUI *me = (CARBON_GUI *)userData;
+	switch (GetEventKind (event))
+    {
+		case kEventWindowClose:
+			me->showStatus(false);
+			break;
+		default:
+            break;
+    }
+    return err;
+}
+
+static OSStatus VumeterWindowEventHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData)
+{
+    OSStatus err = noErr;
+    CARBON_GUI *me = (CARBON_GUI *)userData;
+	switch (GetEventKind (event))
+    {
+		case kEventWindowClose:
+			SetControlValue(mainControls[VOL_BUT],0);
+			me->showVumeters(false);
+			break;
+		default:
+            err = eventNotHandledErr;
+            break;
+    }
+    return err;
+}
+
 static OSStatus MainWindowEventHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData)
 {

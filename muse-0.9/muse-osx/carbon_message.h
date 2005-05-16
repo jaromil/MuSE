@@ -50,7 +50,7 @@ class CarbonMessage {
 		IBNibRef nibRef;
 		unsigned char type;
 		char text[CM_MSG_MAXLEN];
-		
+		WindowGroupRef msgGroup;
 		
 };
 

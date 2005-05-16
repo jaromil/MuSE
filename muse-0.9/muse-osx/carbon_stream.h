@@ -85,6 +85,7 @@ class CarbonStream {
 		CarbonStreamEncoder *enc[MAX_STREAM_ENCODERS];
 		CarbonStreamServer *servers[MAX_STREAM_ENCODERS][MAX_STREAM_SERVERS];
 		MenuRef streamMenu;
+		WindowGroupRef streamGroup;
 		
 	protected:
 

@@ -24,6 +24,10 @@ void CarbonMessage::run(CFStringRef windowName,SInt32 textId,const char *msg) {
 	WindowRef window;
 	const ControlID tc = { 'MuSE',textId };
 	err = CreateWindowFromNib(nibRef, windowName, &window);
+	err=CreateWindowGroup(kWindowGroupAttrMoveTogether|kWindowGroupAttrLayerTogether|
+			kWindowGroupAttrSharedActivation|kWindowGroupAttrHideOnCollapse,&msgGroup);
+		err=SetWindowGroup(window,msgGroup);
+	
 	err = GetControlByID(window,&tc,&textControl);
 	if(err != noErr) {
 		/* TODO - Error messages */

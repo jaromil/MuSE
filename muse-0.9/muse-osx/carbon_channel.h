@@ -41,15 +41,15 @@ class CarbonChannel {
 	public:
 		CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsigned int chan);
 		~CarbonChannel();
-		bool add_playlist(char *txt) { return plAdd(txt); } /* just an accessor to support muse API */
 		void setLCD(char *lcd);
 		void setPos(int pos);
 		void activateMenuBar();
+		void run(); /* channel main loop ... called every 2 ticks (about 1/60 of a second) */
 		void close ();
 		
 		/* playlist related methods */
 		bool plAdd(char *txt);
-		void plSetup();
+		
 		void plSelect(int row);
 		void plMove(int from,int to);
 		void plRemove(int pos);
@@ -57,12 +57,19 @@ class CarbonChannel {
 		bool plUpdate();
 		MenuRef plGetMenu();
 		
+		/* */
+		void play();
+		void stop();
+		void pause();
+		void prev();
+		void next();
+		
 		/* magnetic methods */
+		void redrawFader();
 		bool checkNeighbours();
 		void attractNeighbour();
 		void stopAttracting();
 		void doAttach();
-		void redrawFader();
 		void gotAttached(CarbonChannel *);
 		void startResize();
 		void stopResize();
@@ -73,6 +80,11 @@ class CarbonChannel {
 		
 		void setVol(int vol);
 		void crossFade(int fadeVal);
+		
+		void openUrlDialog();
+		void openFileDialog();
+		void tryOpenUrl();
+		void cancelOpenUrl();
 		
 		WindowRef window;
 		WindowRef fader;
@@ -91,10 +103,23 @@ class CarbonChannel {
 		int seek;
 
 	private:
+		void lock() { pthread_mutex_lock(&_mutex); };
+		void unlock() { pthread_mutex_unlock(&_mutex); };
+		void wait() { pthread_cond_wait(&_cond,&_mutex); };
+		void signal() { pthread_cond_signal(&_cond); };
+		
+		void plSetup();
+		int getNextPlayListID();
+		void setupOpenUrlWindow();
+		void setupFaderWindow();
+		void updateSelectedSong(int row);
 		bool isDrawing;
 		bool isResizing;
 		bool isSlave;
 		bool isAttached;
+		
+		pthread_mutex_t _mutex;
+		pthread_cond_t _cond;
 		
 		IBNibRef nibRef;
 		MenuRef plMenu;
@@ -102,9 +127,14 @@ class CarbonChannel {
 		EventLoopTimerRef updater;
 		EventHandlerRef windowEventHandler;
 		EventHandlerRef playListEventHandler;
-		int getNextPlayListID();
 		char lcd[255];
 		AEEventHandlerUPP openHandler;
+		int plDisplay;
+		int status;
+		int savedStatus;
+#define CC_STOP	0
+#define CC_PLAY	1
+#define CC_PAUSE 3
 	protected:
 };
 
@@ -152,7 +182,7 @@ Boolean HandleDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item);
 Boolean CheckDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item);
 
 void HandleNotification (ControlRef browser,DataBrowserItemID item,
-   DataBrowserItemNotification message,DataBrowserItemDataRef itemData);
+   DataBrowserItemNotification message);
 
 void GetPLMenu (ControlRef browser,MenuRef *menu,UInt32 *helpType,
 	CFStringRef *helpItemString, AEDesc *selection);
@@ -165,9 +195,13 @@ void RemovePlaylistItem (DataBrowserItemID item,DataBrowserItemState state,void 
 void faderHandler (ControlRef theControl, ControlPartCode partCode);
 
 /****************************************************************************/
-/* OpenDocument callbacks (called when opening from dialog */
+/* OpenDocument callbacks (called when opening from dialog) */
 /****************************************************************************/
 
 static OSErr OpenFile(EventRef event,CarbonChannel *me);
+
+/* the openUrl command handler for the openUrl dialog handled internally in the channel object */
+static OSStatus openUrlCommandHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData);
 	
 #endif
