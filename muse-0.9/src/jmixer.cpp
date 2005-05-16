@@ -803,10 +803,16 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
       warning("cannot stat %s : %s",temp,strerror(errno));
     } else if(prcd.st_mode & S_IFDIR) {
       func("it's a directory");
+#ifdef HAVE_DARWIN
+      struct dirent **filelist;
+      int found = scandir(temp,&filelist,(int(*)(dirent *))selector,alphasort);
+#else
       const struct dirent **filelist;
       // this scandir had a problem browsing directories, now?
       int found = scandir(temp,&filelist,selector,alphasort);
-      if(found<1) error("%i files found: %s",found,strerror(errno));
+
+#endif
+	  if(found<1) error("%i files found: %s",found,strerror(errno));
       else {
 	int c;
 	for(c=0;c<found;c++) {

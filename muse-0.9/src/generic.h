@@ -27,6 +27,7 @@
 #define PLAYMODE_PLAY 0
 #define PLAYMODE_LOOP 1
 #define PLAYMODE_CONT 2
+#define PLAYMODE_PLAYLIST 3
 
 /* buffer settings (take care!) */
 #define IN_DATATYPE int16_t

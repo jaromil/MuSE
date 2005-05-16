@@ -103,9 +103,9 @@ long len = framesPerBuffer * (PA_SAMPLES_PER_FRAME*sizeof(PA_SAMPLE_TYPE));
     readBytes = dev->output->pipe->read(len,outputBuffer);
 	
     /* Zero out remainder of buffer if we run out of data. */
- //   for( i=numRead;i<len;i++) {
-  //    ((char *)outputBuffer)[i] = 0;
-   // }
+    for(int i=readBytes;i<len;i++) {
+       ((char *)outputBuffer)[i] = 0;
+    }
   }
   return 0;
 }
