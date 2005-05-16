@@ -22,6 +22,7 @@
 #ifndef __SOCK_H
 #define __SOCK_H
 
+#include <config.h>
 #include <stdarg.h>
 
 #ifdef _WIN32
@@ -35,11 +36,13 @@
 #include <sys/uio.h>
 #else
 #ifndef _SYS_UIO_H
+#ifndef HAVE_DARWIN
 struct iovec
 {
     void   *iov_base;
     size_t iov_len;
 };
+#endif
 #endif
 #endif
 
