@@ -803,7 +803,7 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
       warning("cannot stat %s : %s",temp,strerror(errno));
     } else if(prcd.st_mode & S_IFDIR) {
       func("it's a directory");
-#ifdef HAVE_DARWIN
+#ifndef linux
       struct dirent **filelist;
       int found = scandir(temp,&filelist,(int(*)(dirent *))selector,alphasort);
 #else

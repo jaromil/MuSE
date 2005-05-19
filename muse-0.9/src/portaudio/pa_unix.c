@@ -87,7 +87,7 @@ O- what if input and output of a device capabilities differ (e.g. es1371) ???
 */
 
 #include <config.h>
-#ifdef HAVE_LINUX
+#ifdef HAVE_UNIX
 
 #include "pa_unix.h"
 

@@ -229,9 +229,9 @@ int Pipe::read(int length, void *data) {
 	/* blank just copied bytes */
 	memset(start,0,blk / read_copy_cb->src_samplesize);
     
-    (char*)start += blk;
+    start = &((char*)start)[blk]; // (char*)start += blk;
     len -= blk;
-    (char*)data += blk;
+    data = &((char*)data)[blk]; // (char*)data += blk;
     worklen -= blk;
     if ((end!=buffer) && (start==bufferEnd))
       start = buffer;
@@ -244,8 +244,8 @@ int Pipe::read(int length, void *data) {
       
 	  /* blank just copied bytes */
 	  memset(start,0,len / read_copy_cb->src_samplesize);
-      (char*)data += len;
-      (char*)start += len;
+      data = &((char*)data)[len]; // (char*)data += len;
+      start = &((char*)start)[len]; // (char*)start += len;
       worklen -= len;
       if ((end!=buffer) && (start==bufferEnd))
 	start = buffer;
@@ -310,9 +310,9 @@ int Pipe::write(int length, void *data) {
       (end, data,
        blk / write_copy_cb->dst_samplesize);
 
-      (char*)end += blk;
+      end = &((char*)end)[blk]; // (char*)end += blk;
       len -= blk;
-      (char*)data += blk;
+      data = &((char*)data)[blk]; // (char*)data += blk;
       worklen -= blk;
       if ((start!=buffer)
 	  && (end==bufferEnd))
@@ -324,8 +324,8 @@ int Pipe::write(int length, void *data) {
 	(end, data,
 	 len / write_copy_cb->dst_samplesize);
 
-      (char*)data += len;
-      (char*)end += len;
+      data = &((char*)data)[len]; // (char*)data += len;
+      end = &((char*)end)[len]; // (char*)end += len;
       worklen -= len;
       
       if ((start!=buffer)

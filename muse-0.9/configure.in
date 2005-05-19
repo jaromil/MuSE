@@ -28,6 +28,7 @@ case $uname in
      Linux)
      AC_MSG_RESULT(Linux)
      AC_DEFINE(HAVE_LINUX,1,[define if compiling for Linux])
+     AC_DEFINE(HAVE_UNIX,1,[define if compiling for UNIX])
      have_linux=yes
      if test $host_cpu = powerpc; then
        AC_DEFINE(ARCH_PPC,1,[define if compiling for Linux/PPC])
@@ -53,11 +54,18 @@ case $uname in
      DARWIN_LIBS="-L/sw/lib -lintl -framework AudioToolbox -framework CoreAudio"
      DARWIN_CFLAGS="-I/sw/include"
      ;;
+
+     *BSD)
+     AC_MSG_RESULT($uname)
+     AC_DEFINE(HAVE_BSD,1,[define if compiling for BSD])
+     AC_DEFINE(HAVE_UNIX,1,[define if compiling for UNIX])
+     have_bsd=yes
+     ;;
+
      *)
      echo "[!] Your system architecture is not supported by MuSE"
      echo "[!] if you are interested in porting MuSE to your architecture"
      echo "[!] you are very welcome to contact me <jaromil@dyne.org>"
-     exit 0
      ;;
 esac
 

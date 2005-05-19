@@ -40,16 +40,21 @@
 */
 
 #include <config.h>
-#ifdef HAVE_LINUX
+#ifdef HAVE_UNIX
 
 #include "pa_unix.h"
 
-#ifdef __linux__
+#ifdef HAVE_LINUX
 #include <linux/soundcard.h>
+#else
+
+#ifdef HAVE_BSD
+#include <sys/soundcard.h>
 #else
 #include <machine/soundcard.h> /* JH20010905 */
 #endif
 
+#endif
 
 #ifndef AFMT_S16_NE
 #define AFMT_S16_NE  Get_AFMT_S16_NE()

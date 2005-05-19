@@ -2,6 +2,7 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+
 #undef HAVE_OGG
 #undef HAVE_VORBIS
 #undef HAVE_LAME
@@ -20,6 +21,8 @@
 #undef HAVE_SCHEDULER
 #undef HAVE_LINUX
 #undef HAVE_DARWIN
+#undef HAVE_UNIX
+#undef HAVE_BSD
 #undef HAVE_MMX
 #undef HAVE_SSE
 #undef ARCH_PPC
