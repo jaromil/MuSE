@@ -1,5 +1,5 @@
 /* MuSE - Multiple Streaming Engine
- * Copyright (C) 2002-2004 jaromil <jaromil@dyne.org>
+ * Copyright (C) 2002-200f4 jaromil <jaromil@dyne.org>
  *
  * This sourcCARBONe code is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Public License as published 
@@ -37,7 +37,7 @@ const EventTypeSpec statusEvents[] = {
 const EventTypeSpec events[] = {
 	{ kEventClassWindow, kEventWindowClosed },
 	{ CARBON_GUI_EVENT_CLASS, CARBON_GUI_REMOVE_CHANNEL},
-	{ kEventClassWindow, kEventWindowGetClickActivation },
+	//{ kEventClassWindow, kEventWindowGetClickActivation },
 	{ kEventClassWindow, kEventWindowActivated }
 };
 	/* HANDLED COMMANDS */
@@ -76,15 +76,18 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 	memset(myPos,0,sizeof(myPos));
 	vumeter=0;
 	vuband=0;
-	/* by default we want at leat one active channel */
-	if(!mix->chan[0]) mix->create_channel(0);
+	memset(channel,0,sizeof(channel));
+	playlistManager=new PlaylistManager();
 	// Create a Nib reference 
     err = CreateNibReference(CFSTR("main"), &nibRef);
 	if(err != noErr) error("Can't get NIB reference to obtain gui controls!!");
     
 	// Create the MainWindow using nib resource file
     err = CreateWindowFromNib(nibRef, CFSTR("MainWindow"), &window);
-	if(err != noErr) error("Can't create MainWindow!!");
+	if(err != noErr) {
+		error("Can't create MainWindow!!");
+		QuitApplicationEventLoop();
+	}
 	else {
 		msg = new CarbonMessage(nibRef);
 		BringToFront(window);
@@ -96,12 +99,13 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 		/* install vumeter controls */
 		setupVumeters();
 		setupStatusWindow();
-		err=CreateWindowGroup(kWindowGroupAttrMoveTogether|kWindowGroupAttrLayerTogether|
-			kWindowGroupAttrSharedActivation|kWindowGroupAttrHideOnCollapse,&mainGroup);
+		err=CreateWindowGroup(kWindowGroupAttrLayerTogether,&mainGroup);
 		err=SetWindowGroup(window,mainGroup);
 		err=SetWindowGroup(vumeterWindow,mainGroup);
-		err=SetWindowGroup(statusWindow,mainGroup);
-	//	SetWindowGroupOwner(mainGroup,window);
+		//err=SetWindowGroup(statusWindow,mainGroup);
+		SetWindowGroupOwner(mainGroup,window);
+		/* by default we want at leat one active channel */
+		if(!mix->chan[0]) mix->create_channel(0);
 		/* let's create a channel window for each active input channel */
 		unsigned int i;
 		for (i=0;i<MAX_CHANNELS;i++) {
@@ -131,6 +135,7 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 CARBON_GUI::~CARBON_GUI() { 
 // We don't need the nib reference anymore.
     DisposeNibReference(nibRef);
+	delete playlistManager;
 }
 
 void CARBON_GUI::setupStatusWindow() {
@@ -150,9 +155,9 @@ void CARBON_GUI::setupStatusWindow() {
 void CARBON_GUI::setupVumeters() {
 	/* instance vumeters window that will be used later if user request it */
 	OSStatus err=CreateWindowFromNib(nibRef, CFSTR("VumeterWindow"),&vumeterWindow);
-	SetDrawerParent(vumeterWindow,window);
-	SetDrawerPreferredEdge(vumeterWindow,kWindowEdgeTop);
-	SetDrawerOffsets(vumeterWindow,20,20);
+//	SetDrawerParent(vumeterWindow,window);
+//	SetDrawerPreferredEdge(vumeterWindow,kWindowEdgeTop);
+//	SetDrawerOffsets(vumeterWindow,20,20);
 	if(err!=noErr) msg->error("Can't create vumeter window");
 	/* install vmeter event handler+ */
 	err = InstallWindowEventHandler (vumeterWindow, 
@@ -186,6 +191,7 @@ void CARBON_GUI::run() {
 				//QDFlushPortBuffer(GetWindowPort(channel[i]->window),NULL);
 			}
 		}
+		if(playlistManager->isTouched()) playlistManager->untouch(); /* reset playlistManager update flag */
 		unlock();
 		if(meterShown()) updateVumeters();
 		Delay(2,&finalTicks);
@@ -268,9 +274,6 @@ bool CARBON_GUI::new_channel(int i) {
 		}
 		CarbonChannel *newChan = new CarbonChannel(jmix,this,nibRef,i);
 		channel[i] = newChan;
-	//	if(i > 0) {
-	//		RepositionWindow(channel[i]->window,channel[i-1]->window,kWindowCascadeOnParentWindow);
-	//	}
 		notice("created channel %d",i);
 		return true;
 	}
@@ -305,7 +308,7 @@ void CARBON_GUI::set_status(char *txt) {
 	TXNObject statusText;
 	const ControlID txtid={ CARBON_GUI_APP_SIGNATURE, STATUS_TEXT_ID };
 	err= HIViewFindByID(HIViewGetRoot(statusWindow), txtid, &statusTextView);
-	if(err!=noErr) msg->warning("Can't get textView for status window (%d)!!",err);
+	if(err!=noErr) return;// msg->warning("Can't get textView for status window (%d)!!",err);
 	statusText = HITextViewGetTXNObject(statusTextView);
 	if(!statusText) {
 		msg->error("Can't get statusText object from status window!!");
@@ -392,11 +395,15 @@ bool CARBON_GUI::attract_channels(int chIndex,AttractedChannel *neigh) {
 void CARBON_GUI::showVumeters(bool flag) {
 	OSStatus err;
 	if(flag) {
-		OpenDrawer(vumeterWindow,kWindowEdgeTop,false);
+	//	OpenDrawer(vumeterWindow,kWindowEdgeTop,false);
+		Rect bounds;
+		GetWindowBounds(window,kWindowGlobalPortRgn,&bounds);
+		MoveWindow(vumeterWindow,bounds.right+10,bounds.top,false);
+		ShowWindow(vumeterWindow);
 	}
 	else {
-		CloseDrawer(vumeterWindow,false);
-	//	HideWindow(vumeterWindow);
+	//	CloseDrawer(vumeterWindow,false);
+		HideWindow(vumeterWindow);
 	}
 }
 
@@ -416,12 +423,27 @@ void CARBON_GUI::toggleStatus() {
 }
 
 void CARBON_GUI::toggleVumeters() {
-	ToggleDrawer(vumeterWindow);
+//	ToggleDrawer(vumeterWindow);
+	if(IsWindowVisible(vumeterWindow)) showVumeters(false);
+	else showVumeters(true);
 }
 
 void CARBON_GUI::clearStatus() {
 }
 
+void CARBON_GUI::bringToFront() {
+	bool anyChannel=false;
+	for ( int i = 0;i < MAX_CHANNELS;i++) {
+		if(channel[i]) {
+			anyChannel=true;
+			SendWindowGroupBehind(channel[i]->faderGroup,mainGroup);
+		}
+	}
+	if(!anyChannel) BringToFront(window);
+	SelectWindow(window);
+	OSStatus err = SetMenuBarFromNib(nibRef, CFSTR("MenuBar"));
+	if(err != noErr) msg->error("Can't get MenuBar!!");
+}
 
 
 /* END OF CARBON_GUI */
@@ -539,13 +561,12 @@ static OSStatus MainWindowEventHandler (
         case kEventWindowClosed: 
             QuitApplicationEventLoop();
             break;
-		case kEventWindowGetClickActivation:  /* TODO - propagate activation click to the right control */
-			/* XXX - still not handled */
-			return CallNextEventHandler(nextHandler,event);
-			break;
+	//	case kEventWindowGetClickActivation:  /* TODO - propagate activation click to the right control */
+	//		/* XXX - still not handled */
+	//		return CallNextEventHandler(nextHandler,event);
+	//		break;
 		case kEventWindowActivated:
-			err = SetMenuBarFromNib(me->nibRef, CFSTR("MenuBar"));
-			if(err != noErr) me->msg->error("Can't get MenuBar!!");
+			me->bringToFront();
 			break;
 		case CARBON_GUI_REMOVE_CHANNEL:
 			int idx;

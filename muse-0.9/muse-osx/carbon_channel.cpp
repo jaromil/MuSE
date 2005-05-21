@@ -24,7 +24,6 @@
 	kWindowGroupAttrSharedActivation|kWindowGroupAttrHideOnCollapse
 
 extern "C" OSStatus OpenFileWindow(WindowRef parent);
-extern "C" OSStatus OpenUrlWindow(WindowRef parent,IBNibRef nib);
 
 /****************************************************************************/
 /* Globals */
@@ -33,11 +32,12 @@ extern "C" OSStatus OpenUrlWindow(WindowRef parent,IBNibRef nib);
 const ControlID selectedSongId = { CARBON_GUI_APP_SIGNATURE, SELECTED_SONG_CONTROL };
 const ControlID volId = { CARBON_GUI_APP_SIGNATURE,VOLUME_CONTROL };
 
-#define CARBON_CHANNEL_EVENTS 8
+#define CARBON_CHANNEL_EVENTS 9
 const EventTypeSpec windowEvents[] = {
+		{ kEventClassWindow, kEventWindowDeactivated },
         { kEventClassWindow, kEventWindowActivated },
 		{ kEventClassWindow, kEventWindowGetClickActivation },
-		{ kEventClassWindow, kEventWindowClosed },
+		{ kEventClassWindow, kEventWindowClose },
 		{ kEventClassWindow, kEventWindowBoundsChanging },
 		{ kEventClassWindow, kEventWindowDragCompleted },
 		{ kEventClassWindow, kEventWindowResizeStarted },
@@ -56,16 +56,21 @@ const EventTypeSpec windowCommands[] = {
 	{ kEventClassCommand, kEventCommandProcess }
 };
 
+uint8_t playmodes[4] = { PLAYMODE_PLAYLIST, PLAYMODE_CONT, PLAYMODE_PLAY, PLAYMODE_LOOP };
 /* Start of CarbonChannel */
 
 CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsigned int chan) {
+	Rect bounds;
+	ControlRef volCtrl;
+	HISize minBounds = {CHANNEL_WINDOW_WIDTH_MIN,CHANNEL_WINDOW_HEIGHT_MIN};
+	HISize maxBounds = {CHANNEL_WINDOW_WIDTH_MAX,CHANNEL_WINDOW_HEIGHT_MAX};
+
 	parent = gui;
 	parentWin = parent->window;
 	jmix = mix;
 	nibRef = nib;
 	chIndex = chan;
 	OSStatus err;
-	jmix->set_playmode(chIndex,PLAYMODE_PLAYLIST);
 	inChannel = jmix->chan[chIndex];
 	memset(&neigh,0,sizeof(neigh));
 	isAttached=false;
@@ -74,12 +79,20 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 	isDrawing=false;
 	status=CC_STOP;
 	savedStatus=-1;
+	seek=0;
+	loadedPlaylist=NULL;
 	playList = inChannel->playlist; //new Playlist();
-	
 	msg = new CarbonMessage(nibRef);
+	plManager = parent->playlistManager;
+	
+	if(pthread_mutex_init (&_mutex,NULL))
+		msg->error("%i:%s error initializing POSIX thread mutex",
+		__LINE__,__FILE__);
+	jmix->set_playmode(chIndex,PLAYMODE_PLAYLIST); 
 	err = CreateWindowFromNib(nibRef, CFSTR("Channel"), &window);
-	HISize minBounds = {CHANNEL_WINDOW_WIDTH_MIN,CHANNEL_WINDOW_HEIGHT_MIN};
-	HISize maxBounds = {CHANNEL_WINDOW_WIDTH_MAX,CHANNEL_WINDOW_HEIGHT_MAX};
+	if(err!=noErr) {
+		msg->error("Can't create channel window (%d)!!",err);
+	}
 	SetWindowResizeLimits(window,&minBounds,&maxBounds);
 	err = CreateMenuFromNib (nibRef,CFSTR("PLMenu"),&plMenu);
 	if(err != noErr) {
@@ -102,15 +115,15 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
             this, NULL);
 	if(err != noErr) msg->error("Can't install channel commandHandler");
 
+	/* initialize the 'load playlist' control */
+	updatePlaylistControls();
 	
 	CFStringRef format = CFStringCreateWithCString(NULL,"Channel %d",0);
 	CFStringRef wName = CFStringCreateWithFormat(NULL,NULL,format,chan);
 	SetWindowTitleWithCFString (window,wName);
 	CFRelease(format);
 	CFRelease(wName);
-	/* and finally we can show the channelwindow */
-	ShowWindow(window);
-	ControlRef volCtrl;
+	
 	err = GetControlByID(window,&volId,&volCtrl);
 	SetControlValue(volCtrl,(int)(inChannel->volume*100));
 	EventLoopTimerUPP timerUPP = NewEventLoopTimerUPP(channelLoop);
@@ -127,22 +140,32 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 	
 	//SetWindowGroupOwner(faderGroup,window);
 
-
 	/* setup playList control */
 	plSetup();
 
 	SetAutomaticControlDragTrackingEnabledForWindow (window, true);
 
 	setupOpenUrlWindow();
+	setupSavePlaylistWindow();
+	SelectWindow(window);
+	err=GetWindowBounds(window,kWindowGlobalPortRgn,&bounds);
+	if(err==noErr) {
+		MoveWindow(window,bounds.left+(chIndex*20),bounds.top+(chIndex*20),true);
+	}
+	/* and finally we can show the channelwindow */
+	ShowWindow(window);
 }
 
 CarbonChannel::~CarbonChannel() {
 	/* remove the eventloop associated to our window */
 //	AERemoveEventHandler (kCoreEventClass,kAEOpenDocuments,openHandler,false);
+	if(pthread_mutex_destroy (&_mutex))
+		msg->error("%i:%s error destroying POSIX thread mutex",
+		__LINE__,__FILE__);
 	RemoveEventLoopTimer(updater);
 	RemoveEventHandler(windowEventHandler);
 	RemoveEventHandler(playListEventHandler);
-	
+	//delete plManager;
 	/* remove some local structures */
 	DisposeMenu(plMenu);
 	DisposeMenu(plEntryMenu);
@@ -150,8 +173,63 @@ CarbonChannel::~CarbonChannel() {
 	RemoveControlProperty(playListControl,CARBON_GUI_APP_SIGNATURE,PLAYLIST_PROPERTY);
 	DisposeWindow(fader);
 	ReleaseWindowGroup(faderGroup);
-	DisposeWindow(openUrl);
+	DisposeWindow(openUrlWindow);
+	DisposeWindow(savePlaylistWindow);
 	/* TODO - maybe more cleaning is needed */
+}
+
+void CarbonChannel::updatePlaylistControls() {
+	MenuRef loadMenu,deleteMenu,saveMenu;
+	ControlRef loadButton,deleteButton,saveButton;
+	ControlID loadButtonId = {CARBON_GUI_APP_SIGNATURE,LOAD_PLAYLIST_BUT};
+	ControlID deleteButtonId = {CARBON_GUI_APP_SIGNATURE,DELETE_PLAYLIST_BUT};
+	ControlID saveButtonId = {CARBON_GUI_APP_SIGNATURE,SAVE_PLAYLIST_BUT};
+
+	/* LOAD PLAYLIST BBUTTON */
+	OSStatus err=GetControlByID(window,&loadButtonId,&loadButton);
+	if(err!=noErr) msg->error("Can't get controlref for loadPlaylist button (%d)!!",err);
+	err=GetBevelButtonMenuHandle(loadButton,&loadMenu);
+	if(err!=noErr) msg->error("Can't get menuref for the loadPlaylist button (%d)!!",err);
+	UInt16 nItems=CountMenuItems(loadMenu);
+	err=DeleteMenuItems(loadMenu,2,nItems-1);
+	err=SetMenuFont(loadMenu,0,9);
+	lock();
+	if(loadedPlaylist) EnableMenuItem(loadMenu,1);
+	else DisableMenuItem(loadMenu,1);
+	unlock();
+	/* DELETE PLAYLIST BUTTON */
+	err=GetControlByID(window,&deleteButtonId,&deleteButton);
+	if(err!=noErr) msg->error("Can't get controlref for deletePlaylist button (%d)!!",err);
+	err=GetBevelButtonMenuHandle(deleteButton,&deleteMenu);
+	if(err!=noErr) msg->error("Can't get menuref for the deletePlaylist button (%d)!!",err);
+	nItems=CountMenuItems(deleteMenu);
+	err=DeleteMenuItems(deleteMenu,1,nItems);
+	err=SetMenuFont(deleteMenu,0,9);
+
+	/* SAVE PLAYLIST BUTTON */
+	err=GetControlByID(window,&saveButtonId,&saveButton);
+	if(err!=noErr) msg->error("Can't get controlref for savePlaylist button (%d)!!",err);
+	err=GetBevelButtonMenuHandle(saveButton,&saveMenu);
+	if(err!=noErr) msg->error("Can't get menuref for the savePlaylist button (%d)!!",err);
+	err=SetMenuFont(saveMenu,0,9);
+	lock();
+	if(loadedPlaylist) EnableMenuItem(saveMenu,2);
+	else DisableMenuItem(saveMenu,2);
+	unlock();
+	SetMenuItemCommandID(saveMenu,1,SAVE_PLAYLIST_CMD);
+	SetMenuItemCommandID(saveMenu,2,SAVE_PLAYLIST_CMD);
+
+	int npl = plManager->len();
+	for(int i=1;i<=npl;i++) {
+		char *name = plManager->getName(i);
+		if(name) {
+			MenuItemIndex newIdx;
+			CFStringRef text=CFStringCreateWithCString(NULL,name,kCFStringEncodingMacRoman );
+			err=AppendMenuItemTextWithCFString(loadMenu,text,0,LOAD_PLAYLIST_CMD,&newIdx);
+			err=AppendMenuItemTextWithCFString(deleteMenu,text,0,DELETE_PLAYLIST_CMD,&newIdx);
+			CFRelease(text);
+		}
+	}
 }
 
 void CarbonChannel::setupFaderWindow() {
@@ -177,12 +255,20 @@ void CarbonChannel::setupFaderWindow() {
 }
 
 void CarbonChannel::setupOpenUrlWindow() {
-	OSStatus err=CreateWindowFromNib(nibRef, CFSTR("AddURLWindow"), &openUrl);
+	OSStatus err=CreateWindowFromNib(nibRef, CFSTR("AddURLWindow"), &openUrlWindow);
 	if(err != noErr) msg->error("Can't create the openUrl window (%d)!!",err);
 	/* install the channel command handler */
-	err = InstallWindowEventHandler (openUrl,NewEventHandlerUPP (openUrlCommandHandler), 
+	err = InstallWindowEventHandler (openUrlWindow,NewEventHandlerUPP (openUrlCommandHandler), 
 		GetEventTypeCount(windowCommands), windowCommands, this, NULL);
 	if(err != noErr) msg->error("Can't install openUrl commandHandler");
+}
+
+void CarbonChannel::setupSavePlaylistWindow() {
+	OSStatus err=CreateWindowFromNib(nibRef, CFSTR("SavePlaylistWindow"), &savePlaylistWindow);
+	if(err != noErr) msg->error("Can't create the savePlaylist window (%d)!!",err);
+	err = InstallWindowEventHandler (savePlaylistWindow,NewEventHandlerUPP (savePlaylistCommandHandler), 
+		GetEventTypeCount(windowCommands), windowCommands, this, NULL);
+	if(err != noErr) msg->error("Can't install savePlaylist commandHandler");
 }
 
 void CarbonChannel::plSetup() {
@@ -270,9 +356,9 @@ bool CarbonChannel::plUpdate() {
 }
 
 bool CarbonChannel::plAdd(char *txt) {
-	lock();
+//	lock(); /* NO NEED FOR LOCKS ... add_to_playlist calls plUpdate...and we do locking there
 	if(txt)	return jmix->add_to_playlist(chIndex,txt);
-	unlock();
+//	unlock();
 	return false;
 }
 
@@ -586,16 +672,18 @@ void CarbonChannel::openFileDialog() {
 void CarbonChannel::openUrlDialog() {
 	const ControlID openUrlTextID = { CARBON_GUI_APP_SIGNATURE, OPEN_URL_TEXT_CONTROL };
 	ControlRef urlText;
-	if(!IsWindowVisible(openUrl)) {
-		ShowSheetWindow(openUrl,window);
+	if(!IsWindowVisible(openUrlWindow)) {
+		ShowSheetWindow(openUrlWindow,window);
 	}
 	else {
-		BringToFront(openUrl);
+		BringToFront(openUrlWindow);
 	}
-	OSStatus err=GetControlByID(openUrl,&openUrlTextID,&urlText);
+	OSStatus err=GetControlByID(openUrlWindow,&openUrlTextID,&urlText);
 	if(err!=noErr) msg->warning("Can't get text control from the openUrl dialog (%d)!!",err);
 	//SelectWindow(openUrl);
-	HIViewAdvanceFocus(HIViewGetRoot(openUrl),0); /* set focus to the url input text box */
+	
+	if(!HIViewSubtreeContainsFocus(HIViewGetRoot(openUrlWindow)))
+		HIViewAdvanceFocus(HIViewGetRoot(openUrlWindow),0); /* set focus to the url input text box */
 }
 
 void CarbonChannel::tryOpenUrl() {
@@ -603,7 +691,7 @@ void CarbonChannel::tryOpenUrl() {
 	const ControlID openUrlTextID = { CARBON_GUI_APP_SIGNATURE, OPEN_URL_TEXT_CONTROL };
 	ControlRef urlText;
 	Size textSize;
-	OSStatus err=GetControlByID(openUrl,&openUrlTextID,&urlText);
+	OSStatus err=GetControlByID(openUrlWindow,&openUrlTextID,&urlText);
 	if(err!=noErr) msg->warning("Can't get text control from the openUrl dialog (%d)!!",err);
 	err= GetControlDataSize(urlText,0,kControlEditTextTextTag,&textSize);
 	if(err!=noErr) msg->warning("Can't get url size (%d)!!",err);
@@ -615,7 +703,7 @@ void CarbonChannel::tryOpenUrl() {
 	}
 	else {
 		SetControlData(urlText,0,kControlEditTextTextTag,0,NULL);
-		HideSheetWindow(openUrl);
+		HideSheetWindow(openUrlWindow);
 	}
 	free(text);
 }
@@ -623,21 +711,28 @@ void CarbonChannel::tryOpenUrl() {
 void CarbonChannel::cancelOpenUrl() {
 	ControlRef urlText;
 	const ControlID openUrlTextID = { CARBON_GUI_APP_SIGNATURE, OPEN_URL_TEXT_CONTROL };
-	OSStatus err=GetControlByID(openUrl,&openUrlTextID,&urlText);
+	OSStatus err=GetControlByID(openUrlWindow,&openUrlTextID,&urlText);
 	if(err!=noErr) msg->warning("Can't get text control from the openUrl dialog (%d)!!",err);
 	SetControlData(urlText,0,kControlEditTextTextTag,0,NULL);
-	HideSheetWindow(openUrl);
+	HideSheetWindow(openUrlWindow);
 }
 
 void CarbonChannel::run() { /* channel main loop */
+	OSStatus err;
 	lock();
 	/* update status - this can override the status setted by user controls
 	 * in respect of inChannel behaviour */
-	if(inChannel->state==0.0) 
+	 float cState=inChannel->state;
+	 if(cState==0.0) {
 		if(status!=CC_PAUSE) status=CC_STOP;
-	else if(inChannel->state >= 2.0) status=CC_STOP;
-	else status=CC_PLAY;
-		
+	}
+	else if(cState >= 2.0) {
+		status=CC_STOP;
+	}
+	else {
+		if(status != CC_PAUSE) 
+			status=CC_PLAY;
+	}	
 	if(status!=savedStatus) { /* status change */
 		ControlID butId = { CARBON_GUI_APP_SIGNATURE ,PLAY_BUT};
 		ControlRef playButton,pauseButton,stopButton;
@@ -672,10 +767,10 @@ void CarbonChannel::run() { /* channel main loop */
 		savedStatus=status;
 	}
 	unlock();
-	if(plDisplay!=playList->selected_pos()) { /* should mantain lock until comparison? */
+	if(plDisplay!=playList->selected_pos()) { /* should mantain lock until comparison has done? */
 		updateSelectedSong(playList->selected_pos());
 	}
-	
+	if(plManager->isTouched()) updatePlaylistControls();
 }
 
 void CarbonChannel::play() {
@@ -708,18 +803,11 @@ void CarbonChannel::stop() {
 }
 
 void CarbonChannel::prev() {
-	int curPos;
-	if(status==CC_PLAY) inChannel->stop();
-	curPos = inChannel->playlist->selected_pos();
-	plSelect((curPos>1)?((seek==0)?curPos-1:curPos):1);
-	if(status==CC_PLAY) inChannel->play();
+	inChannel->prev();
 }
 
 void CarbonChannel::next() {
-	if(status==CC_PLAY) inChannel->stop();
-	inChannel->skip();
-	plSelect(inChannel->playlist->selected_pos());
-	if(status==CC_PLAY) inChannel->play();
+	inChannel->next();
 }
 
 void CarbonChannel::pause() {
@@ -727,6 +815,185 @@ void CarbonChannel::pause() {
 	lock();
 	status=CC_PAUSE;
 	unlock();
+}
+
+bool CarbonChannel::plLoad(int idx) { 
+	ControlID saveButtonId = {CARBON_GUI_APP_SIGNATURE,SAVE_PLAYLIST_BUT};
+	ControlID loadButtonId = {CARBON_GUI_APP_SIGNATURE,LOAD_PLAYLIST_BUT};
+	ControlRef saveButton,loadButton;
+	MenuRef saveMenu,loadMenu;
+	OSStatus err;
+	int i;
+	
+	/* get loadbutton and savebutton controls and menu handles */
+	err=GetControlByID(window,&loadButtonId,&loadButton);
+	if(err!=noErr) msg->error("Can't get controlref for loadPlaylist button (%d)!!",err);
+	err=GetBevelButtonMenuHandle(loadButton,&loadMenu);
+	if(err!=noErr) msg->error("Can't get menuref for the loadPlaylist button (%d)!!",err);
+	err=GetControlByID(window,&saveButtonId,&saveButton);
+	if(err!=noErr) msg->error("Can't get controlref for savePlaylist button (%d)!!",err);
+	err=GetBevelButtonMenuHandle(saveButton,&saveMenu);
+	if(err!=noErr) msg->error("Can't get menuref for the savePlaylist button (%d)!!",err);
+	
+	/* init databrowser header structure */
+	DataBrowserListViewHeaderDesc header;
+	header.version=kDataBrowserListViewLatestHeaderDesc;
+	err=GetDataBrowserListViewHeaderDesc(playListControl,'SONG',&header);
+	if(err!=noErr) msg->error("Can't get column description for playlist (%d)!!",err);
+
+	if(idx) {
+		Playlist *newPl=plManager->load(idx);
+		if(newPl) {
+			for(i=playList->len();i>0;i--) {
+				plRemove(i);
+			}
+			for(i=1;i<=newPl->len();i++) {
+				Url *entry=(Url *)newPl->pick(i);
+				if(entry) plAdd(entry->path);
+			}
+			char *n=plManager->getName(idx);
+			/* fill 'save button' menu with the current playlist name */
+			lock();
+			loadedPlaylist=strdup(n);
+			CFStringRef format = CFStringCreateWithCString(NULL,"update %s",0);
+			CFStringRef text=CFStringCreateWithFormat(NULL,NULL,format,loadedPlaylist );
+			unlock();
+			err=SetMenuItemTextWithCFString(saveMenu,2,text);
+			EnableMenuItem(saveMenu,2);
+			EnableMenuItem(loadMenu,1);
+			CFRelease(text);
+		
+			/* fill playlist (databrowser) header with loadedPlaylist value */
+			text = CFStringCreateWithCString(NULL,loadedPlaylist,kCFStringEncodingMacRoman);
+			header.titleString=text;
+			SetDataBrowserListViewHeaderDesc(playListControl,'SONG',&header);
+			CFRelease(text);
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else { /* idx == 0 ... we want to unload playlist */
+		/* empty playlist */
+		for(i=playList->len();i>0;i--) {
+			plRemove(i);
+		}
+		/* set databrowser header */
+		header.titleString=CFSTR("Custom Playlist"); /* mmm should i free strings created with CFSTR macro? */
+		err=SetDataBrowserListViewHeaderDesc(playListControl,'SONG',&header);
+		/* clear 'save button' menu */
+		err=SetMenuItemTextWithCFString(saveMenu,2,CFSTR("")); /* XXX - should i free release results from CFSTR() macro? */
+		DisableMenuItem(saveMenu,2);
+		DisableMenuItem(loadMenu,1);
+		lock();
+		loadedPlaylist=NULL;
+		unlock();
+	}
+}
+
+bool CarbonChannel::plDelete(int idx) {
+	char *name=plManager->getName(idx);
+	if(name) {
+		if(strcmp(name,loadedPlaylist)==0) { /* XXX - should i lock() before looking at loadedPlaylist ? */
+			plLoad(0);
+		}
+		if(plManager->remove(idx)) {
+			plManager->touch();
+			return true;
+		}
+	}
+	return false;
+}
+
+bool CarbonChannel::plSave(int mode) {
+	char *name=NULL;
+	Size nameSize;
+	ControlRef saveText;
+	OSStatus err;
+	if(mode) { /* update current playlist */
+		lock(); /* lock to prevent loadedPlaylist changes (for example by scheduler thread while user is saving */
+		bool res=plManager->update(loadedPlaylist);
+		unlock();
+		return res;
+	}
+	else { /* save a new playlist (saveAs mode) */
+		if(!playList->len()) { /* empty playlist */
+			msg->warning("Empty playlist!!");
+			HideSheetWindow(savePlaylistWindow);
+			return false;
+		}
+		const ControlID saveTextID = { CARBON_GUI_APP_SIGNATURE, SAVE_PLAYLIST_TEXT_CONTROL };
+		err=GetControlByID(savePlaylistWindow,&saveTextID,&saveText);
+		if(err!=noErr) msg->warning("Can't get text control from the savePlaylist dialog (%d)!!",err);
+		err=GetControlDataSize(saveText,0,kControlEditTextTextTag,&nameSize);
+		if(err!=noErr) msg->error("Can't get text size for saveName (%d)!!\n",err);
+		name=(char *)malloc(nameSize+1);
+		err=GetControlData(saveText,0,kControlEditTextTextTag,nameSize,name,NULL);
+		if(err!=noErr) msg->error("Can't get text for saveName (%d)!!\n",err);
+		name[nameSize]=0; /* null-terminate the name string (char *buffer) */
+		SetControlData(saveText,0,kControlEditTextTextTag,0,NULL);
+		HideSheetWindow(savePlaylistWindow);
+		if( plManager->save(name,playList)) {
+		//	msg->notify("Playlist \"%s\" saved successfully",name);
+			plManager->touch();
+			if(!plLoad(plManager->len())) {
+				msg->warning("Can't load the just created playlist!!");
+			}
+			return true;
+		}
+		else {
+			msg->warning("Can't save playlist \"%s\"",name);
+			return false;
+		}
+	
+		/*	TODO - little bug... when in saveAs mode, save button remains hilited ... 
+		ControlID buttonID = { CARBON_GUI_APP_SIGNATURE, SAVE_PLAYLIST_BUT };
+		ControlRef button;
+		err=GetControlByID(window,&buttonID,&button);
+		if(err!=noErr) msg->error("Can't get 'save button' control (%d)!!",err);
+		SetControlValue(button,0);
+		*/
+	}
+}
+
+void CarbonChannel::plSaveDialog() {
+	if(!IsWindowVisible(savePlaylistWindow)) {
+		ShowSheetWindow(savePlaylistWindow,window);
+	}
+	else {
+		BringToFront(savePlaylistWindow);
+	}
+
+	/*
+	const ControlID savePlaylistTextID = { CARBON_GUI_APP_SIGNATURE,SAVE_PLAYLIST_TEXT_CONTROL };
+	ControlRef saveName;
+	OSStatus err=GetControlByID(savePlaylistWindow,&savePlaylistTextID,&saveName);
+	if(err!=noErr) msg->warning("Can't get text control from the savePlaylist dialog (%d)!!",err);
+	if(loadedPlaylist) SetControlData(saveName,0,kControlEditTextTextTag,strlen(loadedPlaylist),loadedPlaylist);
+	SelectWindow(openUrl);
+	*/
+	
+	if(!HIViewSubtreeContainsFocus(HIViewGetRoot(savePlaylistWindow)))
+		HIViewAdvanceFocus(HIViewGetRoot(savePlaylistWindow),0); /* set focus to the url input text box */
+}
+
+void CarbonChannel::plCancelSave() {
+	ControlRef saveText;
+	const ControlID saveTextID = { CARBON_GUI_APP_SIGNATURE, SAVE_PLAYLIST_TEXT_CONTROL };
+	OSStatus err=GetControlByID(savePlaylistWindow,&saveTextID,&saveText);
+	if(err!=noErr) msg->warning("Can't get text control from the savePlaylist dialog (%d)!!",err);
+	SetControlData(saveText,0,kControlEditTextTextTag,0,NULL);
+	HideSheetWindow(savePlaylistWindow);
+}
+
+void CarbonChannel::updatePlaymode() {
+	ControlRef playmodeControl;
+	const ControlID playmodeID = { CARBON_GUI_APP_SIGNATURE,PLAYMODE_CONTROL };
+	OSStatus err=GetControlByID(window,&playmodeID,&playmodeControl);
+	if(err!=noErr) msg->error("Can't get playmode control (%d)!!",err);
+	SInt32 val = GetControlValue(playmodeControl);
+	jmix->set_playmode(chIndex,playmodes[val-1]);
 }
 
 /* End of CarbonChannel */
@@ -738,7 +1005,18 @@ void CarbonChannel::pause() {
 /****************************************************************************/
 
 void channelLoop(EventLoopTimerRef inTimer,void *inUserData) {
-	/*OSStatus err;*/
+	/* this loop time is needed to let qquartz update channel window even if no user event occurs.
+	 * without this timer, event if we programmatically change control values and state, quartz
+	 * doesn't update them until an user event arrives...so you have to move mouse to have seek update
+	 * while playing tracks */
+	 
+	/* NOTE : this happens because lcd value is changed in a thread different from the one that 
+	 * created and handles the channel window (another important detail is that this thread doesn't execute 
+	 * the RunEventLoop but the runloop is handled internally by the CARBON_GUI::run() method */
+	
+	/* EXTRA NOTE: it's possible that we can eliminate this timer routine calling something in the main channel
+	 * event loop CarbonChannel::run|() , called periodically (about every 2 ticks) by the main CARBON_GUI object 
+	 * it would be nice to investigate deeply to check if we can eliminate this stupid workaround */ 
 }
 
 // --------------------------------------------------------------------------------------------------------------
@@ -747,13 +1025,13 @@ void channelLoop(EventLoopTimerRef inTimer,void *inUserData) {
 /* CALLBACKS */
 /****************************************************************************/
 
-
+/*
 OSErr ForceDrag (Point *mouse,SInt16 *modifiers,void *userData,DragRef theDrag) 
 {
 	*modifiers = 256|cmdKeyBit;
 	return noErr;
 }
-
+*/
 
 Boolean AddDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item,DragItemRef *itemRef)
 {
@@ -936,10 +1214,12 @@ Boolean CheckDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item) {
 	if(receivedType==kDragFlavorTypeHFS||typeFileURL)
 		return true;
 	else if(receivedType==PLAYLIST_ITEM_DRAG_ID) {
+	/*	
 		if(item == kDataBrowserNoItem) {
 			err = SetDragInputProc(theDrag,NewDragInputUPP(&ForceDrag),NULL);
 			if(err!=noErr) me->msg->error("Can't set input proc for internal item(%d)!!",err);
 		}
+	*/
 		return true;
 	}
 	
@@ -1015,11 +1295,14 @@ static OSStatus ChannelEventHandler (
 		case kAEOpenDocuments:
 			OpenFile(event,me);
 			break;
-        case kEventWindowClosed: 
+        case kEventWindowClose: 
             me->close();
             break;
 		case kEventWindowActivated:
 			me->activateMenuBar();
+			break;
+		case kEventWindowDeactivated:
+			//SendWindowGroupBehind(me->faderGroup,me->parent->mainGroup);
 			break;
 		case kEventWindowBoundsChanging:
 			Rect myBounds;
@@ -1146,6 +1429,20 @@ static OSStatus channelCommandHandler (
 		case SHOW_STREAMS_CMD:
 			me->parent->showStreamWindow();
 			break;
+		case SAVE_PLAYLIST_CMD:
+			if(command.menu.menuItemIndex==1) // save a new playlist
+				me->plSaveDialog();
+			else // update current playlist
+				me->plSave(1);
+			break;
+		case LOAD_PLAYLIST_CMD:
+			me->plLoad(command.menu.menuItemIndex-1); /* first index is the 'unload' command */
+			break;
+		case DELETE_PLAYLIST_CMD:
+			me->plDelete(command.menu.menuItemIndex);
+		case PLAYMODE_CMD:
+			me->updatePlaymode();
+			break;
 		default:
             err = eventNotHandledErr;
             break;
@@ -1195,6 +1492,30 @@ static OSStatus openUrlCommandHandler (
 			break;
 		case CANCEL_CMD:
 			me->cancelOpenUrl();
+		default:
+			err = eventNotHandledErr;
+	}
+	return err;
+}
+
+static OSStatus savePlaylistCommandHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData)
+{
+    HICommand command; 
+    OSStatus err = noErr;
+	SInt16 val;
+    CarbonChannel *me = (CarbonChannel *)userData;
+	err = GetEventParameter (event, kEventParamDirectObject,
+        typeHICommand, NULL, sizeof(HICommand), NULL, &command);
+    if(err != noErr) me->msg->error("Can't get event parameter!!");
+	switch (command.commandID)
+    {
+		case SAVE_PLAYLIST_CONFIRM_CMD:
+			me->plSave(0);
+			break;
+		case CANCEL_CMD:
+			me->plCancelSave();
+			break;
 		default:
 			err = eventNotHandledErr;
 	}

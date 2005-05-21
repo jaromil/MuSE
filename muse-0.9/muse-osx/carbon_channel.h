@@ -25,6 +25,8 @@
 #include "carbon_common.h"
 #include "carbon_message.h"
 #include <playlist.h>
+#include "playlist_manager.h"
+
 #define CARBON_MAX_PLAYLIST_ENTRIES 32000
 				
 class CARBON_GUI;
@@ -52,11 +54,20 @@ class CarbonChannel {
 		
 		void plSelect(int row);
 		void plMove(int from,int to);
-		void plRemove(int pos);
+		void plRemove(int pos); /* remove an entry in the current playlist */
 		void plRemoveSelection();
 		bool plUpdate();
 		MenuRef plGetMenu();
-		
+		bool plSave(int mode); /* mode == 0  => create a new playlist, mode == 1 => update the loaded one */
+		bool plLoad(int idx);
+		bool plDelete(int idx); /* remove an entire playlist from the saved ones */
+		void plSaveDialog();
+		void plCancelSave();
+		void openUrlDialog();
+		void openFileDialog();
+		void tryOpenUrl();
+		void cancelOpenUrl();
+		void updatePlaymode();
 		/* */
 		void play();
 		void stop();
@@ -81,15 +92,12 @@ class CarbonChannel {
 		void setVol(int vol);
 		void crossFade(int fadeVal);
 		
-		void openUrlDialog();
-		void openFileDialog();
-		void tryOpenUrl();
-		void cancelOpenUrl();
-		
+				
 		WindowRef window;
 		WindowRef fader;
 		WindowRef parentWin;
-		WindowRef openUrl;
+		WindowRef openUrlWindow;
+		WindowRef savePlaylistWindow;
 		WindowGroupRef faderGroup;
 		Stream_mixer *jmix;
 		CARBON_GUI *parent;
@@ -105,21 +113,21 @@ class CarbonChannel {
 	private:
 		void lock() { pthread_mutex_lock(&_mutex); };
 		void unlock() { pthread_mutex_unlock(&_mutex); };
-		void wait() { pthread_cond_wait(&_cond,&_mutex); };
-		void signal() { pthread_cond_signal(&_cond); };
 		
 		void plSetup();
 		int getNextPlayListID();
 		void setupOpenUrlWindow();
 		void setupFaderWindow();
+		void setupSavePlaylistWindow();
 		void updateSelectedSong(int row);
+		void updatePlaylistControls();
+
 		bool isDrawing;
 		bool isResizing;
 		bool isSlave;
 		bool isAttached;
 		
 		pthread_mutex_t _mutex;
-		pthread_cond_t _cond;
 		
 		IBNibRef nibRef;
 		MenuRef plMenu;
@@ -132,6 +140,8 @@ class CarbonChannel {
 		int plDisplay;
 		int status;
 		int savedStatus;
+		PlaylistManager *plManager;
+		char *loadedPlaylist;
 #define CC_STOP	0
 #define CC_PLAY	1
 #define CC_PAUSE 3
@@ -170,7 +180,7 @@ static OSStatus faderCommandHandler (
 /****************************************************************************/
 /* DataBrowser (playlist)  handlers (carbon callbacks)*/
 /****************************************************************************/
-OSErr ForceDrag (Point *mouse,SInt16 *modifiers,void *userData,DragRef theDrag);
+//OSErr ForceDrag (Point *mouse,SInt16 *modifiers,void *userData,DragRef theDrag);
 
 Boolean AddDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item,DragItemRef *itemRef);
 
@@ -204,4 +214,6 @@ static OSErr OpenFile(EventRef event,CarbonChannel *me);
 static OSStatus openUrlCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
 	
+static OSStatus savePlaylistCommandHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData);
 #endif

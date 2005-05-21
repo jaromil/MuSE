@@ -25,10 +25,6 @@
 
 static NavDialogRef gOpenFileDialog = NULL;
 
-OSStatus OpenUrlWindow(WindowRef parent,WindowRef openWin) {
-	ShowWindow(openWin);
-}
-
 OSStatus OpenFileWindow(WindowRef parent) {
 	NavDialogRef		navDialog;
 	

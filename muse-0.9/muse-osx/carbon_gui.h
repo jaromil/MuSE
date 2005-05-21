@@ -20,6 +20,7 @@
 
 #include <gui.h>
 #include "carbon_common.h"
+#include "playlist_manager.h"
 #include <carbon_channel.h>
 #include <carbon_stream.h>
 #include <carbon_message.h>
@@ -55,13 +56,15 @@ class CARBON_GUI : public GUI {
   void clearStatus();
   bool meterShown();
   bool statusShown(); 
-  
+  void bringToFront();
  // void start();
 
   WindowRef 	window;
+  WindowGroupRef mainGroup;
   IBNibRef 		nibRef;
   Stream_mixer *jmix;
   CarbonMessage *msg;
+  PlaylistManager *playlistManager;
 
 private:
   bool init_controls();
@@ -79,7 +82,6 @@ private:
   int vuband, vumeter;
   WindowRef vumeterWindow;
   WindowRef statusWindow;
-  WindowGroupRef mainGroup;
 
   OSStatus		err;
   CarbonChannel	*channel[MAX_CHANNELS];

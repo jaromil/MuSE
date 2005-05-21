@@ -80,10 +80,21 @@
 #define VOLUME_CONTROL 306
 #define PLAYLIST_BOX 307
 #define PLAYLIST_PROPERTY 'lCha'
-
-#define REPEAT_BUT 308
-#define LOOP_BUT 309
+/*
+#define LOOP_PLAYLIST_BUT 308
+#define LOOP_PLAYLIST_CMD 'pllo'
+#define LOOP_SINGLE_BUT 309
+#define LOOP_SINGLE_CMD 'silo'
 #define SHUFFLE_BUT 310
+#define SHUFFLE_CMD 'plsh'
+#define SINGLE_SONG_BUT 311
+#define SINGLE_SONG_CMD 'sing'
+#define SINGLE_PLAYLIST_BUT 318
+#define SINGLE_PLAYLIST_CMD 'plno'
+*/
+#define PLAYMODE_CONTROL 308
+#define PLAYMODE_CMD 'plmo'
+
 #define SELECTED_SONG_CONTROL 313
 
 #define PLAY_CMD 'Play'
@@ -110,6 +121,15 @@
 #define FADER_CHAN1_ID 665
 #define FADER_CHAN2_ID 667
 #define FADER_PROPERTY 'lFad'
+
+#define LOAD_PLAYLIST_BUT 315
+#define LOAD_PLAYLIST_CMD 'lopl'
+#define SAVE_PLAYLIST_BUT 316
+#define SAVE_PLAYLIST_CMD 'sapl'
+#define SAVE_PLAYLIST_TEXT_CONTROL 901
+#define SAVE_PLAYLIST_CONFIRM_CMD 'cspl'
+#define DELETE_PLAYLIST_BUT 317
+#define DELETE_PLAYLIST_CMD 'depl'
 
 /* STREAM WINDOW */
 
