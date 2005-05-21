@@ -30,9 +30,12 @@
 #include "linklist.h"
 
 #define XmlErr int
-#define XML_BADARGS -1
-#define XML_UPDATE_ERR -2
 #define XML_NOERR 0
+#define XML_GENERIc_ERR -1
+#define XML_BADARGS -2
+#define XML_UPDATE_ERR -2
+#define XML_OPEN_FILE_ERR -3
+#define XML_PARSER_GENERIC_ERR -4
 
 
 /**
@@ -51,17 +54,6 @@ class XmlTag;
 	implements an API to let the user retreive single elements and walk the xml structure
 */
 class XmlProfile;
-
-/**
-	@type XmlParser
-	@brief just a little struct to group references needed by the parser callbacks
-	(registered to g_markup_parser)
-*/
-typedef struct {
-	XmlTag *cTag; ///< the XmlTag we are currently parsing (during the parse process)
-	XmlProfile *me; ///< an XmlProfile reference to the actual XmlProfile object
-} XmlParser;
-
 
 /**
 	@type XmlTagAttribute
@@ -134,6 +126,15 @@ class XmlTag {
 		*/
 		XmlErr  addChild(XmlTag *child);
 		/**
+			@brief add a new child to the current XmlTag element
+			@param name of the new child object
+			@param value of the new child object
+			@return an XmlErr result status. (XML_NOERR if successfull)
+		*/
+		XmlErr XmlTag::addChild(char *name, char *val);
+		XmlTag  *removeChild(int index); ///< XXX - UNIMPLEMENTED
+		XmlTag  *removeChild(char *name); ///< XXX - UNIMPLEMENTED
+		/**
 			@brief get the number of children 
 			@return the number of childer
 		*/
@@ -177,8 +178,9 @@ class XmlTag {
 		int  numAttributes();		
 		Linklist *children; ///< linked list containing element's children 
 		Linklist *attributes; ///< linked list containing element's attributes
-// end of the XmlTag public interface
-/// @}
+	
+		// end of the XmlTag public interface
+		/// @}
 
 	private:
 		XmlTag *_parent;
@@ -231,6 +233,27 @@ class XmlProfile {
 			that represent a path of element names to reach the element.
 		*/
 		XmlTag *getElement(char *path);
+		/**
+			
+		*/
+		int numBranches();
+		/***
+			@brief get the number of root nodes 
+			@return the number of root nodes
+		*/
+		bool removeBranch(int index);
+		/***
+			@brief remove an entire branch starting from a root node
+			@arg the index of the root node to remove
+			@return true if success, false otherwise
+		*/
+		bool removeBranch(char *name);
+		/***
+			@brief remove an entire branch starting from a root node
+			@arg the name of the root node to remove
+			@return true if success, false otherwise
+		*/
+		bool removeElement(char *path); ///<  XXX - UNIMPLEMENTED
 		/***
 			@brief parse a string buffer containing an xml profile and fills internal structures appropriately
 			@arg the null terminated string buffer containing the xml profile
@@ -267,13 +290,16 @@ class XmlProfile {
 		*/
 		char *dumpXml();
 
-// end of the XmlProfile public interface
-/// @}0
+		// end of the XmlProfile public interface
+		/// @}
+
 	private:
 		XmlErr XmlStartHandler( char *element,char **attr_names, char **attr_values);
 		XmlErr XmlEndHandler(char *element);
 		XmlErr XmlValueHandler(char *text);
-				
+		bool fileLock(FILE *file);  /* handle locking on xml files to prevent race conditions */
+		bool fileUnlock(FILE *file);
+		
 		Linklist *rootElements;
 		char *xmlFile;
 		XmlTag *cTag;

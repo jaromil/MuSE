@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include "jutils.h"
 
 #define XML_ELEMENT_NONE 0
@@ -32,19 +33,14 @@
 #define XML_ELEMENT_END 3
 #define XML_ELEMENT_UNIQUE 4
 
-#define SKIP_BLANKS(__p) \
-	while((*__p==' ' || *__p=='\t' || *__p=='\r' || *__p == '\n') && *__p!=0) __p++; 
-		
-#define ADVANCE_ELEMENT(__p) \
-	while(*__p!='>' && *__p!=' ' && *__p!='\t' && *__p!='\r' && *__p != '\n' && *__p!=0) __p++;
-		
-#define ADVANCE_TO_ATTR_VALUE(__p) \
-	while(*__p!='=' && *__p!=' ' && *__p!='\t' && *__p!='\r' && *__p != '\n' && *__p!=0) __p++;\
-	SKIP_BLANKS(__p);
+
+/* ------------------------------------------------------------------------------------- */
+/* XmlProfile */
+/* ------------------------------------------------------------------------------------- */
 
 XmlProfile::XmlProfile(char *category,char *repository) {
 	int fd;
-	
+	cTag=NULL;
 	rootElements = new Linklist;
 
 	xmlFile=(char *)malloc(strlen(category)+strlen(repository)+6);
@@ -142,13 +138,25 @@ XmlErr XmlProfile::XmlParseFile(char *path) {
 	XmlErr err;
 	cTag=NULL;
 	if(fileStat.st_size>0) {
-		char *buffer=(char *)malloc(fileStat.st_size+1);
+		char *buffer;
 		inFile=fopen(path,"r");
-		fread(buffer,1,fileStat.st_size,inFile);
-		buffer[fileStat.st_size]=0;
-	
-		err=XmlParseBuffer(buffer);
-		free(buffer);
+		if(inFile) {
+			if(!fileLock(inFile)) {
+				error("Can't lock %s for opening ",path);
+				return -1;
+			}
+			buffer=(char *)malloc(fileStat.st_size+1);
+			fread(buffer,1,fileStat.st_size,inFile);
+			buffer[fileStat.st_size]=0;
+			err=XmlParseBuffer(buffer);
+			free(buffer);
+			fileUnlock(inFile);
+			fclose(inFile);
+		}
+		else {
+			error("Can't open xmlfile %s",path);
+			return -1;
+		}
 	}
 }
 
@@ -157,6 +165,31 @@ XmlErr XmlProfile::XmlParseBuffer(char *buffer) {
 	int state=XML_ELEMENT_NONE;
 	char *p=buffer;
 	//unsigned int offset=fileStat.st_size;
+
+#define XML_FREE_ATTRIBUTES \
+	if(nAttrs>0) {\
+		for(int i=0;i<nAttrs;i++) {\
+			if(attrs[i]) free(attrs[i]);\
+			if(values[i]) free(values[i]);\
+		}\
+		free(attrs);\
+		attrs=NULL;\
+		free(values);\
+		values=NULL;\
+		nAttrs=0;\
+	}\
+	if(start) free(start);
+
+#define SKIP_BLANKS(__p) \
+	while((*__p==' ' || *__p=='\t' || *__p=='\r' || *__p == '\n') && *__p!=0) __p++; 
+		
+#define ADVANCE_ELEMENT(__p) \
+	while(*__p!='>' && *__p!=' ' && *__p!='\t' && *__p!='\r' && *__p != '\n' && *__p!=0) __p++;
+		
+#define ADVANCE_TO_ATTR_VALUE(__p) \
+	while(*__p!='=' && *__p!=' ' && *__p!='\t' && *__p!='\r' && *__p != '\n' && *__p!=0) __p++;\
+	SKIP_BLANKS(__p);
+
 	while(*p!=0) {
 		SKIP_BLANKS(p);
 		char *mark;
@@ -236,19 +269,6 @@ XmlErr XmlProfile::XmlParseBuffer(char *buffer) {
 					}
 				}
 				err = XmlStartHandler(start,attrs,values);
-#define XML_FREE_ATTRIBUTES \
-	if(nAttrs>0) {\
-		for(int i=0;i<nAttrs;i++) {\
-			if(attrs[i]) free(attrs[i]);\
-			if(values[i]) free(values[i]);\
-		}\
-		free(attrs);\
-		attrs=NULL;\
-		free(values);\
-		values=NULL;\
-		nAttrs=0;\
-	}\
-	if(start) free(start);
 				if(err!=XML_NOERR) {
 					XML_FREE_ATTRIBUTES
 					return err;
@@ -360,8 +380,8 @@ char *XmlProfile::dumpXml() {
 char *XmlProfile::dumpBranch(XmlTag *rTag,unsigned int depth) {
 	int i,n;
 	char *out = NULL;
-	char *startTag = (char *)malloc(depth+strlen(rTag->name()+5)); /* enough space even for '/>' */
-	char *endTag = (char *)malloc(depth+strlen(rTag->name()+5));
+	char *startTag = (char *)malloc(depth+strlen(rTag->name()+6)); /* enough space even for '/>' */
+	char *endTag = (char *)malloc(depth+strlen(rTag->name()+6));
 	char *value = NULL;;
 	char *childDump = (char *)malloc(1);
 	*childDump=0;
@@ -372,17 +392,17 @@ char *XmlProfile::dumpBranch(XmlTag *rTag,unsigned int depth) {
 		value = (char *)malloc(depth+strlen(vTemp)+2);
 	//	for(n=0;n<=depth;n++) strcat(value,"\t"); /* one more tab */
 	//	strcat(value," ");
-		strcat(value,vTemp);
+		strcpy(value,vTemp);
 		strcat(value," ");
 		//strcat(value,"\n");
-		free(vTemp);
 	}
 	
 	for(n=0;n<depth;n++) strcat(startTag,"\t");
 	strcat(startTag,"<");
 	strcat(startTag,rTag->name());
-	if(rTag->numAttributes()>0) {
-		for(i=1;i<=rTag->attributes->len();i++) {
+	int nAttrs = rTag->numAttributes();
+	if(nAttrs>0) {
+		for(i=1;i<=nAttrs;i++) {
 			XmlTagAttribute *attr = rTag->getAttribute(i);
 			if(attr) {
 				startTag = (char *)realloc(startTag,strlen(startTag)+
@@ -417,23 +437,22 @@ char *XmlProfile::dumpBranch(XmlTag *rTag,unsigned int depth) {
 		strcat(endTag,"</");
 		strcat(endTag,rTag->name());
 		strcat(endTag,">\n");
-		out = (char *)malloc(strlen(startTag)+strlen(endTag)+
-			(value?strlen(value)+1:0)+strlen(childDump)+1);
+		out = (char *)malloc(depth+strlen(startTag)+strlen(endTag)+
+			(value?strlen(value)+1:0)+strlen(childDump)+3);
 		strcpy(out,startTag);
 		if(value) {
-			//strcat(out,value);
 			if(rTag->numChildren()) {
-				for(n=0;n<=depth;n++) strcat(out,"\t");
+				for(n=0;n<depth;n++) strcat(out,"\t");
 				strcat(out,value);
 				strcat(out,"\n");
 			}
 			else {
 				strcat(out,value);
 			}
+			free(value);
 		}
 		strcat(out,childDump);
-		strcat(out,endTag);
-		if(value) free(value);
+		strcat(out,endTag); 
 	}
 	else {
 		strcat(startTag,"/>\n");
@@ -455,49 +474,137 @@ XmlErr XmlProfile::update() {
 			error("Can't open %s for reading !!",xmlFile);
 			return XML_UPDATE_ERR;
 		}
+		if(!fileLock(saveFile)) {
+			error("Can't lock %s for reading ",xmlFile);
+			return XML_UPDATE_ERR;
+		}
 		char *backup = (char *)malloc(fileStat.st_size+1);
 		fread(backup,1,fileStat.st_size,saveFile);
 		backup[fileStat.st_size]=0;
+		fileUnlock(saveFile);
 		fclose(saveFile);
 		char *backupPath = (char *)malloc(strlen(xmlFile+5));
 		sprintf(backupPath,"%s.bck",xmlFile);
 		FILE *backupFile=fopen(backupPath,"w+");
 		if(backupFile) {
+			if(!fileLock(backupFile)) {
+				error("Can't lock %s for writing ",backupPath);
+				free(backupPath);
+				free(backup);
+				return XML_UPDATE_ERR;
+			}
 			fwrite(backup,1,fileStat.st_size,backupFile);
+			fileUnlock(backupFile);
 			fclose(backupFile);
 		}
 		else {
 			error("Can't open backup file (%s) for writing! ",backupPath);
-			if(!saveFile) return XML_UPDATE_ERR;
+			free(backupPath);
+			free(backup);
+			return XML_UPDATE_ERR;
 		}
 		free(backupPath);
 		free(backup);
 	} /* end of backup */
 
 	char *dump = dumpXml();
-	if(dump) {
+ 	if(dump) {
 		saveFile=fopen(xmlFile,"w+");
 		if(saveFile) {
-		fwrite(dump,1,strlen(dump),saveFile);
-		free(dump);
-		fclose(saveFile);
+			if(!fileLock(saveFile)) {
+				error("Can't lock %s for writing ",xmlFile);
+				free(dump);
+				return XML_UPDATE_ERR;
+			}
+			fwrite(dump,1,strlen(dump),saveFile);
+			free(dump);
+			fileUnlock(saveFile);
+			fclose(saveFile);
 		}
 		else {
 			error("Can't open output file %s",xmlFile);
-			if(!saveFile) return XML_UPDATE_ERR;
+			if(!saveFile) {
+				free(dump);
+				return XML_UPDATE_ERR;
+			}
 		}
 	}
+	return XML_NOERR;
+}
+
+int XmlProfile::numBranches() {
+	return rootElements->len();
+}
+
+bool XmlProfile::removeBranch(int index) {
+	XmlTag *branch=getRootElement(index);
+	if(branch) {
+		if(rootElements->rem(index)) {
+			delete branch;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool XmlProfile::removeBranch(char *name) {
+	if(name) {
+		for (int i=1;i<=rootElements->len();i++) {
+			XmlTag *branch=getRootElement(i);
+			if(branch && strcmp(name,branch->name())==0) {
+				if(rootElements->rem(i)) {
+					delete branch;
+					return true;
+				}
+				else {
+					/* TODO - WARNING MESSAGES HERE */
+					return false; 
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool removeElement(char *path) {
+/* XXX - UNIMPLEMENTED */
+}
+
+bool XmlProfile::fileLock(FILE *file) {
+	int tries=0;
+	if(file) {
+		while(flock(fileno(file),LOCK_EX|LOCK_NB)!=0) {
+			warning("can't obtain a lock on xml file %s... waiting (%d)",xmlFile,tries);
+			tries++;
+			if(tries>5) { 
+				error("sticky lock on xml file!!!");
+				return false;
+			}
+			sleep(1);
+		}
+		return true;
+	}
+	return false;
+}
+
+bool XmlProfile::fileUnlock(FILE *file) {
+	if(file) {
+		if(flock(fileno(file),LOCK_UN)==0) 
+			return true;
+	}
+	return false;
 }
 
 /* ------------------------------------------------------------------------------------- */
 /* XmlTag */
+/* ------------------------------------------------------------------------------------- */
 
 XmlTag::XmlTag(const char *name,XmlTag *parentEntry) {
 	_parent = parentEntry;
 	_name = strdup(name); /* could be just a reference to 'name' since it must be a const */
 	_value=NULL;
-	children = new Linklist();
-	attributes = new Linklist();
+	children = new Linklist;
+	attributes = new Linklist;
 	if(_parent) {
 		char *pPath = _parent->path();
 			if(pPath) {
@@ -516,16 +623,33 @@ XmlTag::XmlTag(const char *name,XmlTag *parentEntry) {
 }
 
 XmlTag::XmlTag(const char *name,char *val,XmlTag *parentEntry) {
-	XmlTag(name,parentEntry);
+	_parent = parentEntry;
+	_name = strdup(name); /* could be just a reference to 'name' since it must be a const */
+	_value=NULL;
+	children = new Linklist;
+	attributes = new Linklist;
+	if(_parent) {
+		char *pPath = _parent->path();
+			if(pPath) {
+			unsigned int pathLen = strlen(pPath)+1+strlen(_parent->name())+1;
+			_path = (char *)malloc(pathLen);
+			memset(_path,0,pathLen);
+			sprintf(_path,"%s/%s",pPath,_parent->name());
+			}
+			else {
+				_path=strdup(_parent->name());
+			}
+	}
+	else {
+		_path = NULL;
+	}
 	_value = strdup(val);
 }
 
 XmlTag::~XmlTag() {
 	int i;
 	Entry *entry;
-	if(_value) free(_value);
-	if(_name) free(_name);
-	if(_path) free(_path);
+	
 	for (i=1;i<= children->len();i++) {
 		entry = children->pick(i);
 		if(entry) {
@@ -547,6 +671,9 @@ XmlTag::~XmlTag() {
 		}
 	}
 	delete attributes;
+	if(_value) free(_value);
+	if(_name) free(_name);
+	if(_path) free(_path);
 }
 
 char *XmlTag::path() {
@@ -570,6 +697,12 @@ XmlErr XmlTag::value(char *val) {
 	if(!val) return XML_BADARGS;
 	_value=(char *)realloc(_value,strlen(val)+1);
 	strcpy(_value,val);
+	return XML_NOERR;
+}
+
+XmlErr XmlTag::addChild(char *name, char *val) {
+	XmlTag *newTag = new XmlTag(name,val,this);
+	if(newTag) addChild(newTag);
 	return XML_NOERR;
 }
 
