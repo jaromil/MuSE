@@ -235,11 +235,15 @@ Entry::Entry() {
   prev = NULL;
   list = NULL;
   select = false;
+  value = NULL;
 }
 
 Entry::Entry(void *val) {
-	Entry();
-	set_value(val);
+  next = NULL;
+  prev = NULL;
+  list = NULL;
+  select = false;
+  set_value(val);
 }
 
 Entry::~Entry() {
