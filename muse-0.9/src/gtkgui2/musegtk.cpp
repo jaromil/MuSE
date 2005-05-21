@@ -145,11 +145,6 @@ gtkgui_refresh(void)
   return state;
 }
 
-bool gtkgui_get_state(void)
-{
-	return state;
-}
-
 bool gtkgui_set_lcd(unsigned int chan, char *testo)
 {
 	struct gchan *c;
@@ -206,8 +201,9 @@ void gtkgui_set_maintitle(char *testo)
 
 void gtkgui_set_statustext(char *testo) 
 {
-	contextid=gtk_statusbar_push(GTK_STATUSBAR(statusbar), 
-			       contextid, (gchar *) testo);
+	if (state)
+		contextid=gtk_statusbar_push(GTK_STATUSBAR(statusbar), 
+				       contextid, (gchar *) testo);
 }
 
 bool gtkgui_sel_playlist(unsigned int chan, int row)
@@ -274,9 +270,14 @@ void gtkgui_set_vuband(int value)
 
 }
 
+bool gtkgui_get_state(void)
+{
+	return state;
+}
+
 void gtkgui_exit(void) 
 {
-	gtk_widget_destroy(window);
+//	gtk_widget_destroy(window);
 	g_list_free(listachan);
 	g_list_free(lamelist);
 	g_list_free(ogglist);

@@ -82,7 +82,7 @@ void GTK2_GUI::run() {
     //    jsleep(0,20);
     
   }
-  gtkgui_refresh();
+  //gtkgui_refresh();
   gtkgui_exit();
 }
 

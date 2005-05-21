@@ -39,6 +39,7 @@ class GTK2_GUI : public GUI {
   void set_lcd(unsigned int chan, char *lcd) { new_lcd[chan] = true; };
   void set_title(char *txt);
   void set_status(char *txt); 
+  bool get_state(void);
   void add_playlist(unsigned int ch, char *txt);
   void sel_playlist(unsigned int ch, int row);
   void bpsmeter_set(int n) { vuband = n; };
