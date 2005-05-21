@@ -108,11 +108,16 @@ Stream_mixer::Stream_mixer() {
   /* this is the base seed for new encoders id */
   idseed = 0; //abs(time(NULL) & getpid()) >> 2;
 
+  /* removed thread locking in the main mixer
+     stream synchronization is done thru pipe locking
+     most commands will change states that are processed every tick
+
   if(pthread_mutex_init (&_mutex,NULL) == -1)
     error("error initializing POSIX thread mutex");
   if(pthread_cond_init (&_cond, NULL) == -1)
     error("error initializing POSIX thread condtition"); 
   unlock();
+  */
 }
 
 Stream_mixer::~Stream_mixer() {
@@ -182,13 +187,18 @@ void Stream_mixer::cafudda()
     return;
   }
 
-  lock();
+  //  lock();
 
   for(i=0;i<MAX_CHANNELS;i++) {
     if(chan[i] != NULL) {
       if(chan[i]->on) {	
+
 	// this read from pipe is set to mix int32 down to the process_buffer
 	cc = chan[i]->erbapipa->read(MIX_CHUNK*2,process_buffer);
+
+	// signal to the channel that audio has been read
+	chan[i]->signal();
+
 	// if(cc!=MIX_CHUNK<<2) warning("hey! mix16stereo on ch[%u] returned %i",i,cc);
 	if(cc<0) continue;
 	//	c+=cc<<1;
@@ -242,7 +252,7 @@ void Stream_mixer::cafudda()
        and puts it into audio_buffer    */
     clip_audio(MIX_CHUNK);
     
-    unlock();
+    //    unlock();
 
     out = (OutChannel*) outchans.begin();
     while(out) {
@@ -289,11 +299,12 @@ void Stream_mixer::cafudda()
     
   } else {
     
-     if(dspout) {
-	  snddev->flush_output();
-	  snddev->flush_input();
-     }
-    unlock();
+    if(dspout) {
+      snddev->flush_output();
+      snddev->flush_input();
+    }
+
+    //    unlock();
     
     if(have_gui) {
       if(gui->meter_shown()) {
@@ -315,9 +326,9 @@ void Stream_mixer::cafudda()
      here we give fifos a bit of air and avoid tight loops
      making the mixing engine wait 20 nanosecs */
 #ifdef CARBON_GUI
-usleep(200);
+  usleep(200);
 #else
-  jsleep(0,20);
+  jsleep(0,200);
 #endif
 }
 
@@ -326,23 +337,27 @@ bool Stream_mixer::create_channel(int ch) {
   /* paranoia */
   if(chan[ch]) {
     warning("channel %i allready exists");
-    unlock();
+    //    unlock();
     return true;
   }
 
   Channel *nch;
   nch = new Channel();
 
-  nch->lock();
   nch->start();
-  func("waiting for channel %i thread to start",ch);
-  nch->wait();
-  /* wait for the existance lock, then we unlock */
-  nch->unlock();
-
-  lock();
+  while(!nch->running) {
+    func("waiting for channel %i thread to start",ch);
+    jsleep(0,20);
+  }	
+  //  lock();
   chan[ch] = nch;
-  unlock();
+  //  unlock();
+
+  nch->signal();
+  
+//   lock();
+//   chan[ch] = nch;
+//   unlock();
   
   return(true);
 }
@@ -351,8 +366,8 @@ bool Stream_mixer::delete_channel(int ch) {
   /* paranoia */
   PARACHAN
 
-  lock();
-  /*
+    //  lock();
+
   if(chan[ch]->on) chan[ch]->stop();
   // quit the thread
   if(chan[ch]->running) {
@@ -360,16 +375,16 @@ bool Stream_mixer::delete_channel(int ch) {
     // be sure it quitted
     chan[ch]->signal();
     jsleep(0,50);
-    chan[ch]->lock(); chan[ch]->unlock();
+    //    chan[ch]->lock(); chan[ch]->unlock();
 
   }
-  */
+
 
   /* clean internal allocated buffers */
   delete chan[ch];
   chan[ch] = NULL;
   //  chan[ch]->playlist->cleanup();
-  unlock();
+  //  unlock();
   return true;
 }
 
@@ -380,10 +395,10 @@ bool Stream_mixer::pause_channel(int ch) {
   /* here i don't lock - c'mon, boolean _is_ atomical */
   if(chan[ch]->opened) {
     if(!chan[ch]->on) {
-      lock();
+      //      lock();
       if(!chan[ch]->play())
       	error("can't play channel %u",ch,ch);
-      unlock();
+      //      unlock();
     } else {
       chan[ch]->on = false;
       chan[ch]->position = chan[ch]->time.f;
@@ -398,10 +413,10 @@ bool Stream_mixer::pause_channel(int ch, bool stat) { /* if stat==true -> pause 
 
   if(chan[ch]->opened) {
     if(!stat) {
-      lock();
+      //      lock();
       if(!chan[ch]->play())
 	error("can't play channel %u",ch,ch);
-      unlock();
+      //      unlock();
     } else {
       chan[ch]->on = false;
       return true;
@@ -442,33 +457,33 @@ int Stream_mixer::play_channel(int ch) {
   /* paranoia */
   PARACHAN
 
-  lock();
+    //  lock();
   if(!chan[ch]->play())
     error("can't play channel %u",ch);
   else
     res = (chan[ch]->seekable) ? 1 : 2;
-  unlock();
+  //  unlock();
 
   return(res);
 }
 
 void Stream_mixer::set_all_volumes(float *vol) {
   int ch;
-  lock();
+  //  lock();
   for(ch=0;ch<MAX_CHANNELS;ch++) {
     if(chan[ch]!=NULL)
       chan[ch]->volume = vol[ch];
   }
-  unlock();
+  //  unlock();
 }
 
 bool Stream_mixer::set_volume(int ch, float vol) {
   /* paranoia */
   PARACHAN
 
-  lock();
+    //  lock();
   chan[ch]->volume = vol;
-  unlock();
+  //  unlock();
   return true;
 }
 
@@ -478,16 +493,16 @@ void Stream_mixer::crossfade(int ch1, float vol1, int ch2, float vol2) {
     return;
   }
 
-  lock();
+  //  lock();
   chan[ch1]->volume = vol1;
   chan[ch2]->volume = vol2;
-  unlock();
+  //  unlock();
 }
 
 void Stream_mixer::set_speed(int ch, int speed) {
-  lock();
+  //  lock();
   chan[ch]->speed = speed;
-  unlock();
+  //  unlock();
   /* poi lo processa l'inchannel dentro al metodo run()
      cioe' il resampling che fa li' quando lo prepara al mixing
   */
@@ -499,9 +514,9 @@ bool Stream_mixer::stop_channel(int ch) {
 
   bool res = false;
     //  if(chan[ch]->running) {
-  lock();
+  //  lock();
   res = chan[ch]->stop();
-  unlock();
+  //  unlock();
   /*  if(have_gui) {
     int p = chan[ch]->playlist->selected_pos();
     if(p) gui->sel_playlist(ch,p);
@@ -527,14 +542,14 @@ bool Stream_mixer::set_position(int ch, float pos) {
   */
 
   if(chan[ch]->seekable && chan[ch]->running) {
-    lock();
+    //    lock();
     //    chan[ch]->erbapipa->flush();
     chan[ch]->lock();
     res = chan[ch]->pos(pos);
     chan[ch]->unlock();
     if(!res) error("can't seek position %f on channel %u",pos,ch);
     // chan[ch]->play(); - this shouldn't be needed
-    unlock();
+    //    unlock();
   } else
     error("channel %u is not seekable",ch);
   return(res);
@@ -567,25 +582,25 @@ bool Stream_mixer::set_live(bool stat) {
   if(!( (dspout)
 	&&(!fullduplex)
 	&&(stat)) ) {
-    lock();
+    //    lock();
     livein.on = linein = stat;
-    unlock();
+    //    unlock();
   }
   
   return(livein.on);
 #else
-  lock();
+  //  lock();
   if( snddev->input(stat) )
     linein = stat;
-  unlock();
+  //  unlock();
   return linein;
 #endif
 }
 
 void Stream_mixer::set_mic_volume(int vol) {
-  lock();
+  //  lock();
   linein_vol = vol;
-  unlock();
+  //  unlock();
 }
   
   
@@ -600,16 +615,16 @@ bool Stream_mixer::set_lineout(bool stat) {
   if(!( (livein.on)
 	&&(!fullduplex)
 	&&(stat)) ) {
-    lock();
+    //    lock();
     dspout = stat;
-    unlock();
+    //    unlock();
   }
   return(dspout&stat);
 #else
-  lock();
+  //  lock();
   if( snddev->output(stat) )
     dspout = stat;
-  unlock();
+  //  unlock();
   return dspout;
 #endif
 }
@@ -803,16 +818,15 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
       warning("cannot stat %s : %s",temp,strerror(errno));
     } else if(prcd.st_mode & S_IFDIR) {
       func("it's a directory");
-#ifndef linux
+#ifdef HAVE_LINUX
       struct dirent **filelist;
-      int found = scandir(temp,&filelist,(int(*)(dirent *))selector,alphasort);
 #else
       const struct dirent **filelist;
-      // this scandir had a problem browsing directories, now?
+#endif
+
       int found = scandir(temp,&filelist,selector,alphasort);
 
-#endif
-	  if(found<1) error("%i files found: %s",found,strerror(errno));
+      if(found<1) error("%i files found: %s",found,strerror(errno));
       else {
 	int c;
 	for(c=0;c<found;c++) {
@@ -902,7 +916,7 @@ void Stream_mixer::delete_enc(int id) {
     return;
   }
 
-  lock();
+  //  lock();
   
   outch->rem();
 
@@ -915,7 +929,7 @@ void Stream_mixer::delete_enc(int id) {
   }
 
   delete outch;
-  unlock();
+  //  unlock();
 }
 
 OutChannel *Stream_mixer::get_enc(int id) {
@@ -933,13 +947,13 @@ bool Stream_mixer::apply_enc(int id) {
 
   char *qstr = outch->quality_desc;
 
-  lock();
+  //  lock();
   outch->lock();
 
   outch->initialized = outch->apply_profile();
 
   outch->unlock();
-  unlock();
+  //  unlock();
 
   if(outch->initialized)
     notice("%s quality %uKbps/s %uHz %s", outch->name, outch->bps(), outch->freq(),

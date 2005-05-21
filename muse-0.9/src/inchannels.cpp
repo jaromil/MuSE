@@ -117,17 +117,17 @@ void Channel::run() {
   lock();
   func("InChanThread! here i am");
   running = true;
-  unlock();
-  signal(); // signal to the parent thread we are born!
-
   quit = false;
+
+  wait();
 
   while(!quit) {
     
     if(on) {
       idle = false;
       PARADEC
-      dec->lock();
+	//      dec->lock();
+
       /* now call get_audio() which
 	 returns the *IN_DATATYPE pointer to filled buffer
 	 setting up the following parameters:
@@ -137,7 +137,9 @@ void Channel::run() {
 	 dec->frames  is updated with number of decoded 16bit frames (double if stereo)
 	 dec->samplerate and dec->channels tell about the audio format */
       buff = dec->get_audio();
-      dec->unlock();
+
+      //      dec->unlock();
+
     /* then call resample() which sets up:
        frames = number of 16bit sound values
        and returns *IN_DATATYPE pointing to the resampled buffer */
@@ -152,21 +154,28 @@ void Channel::run() {
 	if(dec->seekable) state = upd_time();
 
       } else /* if get_audio returns NULL then is eos or error */
+
 	if(dec->eos) upd_eos();
 	else if(dec->err) upd_err();
 	else { // nothing comes out but we hang on
 	  //	  error("unknown state on %s channel",dec->name);
 	  //	  report(); state = 0.0;
-	  jsleep(0,20);
+	  jsleep(0,1);
 	}
+
     } else { // if(on)
 
       // just hang on
       idle = true;
-      jsleep(0,20);
+      jsleep(0,1);
+
     }
-    
+
+    wait();
+
   } // while(!quit)
+  unlock();
+  func("Channel :: run :: end thread %d",pthread_self());
   running = false;
 }
 
@@ -197,6 +206,8 @@ IN_DATATYPE *Channel::resample(IN_DATATYPE *audio) {
 }
 
 bool Channel::play() {
+  func("%u:%s:%s",__LINE__,__FILE__,__FUNCTION__);
+
   if(on) return(true);
 
   if(!running) {
@@ -233,6 +244,8 @@ bool Channel::play() {
 }
 
 bool Channel::stop() {
+  func("%u:%s:%s",__LINE__,__FILE__,__FUNCTION__);
+
   //  lock();
   on = false;
   if(opened) {
@@ -246,6 +259,7 @@ bool Channel::stop() {
 }
 
 int Channel::load(char *file) {
+  func("%u:%s:%s",__LINE__,__FILE__,__FUNCTION__);
   MuseDec *ndec = NULL;
   char tmp[256];
   int res;
@@ -376,6 +390,7 @@ int Channel::load(char *file) {
 }
      
 bool Channel::pos(float pos) {
+  func("%u:%s:%s",__LINE__,__FILE__,__FUNCTION__);
   PARADEC
   if(!dec->seekable) return false;
   pos = (pos<0.0) ? 0.0 : (pos>1.0) ? 1.1 : pos;
@@ -389,6 +404,8 @@ bool Channel::pos(float pos) {
 }
 
 void Channel::clean() {
+  func("%u:%s:%s",__LINE__,__FILE__,__FUNCTION__);
+
   on = false;
   //  dec->lock();
   //  dec->clean();

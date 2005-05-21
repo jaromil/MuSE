@@ -4,11 +4,6 @@
 
 package="MuSE"
 
-olddir=`pwd`
-srcdir=`dirname $0`
-test -z "$srcdir" && srcdir=.
-
-cd "$srcdir"
 DIE=0
 
 (autoconf --version) < /dev/null > /dev/null 2>&1 || {
@@ -22,7 +17,7 @@ DIE=0
 (automake --version) < /dev/null > /dev/null 2>&1 || {
         echo
         echo "You must have automake installed to compile $package."
-	echo "Download the appropriate package for your system,
+	echo "Download the appropriate package for your system,"
 	echo "or get the source from one of the GNU ftp sites"
 	echo "listed in http://www.gnu.org/order/ftp.html"
         DIE=1
@@ -39,8 +34,8 @@ fi
 
 echo "Generating configuration files for $package, please wait...."
 
-echo "  aclocal -I $srcdir/m4"
-aclocal -I $srcdir/m4
+echo "  aclocal -I m4"
+aclocal -I m4
 
 echo "  autoheader"
 autoheader
@@ -51,5 +46,4 @@ automake --add-missing -c
 echo "  autoconf"
 autoconf
 
-cd $olddir
-$srcdir/configure "$@" && echo
+

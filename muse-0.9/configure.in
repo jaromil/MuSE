@@ -408,7 +408,10 @@ if test "${HAVE_GTK2}" = "yes"; then
    dnl =========
    dnl Scheduler 
    dnl =========
-   AC_DEFINE(HAVE_SCHEDULER)
+
+dnl    scheduler is deactivated for now
+dnl    AC_DEFINE(HAVE_SCHEDULER)
+
    PKG_CHECK_MODULES(GLIB2, glib-2.0 >= 2.0.0,,
     AC_MSG_ERROR(glib-2.0 not found))
 fi
