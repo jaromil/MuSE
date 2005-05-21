@@ -95,6 +95,8 @@ Stream_mixer::Stream_mixer() {
   fileout = false;
   quit = false;
 
+  set_tick(1000000/60); // a tick is 1/60 of a second
+
   for(i=0;i<8;i++) peak[i] = 0;
   cpeak = 0;
 
@@ -144,12 +146,13 @@ Stream_mixer::~Stream_mixer() {
     outch = (OutChannel*) outchans.begin();
   }
 
+  /*
   func("deleting thread mutexes");
   if(pthread_mutex_destroy(&_mutex) == -1)
     error("error destroying POSIX thread mutex");
   if(pthread_cond_destroy(&_cond) == -1)
     error("error destroying POSIX thread condition");
-
+  */
 }
 
 void Stream_mixer::register_gui(GUI *reg_gui) { 
@@ -325,11 +328,13 @@ void Stream_mixer::cafudda()
      
      here we give fifos a bit of air and avoid tight loops
      making the mixing engine wait 20 nanosecs */
-#ifdef CARBON_GUI
-  usleep(200);
-#else
-  jsleep(0,200);
-#endif
+  //#ifdef CARBON_GUI
+  //  usleep(200);
+  //#else
+  //  jsleep(0,200);
+  //#endif
+
+  tick_time();
 }
 
 bool Stream_mixer::create_channel(int ch) {
@@ -1049,3 +1054,41 @@ void Stream_mixer::clip_audio(int samples) {
 #endif
 
 }
+
+
+/** taken from FreeJ FPS system
+    only integer calculus involved */
+void Stream_mixer::set_tick(uint32_t val) {
+  interval = (long)val;
+}
+
+void Stream_mixer::tick_time() {
+  struct timespec tmp_rem,*rem;
+  rem=&tmp_rem;
+  /* 1frame : elapsed = X frames : 1000000 */
+  gettimeofday( &cur_time, NULL);
+  elapsed = cur_time.tv_usec - lst_time.tv_usec;
+  if(cur_time.tv_sec>lst_time.tv_sec) elapsed+=1000000; // never more than a sec
+
+  if(elapsed<=interval) {
+
+    slp_time.tv_sec = 0;
+    // the following calculus is approximated to bitwise multiplication
+    // this wont really hurt our precision, anyway we care more about speed
+    slp_time.tv_nsec = (interval - elapsed)<<10;
+
+    // handle signals (see man 2 nanosleep)
+    while(nanosleep(&slp_time,rem)==-1 && (errno==EINTR));
+
+    lst_time.tv_usec += interval;
+    if( lst_time.tv_usec > 999999) {
+      lst_time.tv_usec -= 1000000;
+      lst_time.tv_sec++;
+    }
+  } else {
+    lst_time.tv_usec = cur_time.tv_usec;
+    lst_time.tv_sec = cur_time.tv_sec;
+  }
+
+}
+

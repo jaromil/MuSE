@@ -126,7 +126,7 @@ void Channel::run() {
     if(on) {
       idle = false;
       PARADEC
-	//      dec->lock();
+	dec->lock();
 
       /* now call get_audio() which
 	 returns the *IN_DATATYPE pointer to filled buffer
@@ -136,9 +136,9 @@ void Channel::run() {
 	  	      3.0 means error decoding stream
 	 dec->frames  is updated with number of decoded 16bit frames (double if stereo)
 	 dec->samplerate and dec->channels tell about the audio format */
-      buff = dec->get_audio();
 
-      //      dec->unlock();
+      buff = dec->get_audio();
+      dec->unlock();
 
     /* then call resample() which sets up:
        frames = number of 16bit sound values
@@ -160,14 +160,14 @@ void Channel::run() {
 	else { // nothing comes out but we hang on
 	  //	  error("unknown state on %s channel",dec->name);
 	  //	  report(); state = 0.0;
-	  jsleep(0,1);
+	  jsleep(0,20);
 	}
 
     } else { // if(on)
 
       // just hang on
       idle = true;
-      jsleep(0,1);
+      jsleep(0,20);
 
     }
 
@@ -261,6 +261,7 @@ bool Channel::stop() {
 int Channel::load(char *file) {
   func("%u:%s:%s",__LINE__,__FILE__,__FUNCTION__);
   MuseDec *ndec = NULL;
+  MuseDec *tmpdec;
   char tmp[256];
   int res;
   /* returns:
@@ -336,15 +337,16 @@ int Channel::load(char *file) {
     return(0);
   }
 
-  lock();
-
+  //  lock();
+  func("trying to load file into decoder");
   ndec->lock();
   res = ndec->load(tmp); // try to load the file/stream into the decoder
   ndec->unlock();
+  func("decoder lock passed, load returns %u",res);
 
   if(!res) { // there is an error: we keep everything as it is
     error(_("decoder load returns error"),file);
-    unlock();
+    //    unlock();
     delete ndec;
     return(0);
   }
@@ -353,7 +355,7 @@ int Channel::load(char *file) {
 
   if(!res) {
     error(_("invalid input samplerate %u"),ndec->samplerate);
-    unlock();
+    //    unlock();
     delete ndec;
     return(0);
   }
@@ -361,15 +363,23 @@ int Channel::load(char *file) {
   // decoder succesfully opened the file
   // here if res == 2 then we have a stream
   // TODO: oggvorbis stream playing using libcurl
-  if(dec) delete dec; // delete the old decoder if present
-  dec = ndec;
+
+  //  func("locking channel to swap decoder");
+  //  lock();
+  //  clean();
+  //  if(dec) delete dec; // delete the old decoder if present
+  tmpdec = dec; // save to delete it after
+  dec = ndec; // atomical swap!
   opened = true;
 
   res = (dec->seekable)?1:2;
   seekable = (res==1) ? true : false;
   state = 0.0;
   
-  unlock();
+  //  unlock();
+  //  func("lock removed");
+
+  if(tmpdec) delete (tmpdec);
 
   notice(_("loaded %s"),file);
   if(dec->bitrate)
@@ -497,21 +507,21 @@ void Channel::sel(int newpos) {
     case PLAYMODE_LOOP:
       pos(0.0);
       break;
-	case PLAYMODE_PLAYLIST:
-	  if(newpos==1 && playlist->selected_pos()==playlist->len()) break;
-	case PLAYMODE_CONT:
+    case PLAYMODE_PLAYLIST:
+      if(newpos==1 && playlist->selected_pos()==playlist->len()) break;
+    case PLAYMODE_CONT:
       Url *n;
       stop();
       n = (Url*)playlist->pick(newpos);
       if(n && playlist->sel(newpos)) { 
-	    while( ! load(n->path) ) {
+	while( ! load(n->path) ) {
           n->sel(false); n = (Url*)n->next;
-		  if(!n && playmode==PLAYMODE_PLAYLIST) break;
-          if(!n) n = (Url*)playlist->begin();
-          if(!n) break;
-          n->sel(true);
+	  if(!n && playmode==PLAYMODE_PLAYLIST) break;
+	  if(!n) n = (Url*)playlist->begin();
+	  if(!n) break;
+	  n->sel(true);
         }
-	  }
+      }
       if(n) {
         if(st!=0.0) play();
         update = true;

@@ -30,7 +30,6 @@
 #define __JMIXER_H
 
 #include <math.h>
-#include <pthread.h>
 
 #include <inchannels.h>
 #include <outchannels.h>
@@ -295,6 +294,7 @@ class Stream_mixer {
   */
   bool dsp_ok() { if(dsp>0) return true; else return false; };
 
+  void set_tick(uint32_t tick); ///< set how many nanoseconds will be each tick
 
   /** Array of Channels */
   Channel *chan[MAX_CHANNELS];
@@ -346,7 +346,15 @@ class Stream_mixer {
   int idseed; ///< pseudo-random seed for object IDs
 
   void updchan(int ch); ///< updates the gui display strings
-  
+
+
+  void tick_time(); ///< makes a tick: waits if the elapsed is <= to the tick in nanoseconds
+  long interval; ///< nanoseconds for every tick to last
+  long elapsed; ///< elapsed nanoseconds in the current tick
+  struct timeval cur_time; ///< time struct
+  struct timeval lst_time; ///< time struct
+  struct timespec slp_time; ///< time struct
+
   /** This routine clips audio and calculates volume peak
       this saves cpu cycles by doing it all in the same iteration   
       featuring an adaptive coefficient for volume and clipping,
@@ -361,15 +369,6 @@ class Stream_mixer {
 
   int32_t process_buffer[PROCBUF_SIZE]; ///< mixing buffer
   int16_t audio_buffer[PROCBUF_SIZE]; ///< clipped mixing buffer
-
-
-  /** Stream_mixer thread controls */
-  void lock() { pthread_mutex_lock(&_mutex); };
-  void unlock() { pthread_mutex_unlock(&_mutex); };
-  void wait() { pthread_cond_wait(&_cond,&_mutex); };
-  void signal() { pthread_cond_signal(&_cond); };
-  pthread_mutex_t _mutex;
-  pthread_cond_t _cond;
 
 #ifdef HAVE_SCHEDULER
   Basic_scheduler *rsched;
