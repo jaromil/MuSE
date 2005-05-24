@@ -62,21 +62,21 @@ static inline void copy_byte(void *dst, void *src, int samples) {
 
 static inline void copy_int16_to_float(void *dst, void *src, int samples) {
   register int c;
-  for( c = samples; c>0 ; c-- ) {
+  for( c = samples; c>=0 ; c-- ) {
     ((float*)dst)[c] = ((int16_t*)src)[c] / 32768.0f;
   }
 }
 
 static inline void copy_float_to_int16(void *dst, void *src, int samples) {
   register int c;
-  for( c = samples; c>0 ; c-- ) {
-    ((int16_t*)dst)[c] = (int16_t) lrintf( ((float*)src)[c] );
+  for( c = samples; c>=0 ; c-- ) {
+    ((int16_t*)dst)[c] = (int16_t) ( ((float*)src)[c] );
   }
 }
 
 static inline void mix_int16_to_int32(void *dst, void *src, int samples) {
   register int c;
-  for( c = samples ; c>0 ; c-- ) {
+  for( c = samples ; c>=0 ; c-- ) {
     ((int32_t*)dst)[c]
       +=
       ((int16_t*)src)[c];
@@ -187,9 +187,9 @@ int Pipe::read(int length, void *data) {
 
   while(buffered<length) {
     
-  /* if less than desired is in, then 
-     (blocking) waits
-     (non blocking) returns what's available */
+    /* if less than desired is in, then 
+       (blocking) waits
+       (non blocking) returns what's available */
     if(read_blocking) {
       unlock();
       if(!ttl) return -1;
@@ -199,7 +199,7 @@ int Pipe::read(int length, void *data) {
       buffered = buffered_bytes 
 	/ read_copy_cb->src_samplesize;
     } else {
-    // nothing in the pipe
+      // nothing in the pipe
       if(!buffered) {
 	unlock();
 	return 0;
@@ -208,26 +208,26 @@ int Pipe::read(int length, void *data) {
       break;
     }
   }
-
+  
   origlen = worklen = truelen * read_copy_cb->src_samplesize;
-
+  
   while (worklen) {
-				
+    
     /* |buffer*****|end-----------|start********|bufferEnd
        |buffer-----|start*********|end----------|bufferEnd */
     
     len = MIN(worklen,buffered_bytes);
     
     blk = ((char*)bufferEnd - (char*)start);
-
+    
     blk=MIN(blk,len);
     
     /* fill */
     (*read_copy_cb->callback)
       (data, start,
        blk / read_copy_cb->src_samplesize);
-	/* blank just copied bytes */
-	memset(start,0,blk / read_copy_cb->src_samplesize);
+    /* blank just copied bytes */
+    //    memset(start,0,blk / read_copy_cb->src_samplesize);
     
     start = &((char*)start)[blk]; // (char*)start += blk;
     len -= blk;
@@ -237,13 +237,13 @@ int Pipe::read(int length, void *data) {
       start = buffer;
     
     if (len) { /* short circuit */
-
+      
       (*read_copy_cb->callback)
 	(data, start,
 	 len / read_copy_cb->src_samplesize);
       
-	  /* blank just copied bytes */
-	  memset(start,0,len / read_copy_cb->src_samplesize);
+      /* blank just copied bytes */
+      //      memset(start,0,len / read_copy_cb->src_samplesize);
       data = &((char*)data)[len]; // (char*)data += len;
       start = &((char*)start)[len]; // (char*)start += len;
       worklen -= len;
