@@ -25,6 +25,7 @@
 #include "stream_server.h"
 #include "stream_encoder.h"
 #include <carbon_message.h>
+#include <xmlprofile.h>
 
 #define MAX_STREAM_SERVERS 8
 #define MAX_STREAM_ENCODERS 8
@@ -40,28 +41,38 @@ class CarbonStream {
 		~CarbonStream();
 		void show();
 		void hide();
-		void addStream();
+		int addStream();
 		void deleteStream(); /* delete selected stream */
-		void deleteStream(unsigned int idx); /* delete stream at index idx */
-		void addServer();
-		void deleteServer(); /* delete selected server for selected stream */
-		void deleteServer(unsigned int streamIndex,unsigned int serverIndex); /* delete a specific server in a specific stream */
+		void deleteStream(int idx); /* delete stream at index idx */
+		int addServer(); /* just an accessor to addServer(int strIdx) that uses selectedServer as strIdx */
+		int addServer(int strIdx);
+		CarbonStreamEncoder *selectedStream();
+		CarbonStreamEncoder *getStream(int idx);
 		bool updateStreamTab();
+		void deleteServer(); /* delete selected server for selected stream */
+		void deleteServer(int streamIndex,int serverIndex); /* delete a specific server in a specific stream */
+		CarbonStreamServer *selectedServer();
+		CarbonStreamServer *getServer(int strIdx,int srvIdx);
+		int countServers(int strIdx);
 		bool updateServerTab();
 		bool changeServerTab();
 		bool doConnect();
 		bool connectServer(CarbonStreamServer *server);
 		bool disconnectServer(CarbonStreamServer *server);
-		CarbonStreamEncoder *selectedStream();
-		CarbonStreamServer *selectedServer();
-		void updateQuality(); 
-		void updateBitrate();
-		void updateFrequency();
-		void updateMode();
+		bool updateQuality(); 
+		bool updateBitrate();
+		bool updateFrequency();
+		bool updateMode();
 		void recordStreamPath(char *path);
 		void recordStream(bool on);
 		void activateMenuBar();
 		void codecChange();
+		bool loadPreset(int idx);
+		bool deletePreset(int idx);
+		bool savePreset(char *name);
+		void savePresetDialog();
+		void confirmSavePreset();
+		void cancelSavePreset();
 		
 		WindowRef window;
 		WindowRef parent;
@@ -76,17 +87,20 @@ class CarbonStream {
 		short _selectedStream;
 		short _selectedServer;
 		bool addTab(SInt32 controlID);
-		void delTab(SInt32 controlID,unsigned int idx);
+		void delTab(SInt32 controlID,int idx);
 		int nextTabIndex(SInt32 controlID);
 		void saveServerInfo(CarbonStreamServer *server);
 		void updateServerInfo(CarbonStreamServer *server);
 		void updateStreamInfo(CarbonStreamEncoder *encoder);
+		void updatePresetControls();
+		
 		IBNibRef nibRef;
 		CarbonStreamEncoder *enc[MAX_STREAM_ENCODERS];
 		CarbonStreamServer *servers[MAX_STREAM_ENCODERS][MAX_STREAM_SERVERS];
 		MenuRef streamMenu;
 		WindowGroupRef streamGroup;
-		
+		XmlProfile *presets;
+		WindowRef savePresetWindow;
 	protected:
 
 };

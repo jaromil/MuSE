@@ -21,7 +21,6 @@
 #ifndef __STREAM_ENCODER_H__
 #define __STREAM_ENCODER_H__
 
-#define DEFAULT_ENCODER OGG
 #define CS_MONO 1
 #define CS_STEREO 2
 
@@ -29,13 +28,18 @@
 #include "carbon_message.h"
 #include <jmixer.h>
 
+#define DEFAULT_BITRATE 16
+#define DEFAULT_FREQUENCY 22050
+#define DEFAULT_QUALITY 2
+#define DEFAULT_MODE CS_MONO
+#define DEFAULT_ENCODER OGG
+#define DEFAULT_QUALITY_DESCR "16Kbit/s 22050Hz"
+
 class CarbonStreamEncoder {
 	public:
 		CarbonStreamEncoder(Stream_mixer *mix,CarbonMessage *cmsg);
 		~CarbonStreamEncoder();
-		bool saveToFile(char *fileName);
-		void stopSaving();
-				
+						
 		enum codec type(); /* get the encoder type */
 		void type(enum codec t); /* set the encoder type */
 		OutChannel *getOutChannel();
@@ -49,6 +53,10 @@ class CarbonStreamEncoder {
 		char *quality(int q); // just an accessor to OutChannel->quality() 
 		int quality();
 		char *qualityString();
+		void saveFile(char *fileName);
+		
+		bool startSaving();
+		bool stopSaving();
 		
 		/* get methods */
 		int bitrate();
@@ -56,6 +64,7 @@ class CarbonStreamEncoder {
 		int lowpass();
 		int highpass();
 		int mode();
+		char *saveFile();
 		
 	private:
 	

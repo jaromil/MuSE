@@ -57,6 +57,7 @@ class CARBON_GUI : public GUI {
   bool meterShown();
   bool statusShown(); 
   void bringToFront();
+  void activatedChannel(int idx);
  // void start();
 
   WindowRef 	window;
@@ -85,6 +86,7 @@ private:
 
   OSStatus		err;
   CarbonChannel	*channel[MAX_CHANNELS];
+  CarbonChannel *selectedChannel;
 
   CarbonStream *streamHandler;
 };

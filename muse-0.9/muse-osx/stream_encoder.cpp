@@ -26,12 +26,13 @@ CarbonStreamEncoder::CarbonStreamEncoder(Stream_mixer *mix,CarbonMessage *cmsg) 
 	jmix=mix;
 	msg=cmsg;
 	encoderID=0;
-	/* DEFAULT ENCODER SETTINGS --- reflected in nib control defaults */
-	_bitrate=16;
-	_frequency=22050;
-	_quality=2;
-	strcpy(_qdescr,"16Kbit/s 22050Hz");
-	_channels=1; /* defaults to mono */
+	outFile=NULL;
+	/* DEFAULT ENCODER SETTINGS --- reflects nib control defaults */
+	_bitrate=DEFAULT_BITRATE;
+	_frequency=DEFAULT_FREQUENCY;
+	_quality=DEFAULT_QUALITY;
+	strcpy(_qdescr,DEFAULT_QUALITY_DESCR);
+	_channels=DEFAULT_MODE; /* defaults to mono */
 	type(DEFAULT_ENCODER);
 	
 }
@@ -76,8 +77,13 @@ OutChannel *CarbonStreamEncoder::getOutChannel() {
 }
 
 void CarbonStreamEncoder::mode(int chans) {
-	_channels=chans%2;
-	update();
+	if(chans==1||chans==2) {
+		_channels=chans;
+		update();
+	}
+	else {
+		warning("Bad value at CarbonStreamEncoder::mode() ... was %d .. should be 1 || 2",chans);
+	}
 }
 
 int CarbonStreamEncoder::mode() {
@@ -143,4 +149,20 @@ char *CarbonStreamEncoder::quality(int q) {
 
 char *CarbonStreamEncoder::qualityString() {
 	return _qdescr;
+}
+
+void CarbonStreamEncoder::saveFile(char *fileName) {
+	if(fileName) {
+		outFile=strdup(fileName);
+	}
+}
+
+char *CarbonStreamEncoder::saveFile() {
+	return outFile;
+}
+
+bool CarbonStreamEncoder::startSaving() {
+}
+
+bool CarbonStreamEncoder::stopSaving() {
 }

@@ -9,15 +9,15 @@
 	<key>CFBundleIconFile</key>
 	<string>muse-icon.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.apple.myCarbonApp</string>
+	<string>com.apple.muse-osx</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleSignature</key>
-	<string>????</string>
+	<string>MuSE</string>
 	<key>CFBundleVersion</key>
-	<string>1.0</string>
+	<string>0.9</string>
 	<key>CSResourcesFileMapped</key>
 	<true/>
 </dict>

@@ -88,6 +88,7 @@ class CarbonChannel {
 		bool attached();
 		bool resizing();
 		bool slave();
+		void activate();
 		
 		void setVol(int vol);
 		void crossFade(int fadeVal);
@@ -99,6 +100,7 @@ class CarbonChannel {
 		WindowRef openUrlWindow;
 		WindowRef savePlaylistWindow;
 		WindowGroupRef faderGroup;
+		WindowGroupRef nativeGroup;
 		Stream_mixer *jmix;
 		CARBON_GUI *parent;
 		AttractedChannel neigh;
@@ -161,20 +163,20 @@ OSErr MyDragReceiveHandler (
    void * handlerRefCon,    
    DragRef theDrag);
 */
-void channelLoop(EventLoopTimerRef inTimer,void *inUserData);
+void ChannelLoop(EventLoopTimerRef inTimer,void *inUserData);
 /****************************************************************************/
 /* Event handlers  (carbon callbacks)*/
 /****************************************************************************/
 static OSStatus ChannelEventHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
 
-static OSStatus dataBrowserEventHandler(
+static OSStatus DataBrowserEventHandler(
 	EventHandlerCallRef nextHandler, EventRef event, void *userData);
 	
-static OSStatus channelCommandHandler (
+static OSStatus ChannelCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
 	
-static OSStatus faderCommandHandler (
+static OSStatus FaderCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
 	
 /****************************************************************************/
@@ -202,7 +204,7 @@ void SelectPLMenu(ControlRef browser,MenuRef menu,UInt32 selectionType,
 */	
 void RemovePlaylistItem (DataBrowserItemID item,DataBrowserItemState state,void *clientData);
 
-void faderHandler (ControlRef theControl, ControlPartCode partCode);
+void FaderHandler (ControlRef theControl, ControlPartCode partCode);
 
 /****************************************************************************/
 /* OpenDocument callbacks (called when opening from dialog) */
@@ -211,9 +213,9 @@ void faderHandler (ControlRef theControl, ControlPartCode partCode);
 static OSErr OpenFile(EventRef event,CarbonChannel *me);
 
 /* the openUrl command handler for the openUrl dialog handled internally in the channel object */
-static OSStatus openUrlCommandHandler (
+static OSStatus OpenUrlCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
 	
-static OSStatus savePlaylistCommandHandler (
+static OSStatus SavePlaylistCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
 #endif

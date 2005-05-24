@@ -110,7 +110,7 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 	}
 	/* install the channel command handler */
     err = InstallWindowEventHandler (window, 
-            NewEventHandlerUPP (channelCommandHandler), 
+            NewEventHandlerUPP (ChannelCommandHandler), 
             GetEventTypeCount(windowCommands), windowCommands, 
             this, NULL);
 	if(err != noErr) msg->error("Can't install channel commandHandler");
@@ -126,16 +126,20 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 	
 	err = GetControlByID(window,&volId,&volCtrl);
 	SetControlValue(volCtrl,(int)(inChannel->volume*100));
-	EventLoopTimerUPP timerUPP = NewEventLoopTimerUPP(channelLoop);
+	EventLoopTimerUPP timerUPP = NewEventLoopTimerUPP(ChannelLoop);
 	err = InstallEventLoopTimer( GetCurrentEventLoop(),0,1,timerUPP,this,&updater);
 	if(err!=noErr) msg->error("Can't install the idle eventloop handler(%d)!!",err);
 
 	/* install fader window */
 	setupFaderWindow();
 	err=CreateWindowGroup(WINDOW_GROUP_ATTRIBUTES,&faderGroup);
-	if(err!=noErr) msg->warning("%d",err);
+	if(err!=noErr) msg->error("Can't create faderGroup (%d)!!",err);
+//	err=SetWindowGroupLevel(faderGroup,kCGNormalWindowLevelKey);
+//	if(err!=noErr) msg->error("Can't set faderGroup level (%d)!!",err);
+	SendWindowGroupBehind(faderGroup,parent->mainGroup); /* needed to position the new group on the right layer */
 	err=SetWindowGroup(window,faderGroup);
 	err=SetWindowGroup(fader,faderGroup);
+	err=SetWindowGroupOwner(faderGroup,window);
 	BringToFront(window);
 	
 	//SetWindowGroupOwner(faderGroup,window);
@@ -159,6 +163,10 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 CarbonChannel::~CarbonChannel() {
 	/* remove the eventloop associated to our window */
 //	AERemoveEventHandler (kCoreEventClass,kAEOpenDocuments,openHandler,false);
+	if(attached()) {
+		if(slave()) neigh.channel->stopFading();
+		else stopFading();
+	}
 	if(pthread_mutex_destroy (&_mutex))
 		msg->error("%i:%s error destroying POSIX thread mutex",
 		__LINE__,__FILE__);
@@ -175,6 +183,7 @@ CarbonChannel::~CarbonChannel() {
 	ReleaseWindowGroup(faderGroup);
 	DisposeWindow(openUrlWindow);
 	DisposeWindow(savePlaylistWindow);
+	
 	/* TODO - maybe more cleaning is needed */
 }
 
@@ -191,12 +200,16 @@ void CarbonChannel::updatePlaylistControls() {
 	err=GetBevelButtonMenuHandle(loadButton,&loadMenu);
 	if(err!=noErr) msg->error("Can't get menuref for the loadPlaylist button (%d)!!",err);
 	UInt16 nItems=CountMenuItems(loadMenu);
-	err=DeleteMenuItems(loadMenu,2,nItems-1);
+	err=DeleteMenuItems(loadMenu,1,nItems);
 	err=SetMenuFont(loadMenu,0,9);
-	lock();
-	if(loadedPlaylist) EnableMenuItem(loadMenu,1);
-	else DisableMenuItem(loadMenu,1);
-	unlock();
+//	lock();
+//	if(loadedPlaylist) {
+//		EnableMenuItem(loadMenu,1);
+		/* TODO - if loadedSong is pointing to an unexistant (maybe removed in another channel?) playlist
+		 * we have to unload the current playlist to prevent unexpected behaviours */
+//	}
+//	else DisableMenuItem(loadMenu,1);
+//	unlock();
 	/* DELETE PLAYLIST BUTTON */
 	err=GetControlByID(window,&deleteButtonId,&deleteButton);
 	if(err!=noErr) msg->error("Can't get controlref for deletePlaylist button (%d)!!",err);
@@ -238,9 +251,9 @@ void CarbonChannel::setupFaderWindow() {
 	if(err!=noErr) msg->error("Can't create fader drawer (%d)!!",err);
 	SetDrawerParent(fader,window);
 	SetDrawerPreferredEdge(fader,kWindowEdgeRight);
-	SetDrawerOffsets(fader,50,50); /* XXX - HC offsets ... should go in a #define */
+	SetDrawerOffsets(fader,25,25); /* XXX - HC offsets ... should go in a #define */
 	err = InstallWindowEventHandler (fader, 
-            NewEventHandlerUPP (faderCommandHandler), 
+            NewEventHandlerUPP (FaderCommandHandler), 
             GetEventTypeCount(windowCommands),windowCommands, 
             this, NULL);
 			
@@ -258,7 +271,7 @@ void CarbonChannel::setupOpenUrlWindow() {
 	OSStatus err=CreateWindowFromNib(nibRef, CFSTR("AddURLWindow"), &openUrlWindow);
 	if(err != noErr) msg->error("Can't create the openUrl window (%d)!!",err);
 	/* install the channel command handler */
-	err = InstallWindowEventHandler (openUrlWindow,NewEventHandlerUPP (openUrlCommandHandler), 
+	err = InstallWindowEventHandler (openUrlWindow,NewEventHandlerUPP (OpenUrlCommandHandler), 
 		GetEventTypeCount(windowCommands), windowCommands, this, NULL);
 	if(err != noErr) msg->error("Can't install openUrl commandHandler");
 }
@@ -266,7 +279,7 @@ void CarbonChannel::setupOpenUrlWindow() {
 void CarbonChannel::setupSavePlaylistWindow() {
 	OSStatus err=CreateWindowFromNib(nibRef, CFSTR("SavePlaylistWindow"), &savePlaylistWindow);
 	if(err != noErr) msg->error("Can't create the savePlaylist window (%d)!!",err);
-	err = InstallWindowEventHandler (savePlaylistWindow,NewEventHandlerUPP (savePlaylistCommandHandler), 
+	err = InstallWindowEventHandler (savePlaylistWindow,NewEventHandlerUPP (SavePlaylistCommandHandler), 
 		GetEventTypeCount(windowCommands), windowCommands, this, NULL);
 	if(err != noErr) msg->error("Can't install savePlaylist commandHandler");
 }
@@ -286,7 +299,7 @@ void CarbonChannel::plSetup() {
 	if(err!=noErr) msg->error("Can't attach CarbonChannel object to Playlist control (%d) !!",err);	
 	
 	/* installs databrowser event handler */
-	err = InstallEventHandler(dbTarget,dataBrowserEventHandler,DATA_BROWSER_EVENTS,dataBrowserEvents,
+	err = InstallEventHandler(dbTarget,DataBrowserEventHandler,DATA_BROWSER_EVENTS,dataBrowserEvents,
 		this,&playListEventHandler);
 
 	DataBrowserCallbacks  dbCallbacks;
@@ -533,19 +546,19 @@ void CarbonChannel::stopFading() {
 			SetWindowGroup(window,faderGroup);
 		}
 		else { /* main channel */
+		  //ChangeWindowGroupAttributes(faderGroup,0,WINDOW_GROUP_ATTRIBUTES);
+		  CloseDrawer(fader,false);
+		  SetControlValue(faderControl,0);
 			if(neigh.channel) {
 				Rect myBounds;
-				OSStatus err = GetWindowBounds(window,kWindowContentRgn,&myBounds);
 				neigh.channel->stopFading();
+				OSStatus err = GetWindowBounds(window,kWindowContentRgn,&myBounds);
 				SInt32 offset=neigh.position==ATTACH_LEFT?20:-20;
 				myBounds.left+=offset;
 			//	SetWindowBounds(window,kWindowContentRgn,&myBounds);
 				MoveWindow(window,myBounds.left+offset,myBounds.top-20,false);
 				memset(&neigh,0,sizeof(neigh));
 			}
-			//ChangeWindowGroupAttributes(faderGroup,0,WINDOW_GROUP_ATTRIBUTES);
-			CloseDrawer(fader,false);
-			SetControlValue(faderControl,0);
 		}
 		isAttached=false;
 		isSlave=false;
@@ -559,8 +572,8 @@ void CarbonChannel::doAttach() {
 	if(neigh.channel && !isAttached) {
 		neigh.channel->gotAttached(this);
 		isAttached=true;
-	//	err=ChangeWindowGroupAttributes(faderGroup,WINDOW_GROUP_ATTRIBUTES,0);
-				
+	 	//err=ChangeWindowGroupAttributes(faderGroup,WINDOW_GROUP_ATTRIBUTES,0);
+		//if(err!=noErr) msg->warning("%d",err);
 		err=SetWindowGroup(neigh.channel->window,faderGroup);
 		if(err!=noErr) msg->warning("Can't add slave channel to window group (%d)!!",err);
 		
@@ -582,7 +595,7 @@ void CarbonChannel::doAttach() {
 		err=SetControlData (textControl, 0, kControlStaticTextCFStringTag,sizeof(CFStringRef), &wName);
 		CFRelease(wName);
 		CFRelease(format);
-		SetControlAction(faderControl,NewControlActionUPP(&faderHandler));
+		SetControlAction(faderControl,NewControlActionUPP(&FaderHandler));
 		redrawFader();
 	}
 }
@@ -819,17 +832,17 @@ void CarbonChannel::pause() {
 
 bool CarbonChannel::plLoad(int idx) { 
 	ControlID saveButtonId = {CARBON_GUI_APP_SIGNATURE,SAVE_PLAYLIST_BUT};
-	ControlID loadButtonId = {CARBON_GUI_APP_SIGNATURE,LOAD_PLAYLIST_BUT};
-	ControlRef saveButton,loadButton;
+//	ControlID loadButtonId = {CARBON_GUI_APP_SIGNATURE,LOAD_PLAYLIST_BUT};
+	ControlRef saveButton;//,loadButton;
 	MenuRef saveMenu,loadMenu;
 	OSStatus err;
 	int i;
 	
-	/* get loadbutton and savebutton controls and menu handles */
-	err=GetControlByID(window,&loadButtonId,&loadButton);
-	if(err!=noErr) msg->error("Can't get controlref for loadPlaylist button (%d)!!",err);
-	err=GetBevelButtonMenuHandle(loadButton,&loadMenu);
-	if(err!=noErr) msg->error("Can't get menuref for the loadPlaylist button (%d)!!",err);
+	/* get load/save controls and menu handles */
+//	err=GetControlByID(window,&loadButtonId,&loadButton);
+//	if(err!=noErr) msg->error("Can't get controlref for loadPlaylist button (%d)!!",err);
+//	err=GetBevelButtonMenuHandle(loadButton,&loadMenu);
+//	if(err!=noErr) msg->error("Can't get menuref for the loadPlaylist button (%d)!!",err);
 	err=GetControlByID(window,&saveButtonId,&saveButton);
 	if(err!=noErr) msg->error("Can't get controlref for savePlaylist button (%d)!!",err);
 	err=GetBevelButtonMenuHandle(saveButton,&saveMenu);
@@ -860,7 +873,7 @@ bool CarbonChannel::plLoad(int idx) {
 			unlock();
 			err=SetMenuItemTextWithCFString(saveMenu,2,text);
 			EnableMenuItem(saveMenu,2);
-			EnableMenuItem(loadMenu,1);
+		//	EnableMenuItem(loadMenu,1);
 			CFRelease(text);
 		
 			/* fill playlist (databrowser) header with loadedPlaylist value */
@@ -874,18 +887,21 @@ bool CarbonChannel::plLoad(int idx) {
 			return false;
 		}
 	}
-	else { /* idx == 0 ... we want to unload playlist */
+	else { /* if idx == 0 ... we want to unload playlist */
 		/* empty playlist */
 		for(i=playList->len();i>0;i--) {
 			plRemove(i);
 		}
 		/* set databrowser header */
-		header.titleString=CFSTR("Custom Playlist"); /* mmm should i free strings created with CFSTR macro? */
+		if(header.titleString) CFRelease(header.titleString); /* release old CFString if present */
+		header.titleString=CFSTR("Custom Playlist"); 
 		err=SetDataBrowserListViewHeaderDesc(playListControl,'SONG',&header);
 		/* clear 'save button' menu */
-		err=SetMenuItemTextWithCFString(saveMenu,2,CFSTR("")); /* XXX - should i free release results from CFSTR() macro? */
+		CFStringRef blankText = CFSTR("");
+		err=SetMenuItemTextWithCFString(saveMenu,2,blankText); /* XXX - should i free release results from CFSTR() macro? */
+		CFRelease(blankText);
 		DisableMenuItem(saveMenu,2);
-		DisableMenuItem(loadMenu,1);
+		//DisableMenuItem(loadMenu,1);
 		lock();
 		loadedPlaylist=NULL;
 		unlock();
@@ -895,7 +911,7 @@ bool CarbonChannel::plLoad(int idx) {
 bool CarbonChannel::plDelete(int idx) {
 	char *name=plManager->getName(idx);
 	if(name) {
-		if(strcmp(name,loadedPlaylist)==0) { /* XXX - should i lock() before looking at loadedPlaylist ? */
+		if(loadedPlaylist && strcmp(name,loadedPlaylist)==0) { /* XXX - should i lock() before looking at loadedPlaylist ? */
 			plLoad(0);
 		}
 		if(plManager->remove(idx)) {
@@ -996,6 +1012,12 @@ void CarbonChannel::updatePlaymode() {
 	jmix->set_playmode(chIndex,playmodes[val-1]);
 }
 
+
+void CarbonChannel::activate() {
+	activateMenuBar();
+	if(!attached()||!slave()) /* don't notify activation if we are a slave window in a magnetic-fade */ 
+		parent->activatedChannel(chIndex);
+}
 /* End of CarbonChannel */
 
 // --------------------------------------------------------------------------------------------------------------
@@ -1004,7 +1026,7 @@ void CarbonChannel::updatePlaymode() {
 /* LOOP TIMER */
 /****************************************************************************/
 
-void channelLoop(EventLoopTimerRef inTimer,void *inUserData) {
+void ChannelLoop(EventLoopTimerRef inTimer,void *inUserData) {
 	/* this loop time is needed to let qquartz update channel window even if no user event occurs.
 	 * without this timer, event if we programmatically change control values and state, quartz
 	 * doesn't update them until an user event arrives...so you have to move mouse to have seek update
@@ -1269,7 +1291,7 @@ void SelectPLMenu (ControlRef browser,MenuRef menu,UInt32 selectionType,SInt16 m
 }
 */
 
-void faderHandler (ControlRef theControl, ControlPartCode partCode) {
+void FaderHandler (ControlRef theControl, ControlPartCode partCode) {
 	CarbonChannel *me;
 	OSStatus err = GetControlProperty(theControl,CARBON_GUI_APP_SIGNATURE,
 		FADER_PROPERTY,sizeof(CarbonChannel *),NULL,&me);
@@ -1299,7 +1321,7 @@ static OSStatus ChannelEventHandler (
             me->close();
             break;
 		case kEventWindowActivated:
-			me->activateMenuBar();
+			me->activate();
 			break;
 		case kEventWindowDeactivated:
 			//SendWindowGroupBehind(me->faderGroup,me->parent->mainGroup);
@@ -1352,7 +1374,7 @@ static OSStatus ChannelEventHandler (
 
 }
 
-static OSStatus dataBrowserEventHandler (
+static OSStatus DataBrowserEventHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData)
 {
     OSStatus err = noErr;
@@ -1374,7 +1396,7 @@ static OSStatus dataBrowserEventHandler (
 /* COMMAND HANDLER */
 /****************************************************************************/
 
-static OSStatus channelCommandHandler (
+static OSStatus ChannelCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData)
 {
     HICommand command; 
@@ -1436,10 +1458,14 @@ static OSStatus channelCommandHandler (
 				me->plSave(1);
 			break;
 		case LOAD_PLAYLIST_CMD:
-			me->plLoad(command.menu.menuItemIndex-1); /* first index is the 'unload' command */
+			me->plLoad(command.menu.menuItemIndex);
 			break;
 		case DELETE_PLAYLIST_CMD:
 			me->plDelete(command.menu.menuItemIndex);
+			break;
+		case RESET_PLAYLIST_CMD:
+			me->plLoad(0);
+			break;
 		case PLAYMODE_CMD:
 			me->updatePlaymode();
 			break;
@@ -1450,7 +1476,7 @@ static OSStatus channelCommandHandler (
 	return err;
 }
 
-static OSStatus faderCommandHandler (
+static OSStatus FaderCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData)
 {
     HICommand command; 
@@ -1475,7 +1501,7 @@ static OSStatus faderCommandHandler (
 	return err;
 }
 
-static OSStatus openUrlCommandHandler (
+static OSStatus OpenUrlCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData)
 {
     HICommand command; 
@@ -1498,7 +1524,7 @@ static OSStatus openUrlCommandHandler (
 	return err;
 }
 
-static OSStatus savePlaylistCommandHandler (
+static OSStatus SavePlaylistCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData)
 {
     HICommand command; 

@@ -76,6 +76,7 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 	memset(myPos,0,sizeof(myPos));
 	vumeter=0;
 	vuband=0;
+	selectedChannel=NULL;
 	memset(channel,0,sizeof(channel));
 	playlistManager=new PlaylistManager();
 	// Create a Nib reference 
@@ -104,10 +105,9 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 		err=SetWindowGroup(vumeterWindow,mainGroup);
 		//err=SetWindowGroup(statusWindow,mainGroup);
 		SetWindowGroupOwner(mainGroup,window);
-		/* by default we want at leat one active channel */
-		if(!mix->chan[0]) mix->create_channel(0);
 		/* let's create a channel window for each active input channel */
 		unsigned int i;
+		bool cc=false;
 		for (i=0;i<MAX_CHANNELS;i++) {
 			strcpy(ch_lcd[i],"00:00:00");
 			if(jmix->chan[i]) { 
@@ -121,6 +121,7 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 						RepositionWindow(channel[i],window,kWindowCascadeOnParentWindow);
 					}
 				*/
+					cc=true;
 			}
 			else {
 				channel[i] = NULL;
@@ -129,6 +130,8 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 		/* Ok, once MainWindow has been created and we have instantiated all acrive input channels,
 		* we need an instance of CarbonStream to control the stream option window */
 		streamHandler = new CarbonStream(jmix,window,nibRef);
+		/* by default we want at leat one active channel */
+		if(!cc) new_channel();
 	}
 }
 
@@ -445,6 +448,14 @@ void CARBON_GUI::bringToFront() {
 	if(err != noErr) msg->error("Can't get MenuBar!!");
 }
 
+void CARBON_GUI::activatedChannel(int idx) {
+	if(channel[idx]) {
+		if(selectedChannel && selectedChannel!=channel[idx]) {
+			SendWindowGroupBehind(selectedChannel->faderGroup,channel[idx]->faderGroup);
+		}
+		selectedChannel=channel[idx];
+	}	
+}
 
 /* END OF CARBON_GUI */
 

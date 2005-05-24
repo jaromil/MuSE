@@ -18,9 +18,10 @@
 
 #include "carbon_stream.h"
 #include <jutils.h>
+#include <sys/stat.h>
 
 extern "C" OSStatus OpenFolderWindow(WindowRef parent);
-void qualityHandler (ControlRef theControl, ControlPartCode partCode);
+void QualityHandler (ControlRef theControl, ControlPartCode partCode);
 
 /****************************************************************************/
 /* CarbonStream globals */
@@ -44,11 +45,14 @@ static const EventTypeSpec tabControlEvents[] = {
     {kEventClassControl, kEventControlHit} 
 };
 
+const EventTypeSpec windowCommands[] = {
+	{ kEventClassCommand, kEventCommandProcess }
+};
 
 static OSStatus StreamEventHandler (
 	EventHandlerCallRef nextHandler, EventRef event, void *userData);
 	
-static OSStatus streamCommandHandler (
+static OSStatus StreamCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
 
 OSStatus StreamTabEventHandler(EventHandlerCallRef inCallRef, 
@@ -57,6 +61,9 @@ OSStatus StreamTabEventHandler(EventHandlerCallRef inCallRef,
 OSStatus ServerTabEventHandler(EventHandlerCallRef inCallRef, 
 	EventRef inEvent, void* inUserData );
 
+static OSStatus SavePresetCommandHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData);
+	
 #define CS_ALLOWED_BPS_NUM 8
 #define CS_ALLOWED_FREQ_NUM 4
 const int bps[CS_ALLOWED_BPS_NUM] = { 16,24,32,48,56,64,96,128 };
@@ -91,11 +98,11 @@ CarbonStream::CarbonStream(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib) {
 		
 		err = InstallEventHandler(GetWindowEventTarget(window),StreamEventHandler,STREAM_EVENTS,windowEvents,this,NULL);
 		if(err != noErr) { 
-			msg->error("Can't install event handler for Channel control (%d)!!",err);
+			msg->error("Can't install event handler for Stream control (%d)!!",err);
 		}
 		/* install the stream command handler */
 		err = InstallWindowEventHandler (window, 
-            NewEventHandlerUPP (streamCommandHandler), 
+            NewEventHandlerUPP (StreamCommandHandler), 
             GetEventTypeCount(streamCommands), streamCommands, 
             this, NULL);
 		if(err != noErr) msg->error("Can't install stream commandHandler");
@@ -127,7 +134,37 @@ CarbonStream::CarbonStream(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib) {
 		err = SetControlProperty(qualityControl,CARBON_GUI_APP_SIGNATURE,QUALITY_PROPERTY,
 			sizeof(CarbonStream *),&self);
 		if(err!=noErr) msg->error("Can't attach CarbonChannel object to Fader control (%d) !!",err);
-		SetControlAction(qualityControl,NewControlActionUPP(&qualityHandler));
+		SetControlAction(qualityControl,NewControlActionUPP(&QualityHandler));
+		
+		/* init xml presets */  /* XXX - DUPLICATE CODE ... ALSO playlist_manager ... should be generalized */
+		struct stat st;
+		char *home=NULL;
+		char *repository=NULL;
+		if(!(home = getenv("HOME"))) {
+			error(_("no $HOME found"));
+			repository=(char *)malloc(3);
+			sprintf(repository,"./");
+		}
+		else {
+			repository=(char *)malloc(strlen(home)+8);
+			sprintf(repository,"%s/.muse/",home);
+			if(stat(repository,&st)!=0) {
+				if(mkdir(repository,S_IRWXU)!=0) {
+					error("Can't create preferences directory %s !!",repository);
+					/* TODO - should printout errno */
+				}
+			}
+		}
+		presets=new XmlProfile("stream_presets",repository);
+		free(repository);
+		updatePresetControls();
+		
+		/* init savePreset window */
+		err=CreateWindowFromNib(nibRef, CFSTR("SavePresetWindow"), &savePresetWindow);
+		if(err != noErr) msg->error("Can't create the savePreset window (%d)!!",err);
+		err = InstallWindowEventHandler (savePresetWindow,NewEventHandlerUPP (SavePresetCommandHandler), 
+			GetEventTypeCount(windowCommands), windowCommands, this, NULL);
+		if(err != noErr) msg->error("Can't install savePreset commandHandler");
 }
 
 CarbonStream::~CarbonStream() {
@@ -142,6 +179,8 @@ CarbonStream::~CarbonStream() {
 			delete enc[i];
 		}
 	}
+	if(presets) delete presets;
+	DisposeWindow(savePresetWindow);
 }
 
 void CarbonStream::show() {
@@ -221,14 +260,14 @@ bool CarbonStream::addTab(SInt32 controlID) {
 	return true;
 }
 
-void CarbonStream::delTab(SInt32 controlID,unsigned int idx) {
+void CarbonStream::delTab(SInt32 controlID,int idx) {
 	ControlRef *control;
 	SELECT_TAB_CONTROL(controlID,control);
 	SInt32 sNum=GetControl32BitMaximum(*control);
 	if(sNum > 1) {
 		SInt32 selected = GetControl32BitValue(*control);
 	//	if(selected==idx) SetControl32BitValue(*control,selected>1?(selected-1):(selected+1));
-		for(unsigned int i=idx;i<sNum;i++) {
+		for(int i=idx;i<sNum;i++) {
 			struct ControlTabInfoRec info;
 			memset(&info,0,sizeof(struct ControlTabInfoRec));
 			OSErr err = GetControlData(*control,i+1,kControlTabInfoTag,sizeof(struct ControlTabInfoRec),&info,NULL);
@@ -274,7 +313,7 @@ void CarbonStream::setTabValue(SInt32 controlID,int tabIndex,int val) {
 	if(err!=noErr) msg->warning("%d",err);
 }
 
-void CarbonStream::addStream() {
+int CarbonStream::addStream() {
 	SInt32 sNum=GetControl32BitMaximum(streamTabControl);
 	if(!IsControlVisible(streamTabControl)) { /* First stream */ 
 		if(enc[0]) {
@@ -283,13 +322,14 @@ void CarbonStream::addStream() {
 		enc[0] = new CarbonStreamEncoder(jmix,msg);
 		if(!enc[0]) {
 			/* XXX - errors here */
-			return;
+			return -1;
 		}
 		setTabValue(STREAM_TAB_CONTROL,1,1);
 		ShowControl(streamTabControl);
 	//	EnableControl(streamTabControl);
 	
 		updateStreamTab();
+		return 0;
 	}
 	else if(addTab(STREAM_TAB_CONTROL)) { /* new tab must be created */
 		int encIdx = getTabValue(STREAM_TAB_CONTROL,sNum+1)-1;
@@ -299,101 +339,123 @@ void CarbonStream::addStream() {
 		enc[encIdx]=new CarbonStreamEncoder(jmix,msg);
 		if(!enc[encIdx]) {
 			/* XXX - errors here */
-			return;
+			return -1;
 		}
 		updateStreamTab();
+		return encIdx;
 	}
+	return -1;
 }
 
-void CarbonStream::deleteStream(unsigned int idx) {
+void CarbonStream::deleteStream(int idx) {
 	if(idx > MAX_STREAM_ENCODERS) {
 		/* ERRORS HERE */
 		return;
 	} 
-	int encIdx=getTabValue(STREAM_TAB_CONTROL,idx)-1;
 	int numServers=GetControl32BitMaximum(serverTabControl);
-	if(enc[encIdx]) {
-		//for (int i=0;i<MAX_STREAM_SERVERS;i++) {
-		//	if(servers[encIdx][i]) {
-		//		deleteServer(idx,i+1);
-		//	}
-		//}
-		if(IsControlVisible(serverTabControl)) {
-			for(int i=numServers;i>0;i--) {
+	if(enc[idx]) {
+		for (int i=MAX_STREAM_SERVERS-1;i>=0;i--) {
+			if(servers[idx][i]) {
 				deleteServer(idx,i);
 			}
 		}
-		delete enc[encIdx];
-		enc[encIdx]=NULL;
+	//	if(IsControlVisible(serverTabControl)) {
+	//		for(int i=numServers;i>0;i--) {
+	//			deleteServer(idx,i);
+	//		}
+	//	}
+		delete enc[idx];
+		enc[idx]=NULL;
 	}
-	delTab(STREAM_TAB_CONTROL,idx);
-	if(!updateStreamTab()) changeServerTab(); 
 }
 
 void CarbonStream::deleteStream() {
 	SInt32 selected=GetControl32BitValue(streamTabControl);
-	deleteStream(selected);
+	int encIdx=getTabValue(STREAM_TAB_CONTROL,selected)-1;
+	deleteStream(encIdx);
+	delTab(STREAM_TAB_CONTROL,selected);
+	if(_selectedStream==selected) _selectedStream=0;
+	if(!updateStreamTab()) changeServerTab(); 
+}
+
+CarbonStreamEncoder *CarbonStream::getStream(int idx) {
+	if(idx>=0) return enc[idx];
+	return NULL;
 }
 
 void CarbonStream::deleteServer() {
 	SInt32 selectedStream=GetControl32BitValue(streamTabControl);
 	SInt32 selectedServer=GetControl32BitValue(serverTabControl);
-	deleteServer(selectedStream,selectedServer);
+	int encIdx=getTabValue(STREAM_TAB_CONTROL,selectedStream)-1;
+	int serIdx=getTabValue(SERVER_TAB_CONTROL,selectedServer)-1;
+	deleteServer(encIdx,serIdx);
+	delTab(SERVER_TAB_CONTROL,selectedServer);
+	if(IsControlVisible(serverTabControl)) {
+		SInt32 newSel = GetControl32BitValue(serverTabControl);
+		int newIdx=getTabValue(SERVER_TAB_CONTROL,newSel)-1;
+		if(servers[encIdx][newIdx]) 
+			updateServerInfo(servers[encIdx][newIdx]);
+	}
 }
 
-void CarbonStream::deleteServer(unsigned int streamIndex,unsigned int serverIndex) {
-	int encIdx=getTabValue(STREAM_TAB_CONTROL,streamIndex)-1;
-	int serIdx=getTabValue(SERVER_TAB_CONTROL,serverIndex)-1;
-	if(serIdx <0 || encIdx < 0) return;
+void CarbonStream::deleteServer(int encIdx,int serIdx) {
+	if(serIdx <0 || serIdx > MAX_STREAM_SERVERS || encIdx < 0 || encIdx > MAX_STREAM_ENCODERS) return;
 	if(servers[encIdx][serIdx]) {
 		delete servers[encIdx][serIdx];
 		servers[encIdx][serIdx]=NULL;
-		delTab(SERVER_TAB_CONTROL,serverIndex);
-		if(IsControlVisible(serverTabControl)) {
-			SInt32 newSel = GetControl32BitValue(serverTabControl);
-			int newIdx=getTabValue(SERVER_TAB_CONTROL,newSel)-1;
-			if(servers[encIdx][newIdx]) 
-				updateServerInfo(servers[encIdx][newIdx]);
-		}
 	}
 }
 
-void CarbonStream::addServer() {
-	SInt32 sNum=GetControl32BitMaximum(serverTabControl);
+int CarbonStream::addServer() {
 	int selectedStream = getTabValue(STREAM_TAB_CONTROL,GetControl32BitValue(streamTabControl))-1;
-	CarbonStreamEncoder *sEnc = enc[selectedStream];
+	return addServer(selectedStream);
+}
+
+int CarbonStream::addServer(int strIdx) {
+	SInt32 sNum=GetControl32BitMaximum(serverTabControl);
+	CarbonStreamEncoder *sEnc = enc[strIdx];
 	if(!sEnc) {
 		msg->warning("Can't get encoder object for the selected stream !!");
-		return;
+		return -1;
 	}
 	if(!IsControlVisible(serverTabControl)) { /* First server */ 
-		servers[selectedStream][0]=new CarbonStreamServer(sEnc);
+		servers[strIdx][0]=new CarbonStreamServer(sEnc);
 		setTabValue(SERVER_TAB_CONTROL,1,1);
 		ShowControl(serverTabControl);
 	//	EnableControl(serverTabControl);
 		
 		updateServerTab();
+		return 0;
 	}
 	else { /* new tab must be created */
 		if(addTab(SERVER_TAB_CONTROL)) {
 			int serverIndex=getTabValue(SERVER_TAB_CONTROL,sNum+1)-1;
-			if(servers[selectedStream][serverIndex]) {
+			if(servers[strIdx][serverIndex]) {
 				/* XXX - error messages here */
-				delete servers[selectedStream][serverIndex];
+				delete servers[strIdx][serverIndex];
 			}
-			servers[selectedStream][serverIndex]=new CarbonStreamServer(sEnc);
+			servers[strIdx][serverIndex]=new CarbonStreamServer(sEnc);
 			if(!updateServerTab())
-				updateServerInfo(servers[selectedStream][serverIndex]);
+				updateServerInfo(servers[strIdx][serverIndex]);
+			return serverIndex;
 		}
 	}
+	return -1;
+}
+
+CarbonStreamServer *CarbonStream::getServer(int strIdx,int srvIdx) {
+	if(strIdx>=0&&srvIdx>=0) return servers[strIdx][srvIdx];
+	return NULL;
 }
 
 bool CarbonStream::updateStreamTab() {
 	SInt32 val = GetControl32BitValue(streamTabControl);
 	if(_selectedStream==val) return false; /* no changes ... */
-	changeServerTab();
-	_selectedStream=val;
-	updateStreamInfo(selectedStream());
+	if(IsControlVisible(streamTabControl)) {
+		changeServerTab();
+		_selectedStream=val;
+		updateStreamInfo(selectedStream());
+	}
 	return true;
 }
 
@@ -419,9 +481,10 @@ bool CarbonStream::changeServerTab() {
 	int oldServerIndex=getTabValue(SERVER_TAB_CONTROL,_selectedServer)-1;
 	int sNum=0;
 	_selectedServer=1;
-	if(IsControlVisible(serverTabControl)) {
+	if(_selectedStream && IsControlVisible(serverTabControl)) {
 		int oldStreamIndex=getTabValue(STREAM_TAB_CONTROL,_selectedStream)-1;
-		saveServerInfo(servers[oldStreamIndex][oldServerIndex]);
+		if(servers[oldStreamIndex][oldServerIndex])
+			saveServerInfo(servers[oldStreamIndex][oldServerIndex]);
 	}
 	SetControl32BitMaximum(serverTabControl,1);
 	HideControl(serverTabControl);
@@ -601,7 +664,7 @@ CarbonStreamEncoder *CarbonStream::selectedStream() {
 	return enc[encIdx];
 }
 
-void CarbonStream::updateQuality() {
+bool CarbonStream::updateQuality() {
 	ControlRef qualityControl,descrControl;
 	OSStatus err;
 	const ControlID qualityID = { CARBON_GUI_APP_SIGNATURE, QUALITY_CONTROL };
@@ -618,9 +681,10 @@ void CarbonStream::updateQuality() {
 	SInt32 quality = GetControlValue(qualityControl);
 	enc->quality(quality);
 	updateStreamInfo(enc);
+	return true;
 }
 
-void CarbonStream::updateBitrate() {
+bool CarbonStream::updateBitrate() {
 	CarbonStreamEncoder *enc=selectedStream();
 	ControlRef bpsControl;
 	const ControlID bpsID = { CARBON_GUI_APP_SIGNATURE,BITRATE_CONTROL };
@@ -628,9 +692,10 @@ void CarbonStream::updateBitrate() {
 	if(err!=noErr) msg->error("Can't get bps control (%d)!!",err);
 	SInt32 val = GetControlValue(bpsControl);
 	enc->bitrate(bps[val-1]);
+	return true;
 }
 
-void CarbonStream::updateFrequency() {
+bool CarbonStream::updateFrequency() {
 	CarbonStreamEncoder *enc=selectedStream();
 	ControlRef freqControl;
 	const ControlID freqID = { CARBON_GUI_APP_SIGNATURE,FREQUENCY_CONTROL };
@@ -638,9 +703,10 @@ void CarbonStream::updateFrequency() {
 	if(err!=noErr) msg->error("Can't get frequency control (%d)!!",err);
 	SInt32 val = GetControlValue(freqControl);
 	enc->frequency(freq[val-1]);
+	return true;
 }
 
-void CarbonStream::updateMode() {
+bool CarbonStream::updateMode() {
 	CarbonStreamEncoder *enc=selectedStream();
 	ControlRef modeControl;
 	const ControlID modeID = { CARBON_GUI_APP_SIGNATURE,MODE_CONTROL };
@@ -648,6 +714,7 @@ void CarbonStream::updateMode() {
 	if(err!=noErr) msg->error("Can't get mode control (%d)!!",err);
 	SInt32 val = GetControlValue(modeControl);
 	enc->mode(val);
+	return true;
 }
 
 void CarbonStream::recordStreamPath(char *path) {
@@ -678,6 +745,61 @@ void CarbonStream::codecChange() {
 	updateStreamInfo(enc);
 }
 
+void CarbonStream::updatePresetControls() {
+	MenuRef loadMenu,deleteMenu,saveMenu;
+	ControlRef loadButton,deleteButton,saveButton;
+	ControlID loadButtonId = {CARBON_GUI_APP_SIGNATURE,LOAD_STREAM_PRESET_BUT};
+	ControlID deleteButtonId = {CARBON_GUI_APP_SIGNATURE,DELETE_STREAM_PRESET_BUT};
+	ControlID saveButtonId = {CARBON_GUI_APP_SIGNATURE,SAVE_STREAM_PRESET_BUT};
+
+	/* LOAD PRESET BBUTTON */
+	OSStatus err=GetControlByID(window,&loadButtonId,&loadButton);
+	if(err!=noErr) msg->error("Can't get controlref for loadPreset button (%d)!!",err);
+	err=GetBevelButtonMenuHandle(loadButton,&loadMenu);
+	if(err!=noErr) msg->error("Can't get menuref for the loadPreset button (%d)!!",err);
+	UInt16 nItems=CountMenuItems(loadMenu);
+	err=DeleteMenuItems(loadMenu,1,nItems);
+	err=SetMenuFont(loadMenu,0,9);
+	/* DELETE PRESET BUTTON */
+	err=GetControlByID(window,&deleteButtonId,&deleteButton);
+	if(err!=noErr) msg->error("Can't get controlref for deletePreset button (%d)!!",err);
+	err=GetBevelButtonMenuHandle(deleteButton,&deleteMenu);
+	if(err!=noErr) msg->error("Can't get menuref for the deletePreset button (%d)!!",err);
+	nItems=CountMenuItems(deleteMenu);
+	err=DeleteMenuItems(deleteMenu,1,nItems);
+	err=SetMenuFont(deleteMenu,0,9);
+
+	int npr = presets->numBranches();
+	for(int i=1;i<=npr;i++) {
+		XmlTag *profile=presets->getRootElement(i);
+		if(profile && strcmp(profile->name(),"profile")==0) {
+			char *name = profile->value();
+			if(name) {
+				MenuItemIndex newIdx;
+				CFStringRef text=CFStringCreateWithCString(NULL,name,kCFStringEncodingMacRoman );
+				err=AppendMenuItemTextWithCFString(loadMenu,text,0,LOAD_STREAM_PRESET_CMD,&newIdx);
+				err=AppendMenuItemTextWithCFString(deleteMenu,text,0,DELETE_STREAM_PRESET_CMD,&newIdx);
+				CFRelease(text);
+			}
+			else {
+				warning("Can't obtain name fro stream_preset entry at index %d",i);
+				presets->removeBranch(i);
+				presets->update();
+				i--;
+				npr--;
+			}
+		}
+		else {
+			warning("Bad xml element at index %d while looking from stream presets, found %s",i,profile->name()); 
+			presets->removeBranch(i);
+			presets->update();
+			i--;
+			npr--;
+		}
+	}
+
+}
+
 void CarbonStream::updateStreamInfo(CarbonStreamEncoder *encoder) {
 	int i;
 	OSStatus err;
@@ -690,13 +812,11 @@ void CarbonStream::updateStreamInfo(CarbonStreamEncoder *encoder) {
 	err=GetControlByID(window,&cid,&control);
 	if(err!=noErr) msg->error("Can't get type control (%d)!!",err);
 	SetControlValue(control,(encoder->type()==OGG)?1:2);
-
 	/* quality */
 	cid.id=QUALITY_CONTROL;
 	err=GetControlByID(window,&cid,&control);
 	if(err!=noErr) msg->error("Can't get quality control (%d)!!",err);
 	SetControlValue(control,encoder->quality());
-	
 	/* quality descr */
 	cid.id=STREAM_DESCR_CONTROL;
 	err=GetControlByID(window,&cid,&control);
@@ -707,7 +827,6 @@ void CarbonStream::updateStreamInfo(CarbonStreamEncoder *encoder) {
 		SetControlData(control,0,kControlStaticTextCFStringTag,sizeof(CFStringRef),&sdescr);
 		CFRelease(sdescr);	
 	}
-	
 	/* bitrate */
 	cid.id=BITRATE_CONTROL;
 	err=GetControlByID(window,&cid,&control);
@@ -718,7 +837,6 @@ void CarbonStream::updateStreamInfo(CarbonStreamEncoder *encoder) {
 			break;
 		}
 	}	
-	
 	/* frequency */
 	cid.id=FREQUENCY_CONTROL;
 	err=GetControlByID(window,&cid,&control);
@@ -728,14 +846,24 @@ void CarbonStream::updateStreamInfo(CarbonStreamEncoder *encoder) {
 			SetControlValue(control,i+1);
 			break;
 		}
-	}
-	
+	}	
 	/* channels (stereo/mono) */
 	cid.id=MODE_CONTROL;
 	err=GetControlByID(window,&cid,&control);
 	if(err!=noErr) msg->error("Can't get mode control (%d)!!",err);
+	MenuRef chMenu=GetControlPopupMenuHandle(control);
+	if(encoder->type()==OGG) { /* XXX - DISABLED BECAUSE MUSE CRASH */
+		if(encoder->bitrate()>=48 && encoder->frequency()>=22050) {
+			EnableMenuItem(chMenu,2);
+		}
+		else {
+			DisableMenuItem(chMenu,2);
+		}
+	}
+	else {
+		EnableMenuItem(chMenu,2);
+	}
 	SetControlValue(control,encoder->mode());
-	
 }
 
 void CarbonStream::activateMenuBar() {
@@ -744,11 +872,252 @@ void CarbonStream::activateMenuBar() {
 	if(err != noErr) msg->error("Can't get MenuBar!!");
 }
 
+bool CarbonStream::loadPreset(int idx) {
+	XmlTag *profile = presets->getRootElement(idx);
+	int val,i,n,k;
+	if(profile) {
+		/* remove current streams */
+		if(IsControlVisible(streamTabControl)) {
+			SInt32 nStreams = GetControl32BitMaximum(streamTabControl);
+			for(i=nStreams;i>0;i--) {
+				deleteStream();
+			}
+		}
+		for(i=1;i<=profile->numChildren();i++) { /* cycle on streams */
+			XmlTag *entry=profile->getChild(i);
+			if(entry) {
+				if(strcmp(entry->name(),"stream")==0) { /* stream entry */
+					int strIdx=addStream();
+					CarbonStreamEncoder *encoder=getStream(strIdx);
+					for(n=1;n<=entry->numChildren();n++) { /* cycle on stream cfg options */
+						XmlTag *cfg=entry->getChild(n);
+						if(cfg) {
+							char *cfgName = cfg->name();
+							if(strcmp(cfgName,"encoder")==0) {
+								if(sscanf(cfg->value(),"%d",&val)==1) {
+									if(val==0) encoder->type(OGG); /* XXX - HC relation beetwen 0/1 and OGG/MP3 */
+									else if(val==1) encoder->type(MP3);
+								}
+							}
+							else if(strcmp(cfgName,"quality")==0) {
+								if(sscanf(cfg->value(),"%d",&val)==1) {
+									encoder->quality(val);
+								}
+							}
+							else if(strcmp(cfgName,"mode")==0) {
+								if(sscanf(cfg->value(),"%d",&val)==1) {
+									encoder->mode(val);
+								}
+							}
+							else if(strcmp(cfgName,"bitrate")==0) {
+								if(sscanf(cfg->value(),"%d",&val)==1) {
+									encoder->bitrate(val);
+								}
+							}
+							else if(strcmp(cfgName,"frequency")==0) {
+								if(sscanf(cfg->value(),"%d",&val)==1) {
+									encoder->frequency(val);
+								}
+							}
+							else if(strcmp(cfgName,"ffiltering")==0) {
+								/* UNIMPLEMENTED */
+							}
+							else if(strcmp(cfgName,"lowpass")==0) {
+								if(sscanf(cfg->value(),"%d",&val)==1) {
+									encoder->lowpass(val);
+								}
+							}
+							else if(strcmp(cfgName,"highpass")==0) {
+								if(sscanf(cfg->value(),"%d",&val)==1) {
+									encoder->highpass(val);
+								}
+							}
+							else if(strcmp(cfgName,"filename")==0) {
+								encoder->saveFile(cfg->value());
+							}
+							else if(strcmp(cfgName,"server")==0) { /* server entry */
+								int srvIdx=addServer(strIdx);
+								if(srvIdx>=0) {
+									CarbonStreamServer *server=getServer(strIdx,srvIdx);
+									for(k=1;k<=cfg->numChildren();k++) { /* cycle on server options */
+										XmlTag *serverCfg=cfg->getChild(k);
+										if(serverCfg) {
+											char *opt=serverCfg->name();
+											if(strcmp(opt,"host")==0) {
+												if(serverCfg->value())
+													server->host(serverCfg->value());
+											}
+											else if(strcmp(opt,"port")==0) {
+												if(serverCfg->value()) {
+												if(sscanf(serverCfg->value(),"%d",&val)==1) {
+													server->port(val);
+												}
+												}
+											}
+											else if(strcmp(opt,"mount")==0) {
+												if(serverCfg->value())
+													server->mount(serverCfg->value());
+											}
+											else if(strcmp(opt,"name")==0) {
+												if(serverCfg->value())
+													server->name(serverCfg->value());
+											}
+											else if(strcmp(opt,"url")==0) {
+												if(serverCfg->value())
+													server->url(serverCfg->value());
+											}
+											else if(strcmp(opt,"description")==0) {
+												if(serverCfg->value())
+													server->description(serverCfg->value());
+											}
+											else if(strcmp(opt,"ltype")==0) {
+												if(serverCfg->value()) {
+												if(sscanf(serverCfg->value(),"%d",&val)==1) {
+													server->loginType(val);
+												}
+												}
+											}
+											else if(strcmp(opt,"username")==0) {
+												if(serverCfg->value()) 
+												server->username(serverCfg->value());
+											}
+											else if(strcmp(opt,"password")==0) { /* XXX - mmm...clean password in the cfg file */
+												if(serverCfg->value())
+												server->password(serverCfg->value());
+											}
+										} /* end of server entry */
+										updateServerInfo(server); /* make the new changes on server visible in the gui */
+									} /* end of cycle on server options */
+								} 
+							} /* end of strean entry */
+							else {
+								
+							}
+						}
+					}
+					updateStreamInfo(encoder); /* make the new changes on encoder visible in the gui */
+				} /* end of stream entry */
+			} /* end of cycle on streams */
+		}
+	}
+	return false;
+}
+
+bool CarbonStream::deletePreset(int idx) {
+	if(presets->removeBranch(idx)) {
+		updatePresetControls();
+		if(presets->update()==XML_NOERR) 
+			return true;
+	}
+	return false;
+}
+
+bool CarbonStream::savePreset(char *name) {
+	int i,n;
+	XmlTag *newProfile = new XmlTag("profile",name,NULL);
+	char int2str[256];
+	for(i=0;i<MAX_STREAM_ENCODERS;i++) {
+		if(enc[i]) {
+			XmlTag *newStream = new XmlTag("stream",newProfile);
+			if(enc[i]->bitrate()!=DEFAULT_BITRATE) {
+				sprintf(int2str,"%d",enc[i]->bitrate());
+				newStream->addChild("bitrate",int2str);
+			}
+			if(enc[i]->type() != DEFAULT_ENCODER) {
+				newStream->addChild("encoder","1");
+			}
+			if(enc[i]->mode() != DEFAULT_MODE) {
+				sprintf(int2str,"%d",enc[i]->mode());
+				newStream->addChild("mode",int2str);
+			}
+			if(enc[i]->quality() != DEFAULT_QUALITY) {
+				sprintf(int2str,"%d",enc[i]->quality());
+				newStream->addChild("quality",int2str);
+			}
+			if(enc[i]->frequency() != DEFAULT_FREQUENCY) {
+				sprintf(int2str,"%d",enc[i]->frequency());
+				newStream->addChild("frequency",int2str);
+			}
+			for(n=0;n<MAX_STREAM_SERVERS;n++) {
+				if(servers[i][n]) {
+					XmlTag *newServer=new XmlTag("server",newStream);
+					sprintf(int2str,"%d",servers[i][n]->port());
+					if(servers[i][n]->port()) newServer->addChild("port",int2str);
+					
+					if(servers[i][n]->host()) newServer->addChild("host",servers[i][n]->host());
+					if(servers[i][n]->mount()) newServer->addChild("mount",servers[i][n]->mount());
+					if(servers[i][n]->name()) newServer->addChild("name",servers[i][n]->name());
+					if(servers[i][n]->url()) newServer->addChild("url",servers[i][n]->url());
+					if(servers[i][n]->description()) newServer->addChild("description",servers[i][n]->description());
+					if(servers[i][n]->username()) newServer->addChild("username",servers[i][n]->username());
+					if(servers[i][n]->password()) newServer->addChild("password",servers[i][n]->password());
+					newStream->addChild(newServer);
+				}
+			}
+			newProfile->addChild(newStream);
+		}
+	}
+	if(presets->addRootElement(newProfile)==XML_NOERR) {
+		if(presets->update()==XML_NOERR) {
+			updatePresetControls();
+			return true;
+		}
+	}
+	return false;
+}
+
+void CarbonStream::savePresetDialog() {
+if(!IsWindowVisible(savePresetWindow)) {
+		ShowSheetWindow(savePresetWindow,window);
+	}
+	else {
+		BringToFront(savePresetWindow);
+	}
+	if(!HIViewSubtreeContainsFocus(HIViewGetRoot(savePresetWindow)))
+		HIViewAdvanceFocus(HIViewGetRoot(savePresetWindow),0); /* set focus to the url input text box */
+}
+
+void CarbonStream::confirmSavePreset() {
+	char *name=NULL;
+	Size nameSize;
+	ControlRef saveText;
+	const ControlID saveTextID = { CARBON_GUI_APP_SIGNATURE, SAVE_PRESET_TEXT_CONTROL };
+	OSStatus err;
+	if(IsWindowVisible(savePresetWindow)) {
+		err=GetControlByID(savePresetWindow,&saveTextID,&saveText);
+		if(err!=noErr) msg->warning("Can't get text control from the savePreset dialog (%d)!!",err);
+		err=GetControlDataSize(saveText,0,kControlEditTextTextTag,&nameSize);
+		if(err!=noErr) msg->error("Can't get text size for saveName (%d)!!\n",err);
+		name=(char *)malloc(nameSize+1);
+		memset(name,0,nameSize+1);
+		err=GetControlData(saveText,0,kControlEditTextTextTag,nameSize,name,NULL);
+		if(err!=noErr) msg->error("Can't get text for saveName (%d)!!\n",err);
+		SetControlData(saveText,0,kControlEditTextTextTag,0,NULL);
+		if(strlen(name)>0) {
+			HideSheetWindow(savePresetWindow);
+			savePreset(name);
+		}
+		else {
+			msg->warning("preset name can't be blank!!");
+		}
+		free(name);
+	}
+}
+
+void CarbonStream::cancelSavePreset() {
+	ControlRef saveText;
+	const ControlID saveTextID = { CARBON_GUI_APP_SIGNATURE, SAVE_PRESET_TEXT_CONTROL };
+	OSStatus err=GetControlByID(savePresetWindow,&saveTextID,&saveText);
+	if(err!=noErr) msg->warning("Can't get text control from the savePreset dialog (%d)!!",err);
+	SetControlData(saveText,0,kControlEditTextTextTag,0,NULL);
+	HideSheetWindow(savePresetWindow);
+}
+
 /****************************************************************************/
 /* EVENT HANDLERS */
 /****************************************************************************/
 
-void qualityHandler (ControlRef theControl, ControlPartCode partCode) {
+void QualityHandler (ControlRef theControl, ControlPartCode partCode) {
 	CarbonStream *me;
 	OSStatus err = GetControlProperty(theControl,CARBON_GUI_APP_SIGNATURE,
 		QUALITY_PROPERTY,sizeof(CarbonStream *),NULL,&me);
@@ -836,7 +1205,7 @@ OSStatus ServerTabEventHandler(EventHandlerCallRef inCallRef,
 /* COMMAND HANDLERS */
 /****************************************************************************/
 
-static OSStatus streamCommandHandler (
+static OSStatus StreamCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData)
 {
     HICommand command; 
@@ -882,9 +1251,42 @@ static OSStatus streamCommandHandler (
 		case CONNECT_CMD:
 			me->doConnect();
 			break;
+		case LOAD_STREAM_PRESET_CMD:
+			me->loadPreset(command.menu.menuItemIndex);
+			break;
+		case SAVE_STREAM_PRESET_CMD:
+			me->savePresetDialog();
+			break;
+		case DELETE_STREAM_PRESET_CMD:
+			me->deletePreset(command.menu.menuItemIndex);
+			break;
 		default:
 			err = eventNotHandledErr;
 			break;
+	}
+	return err;
+}
+
+static OSStatus SavePresetCommandHandler (
+    EventHandlerCallRef nextHandler, EventRef event, void *userData)
+{
+    HICommand command; 
+    OSStatus err = noErr;
+	SInt16 val;
+    CarbonStream *me = (CarbonStream *)userData;
+	err = GetEventParameter (event, kEventParamDirectObject,
+        typeHICommand, NULL, sizeof(HICommand), NULL, &command);
+    if(err != noErr) me->msg->error("Can't get event parameter!!");
+	switch (command.commandID)
+    {
+		case SAVE_PRESET_CONFIRM_CMD:
+			me->confirmSavePreset();
+			break;
+		case CANCEL_CMD:
+			me->cancelSavePreset();
+			break;
+		default:
+			err = eventNotHandledErr;
 	}
 	return err;
 }
