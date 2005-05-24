@@ -26,7 +26,7 @@
 	handling of structured configuration files inside MuSE.
 */
 #ifndef __XMLPROFILE_H__
-#define __XMPROFILE_H__
+#define __XMLPROFILE_H__
 #include "linklist.h"
 
 #define XmlErr int
