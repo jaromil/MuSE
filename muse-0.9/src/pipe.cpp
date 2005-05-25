@@ -62,21 +62,21 @@ static inline void copy_byte(void *dst, void *src, int samples) {
 
 static inline void copy_int16_to_float(void *dst, void *src, int samples) {
   register int c;
-  for( c = samples; c>=0 ; c-- ) {
+  for( c = samples-1; c>=0 ; c-- ) {
     ((float*)dst)[c] = ((int16_t*)src)[c] / 32768.0f;
   }
 }
 
 static inline void copy_float_to_int16(void *dst, void *src, int samples) {
   register int c;
-  for( c = samples; c>=0 ; c-- ) {
+  for( c = samples-1; c>=0 ; c-- ) {
     ((int16_t*)dst)[c] = (int16_t) ( ((float*)src)[c] );
   }
 }
 
 static inline void mix_int16_to_int32(void *dst, void *src, int samples) {
   register int c;
-  for( c = samples ; c>=0 ; c-- ) {
+  for( c = samples-1 ; c>=0 ; c-- ) {
     ((int32_t*)dst)[c]
       +=
       ((int16_t*)src)[c];
