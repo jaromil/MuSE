@@ -248,7 +248,7 @@ bool OutVorbis::apply_profile() {
   if( vorbis_encode_init
       (&vi, channels(), freq(), bps()*1000, bps()*1000, bps()*1000) ) {
     error("vorbis_encode_init failed: invalid parameters");
-    res = false;
+    return false;
   }
   /* Now, set up the analysis engine, stream encoder, and other
      preparation before the encoding begins. */
