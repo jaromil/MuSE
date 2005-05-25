@@ -22,9 +22,8 @@
 
 #include <dec_ogg.h>
 #include <jutils.h>
+#include <httpstream.h>
 #include <config.h>
-
-#include "httpstream.h"
 
 
 #ifdef HAVE_VORBIS
@@ -59,8 +58,13 @@ IN_DATATYPE *MuseDecOgg::get_audio() {
 
   do {
     res = 
+#ifdef HAVE_DARWIN
+      //      env  buffer  length    BENDIAN WORD SIGNED  bitstream
+      ov_read(&vf, _inbuf, IN_CHUNK, 1,      2,   1,      &current_section);
+#else
       //      env  buffer  length    BENDIAN WORD SIGNED  bitstream
       ov_read(&vf, _inbuf, IN_CHUNK, 0,      2,   1,      &current_section);
+#endif
   } while (res == OV_HOLE);
   
   if(res<0) {
@@ -75,7 +79,8 @@ IN_DATATYPE *MuseDecOgg::get_audio() {
     return(NULL);
   }
 
-  frames = res>>1;
+
+  frames = res/2; // res>>1
 
   return((IN_DATATYPE *)_inbuf);
 }
@@ -100,17 +105,15 @@ int MuseDecOgg::load(char *file) {
 
   samplerate = vi->rate;
   channels = vi->channels;
+
   seekable = ov_seekable(&vf);
+  if(seekable) frametot = ov_pcm_total(&vf,-1);
 
   /* pcm position */
   framepos = 0;
 
-  /* check if seekable */
-  res = (ov_seekable(&vf)) ? 1 : 2;
-  seekable = (res>1) ? false : true;
-
-  if(seekable)
-    frametot = ov_pcm_total(&vf,-1);
+  // set return value
+  res = (seekable)? 1: 2;
 
   return(res);
 }

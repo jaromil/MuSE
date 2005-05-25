@@ -227,7 +227,7 @@ int Pipe::read(int length, void *data) {
       (data, start,
        blk / read_copy_cb->src_samplesize);
     /* blank just copied bytes */
-    //    memset(start,0,blk / read_copy_cb->src_samplesize);
+    memset(start,0,blk / read_copy_cb->src_samplesize);
     
     start = &((char*)start)[blk]; // (char*)start += blk;
     len -= blk;
@@ -243,7 +243,7 @@ int Pipe::read(int length, void *data) {
 	 len / read_copy_cb->src_samplesize);
       
       /* blank just copied bytes */
-      //      memset(start,0,len / read_copy_cb->src_samplesize);
+      memset(start,0,len / read_copy_cb->src_samplesize);
       data = &((char*)data)[len]; // (char*)data += len;
       start = &((char*)start)[len]; // (char*)start += len;
       worklen -= len;

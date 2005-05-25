@@ -69,7 +69,7 @@ Channel::Channel() {
   time.h = time.m = time.s = 0;
   position = time.f = 0.0;
   state = 0.0;
-  playmode = PLAYMODE_PLAY;
+  playmode = PLAYMODE_PLAYLIST;
   opened = false;
   on = false;
   update = false;
@@ -84,7 +84,7 @@ Channel::Channel() {
   erbapipa->set_output_type("mix_int16_to_int32");
   // blocking input and output, default timeout is 200 ms
   erbapipa->set_block(true,true);
-  erbapipa->set_block_timeout(400,200);
+  erbapipa->set_block_timeout(8000,4000);
 
   playlist = new Playlist();
   dec = NULL;
@@ -118,8 +118,8 @@ void Channel::run() {
   func("InChanThread! here i am");
   running = true;
   quit = false;
-
-  wait();
+  unlock();
+  signal();
 
   while(!quit) {
     
@@ -160,21 +160,21 @@ void Channel::run() {
 	else { // nothing comes out but we hang on
 	  //	  error("unknown state on %s channel",dec->name);
 	  //	  report(); state = 0.0;
-	  jsleep(0,20);
+	  jsleep(0,1);
 	}
 
     } else { // if(on)
 
       // just hang on
       idle = true;
+
       jsleep(0,20);
 
     }
 
-    wait();
 
   } // while(!quit)
-  unlock();
+  stop();
   func("Channel :: run :: end thread %d",pthread_self());
   running = false;
 }
@@ -250,9 +250,9 @@ bool Channel::stop() {
   on = false;
   if(opened) {
     //  unlock();
+    erbapipa->flush();
     pos(0.0);
     state = 0.0;
-    erbapipa->flush();
     fill_prev_smp = true;
   }
   return(!on);
@@ -260,14 +260,15 @@ bool Channel::stop() {
 
 int Channel::load(char *file) {
   func("%u:%s:%s",__LINE__,__FILE__,__FUNCTION__);
-  MuseDec *ndec = NULL;
-  MuseDec *tmpdec;
-  char tmp[256];
-  int res;
   /* returns:
      0 = error
      1 = stream is seakable
      2 = stream is not seekable  */ 
+
+  MuseDec *ndec = NULL;
+  MuseDec *tmpdec = NULL;
+  char tmp[256];
+  int res;
   hstream cod = HS_NONE;
 
   /* parse supported file types */
@@ -275,23 +276,26 @@ int Channel::load(char *file) {
   snprintf(tmp,256,"%s",file);
   
   if (strstr(file, "http://")) {
-    cod = stream_detect(file);
-  }
 
-  if(strncasecmp(file+strlen(file)-4,".ogg",4)==0 || cod==HS_OGG) {
+    cod = stream_detect(file);
+
+  } else if(strncasecmp(file+strlen(file)-4,".ogg",4)==0 || cod==HS_OGG) {
+
 #ifdef HAVE_VORBIS
     func("creating Ogg decoder");
     ndec = new MuseDecOgg();
 #else
     error(_("Can't open OggVorbis (support not compiled)"));
 #endif
-  }
-  if(strncasecmp(file+strlen(file)-4,".mp3",4)==0 || cod==HS_MP3) {
+
+  } else if(strncasecmp(file+strlen(file)-4,".mp3",4)==0 || cod==HS_MP3) {
+
     func("creating Mp3 decoder");
     ndec = new MuseDecMp3();
-  }
+
+  } else if(strncasecmp(file+strlen(file)-4,".wav",4)==0
+
   // pallotron: aggiungo lo string compare per i formati sndfile
-  if(strncasecmp(file+strlen(file)-4,".wav",4)==0
      || strncasecmp(file+strlen(file)-4,".aif",4)==0
      || strncasecmp(file+strlen(file)-5,".aiff",4)==0
      || strncasecmp(file+strlen(file)-4,".snd",4)==0
@@ -314,15 +318,12 @@ int Channel::load(char *file) {
 #else
     error(_("Can't open sound file (support not compiled)"));
 #endif
-  }
 
-  if(strncasecmp(file,"jack://",7)==0) {
+  } else if(strncasecmp(file,"jack://",7)==0) {
+
 #ifdef HAVE_JACK
     func("creating Jack Audio Daemon input client");
-    // setup the filename with a MuSE___ prefix
-    // for the jack client name
-    //    file[0]='M';file[1]='u';file[2]='S';file[3]='E';
-    //    file[4]='_';file[5]='_';file[6]='_';
+
     ndec = new MuseDecJack();
 
     snprintf(tmp,256,"MuSE_in_%s",&file[7]);
@@ -330,6 +331,7 @@ int Channel::load(char *file) {
 #else
     error(_("Jack audio daemon support is not compiled in this version of MuSE"));
 #endif
+
   }
   
   if(!ndec) {
@@ -337,11 +339,12 @@ int Channel::load(char *file) {
     return(0);
   }
 
-  //  lock();
   func("trying to load file into decoder");
+
   ndec->lock();
   res = ndec->load(tmp); // try to load the file/stream into the decoder
   ndec->unlock();
+
   func("decoder lock passed, load returns %u",res);
 
   if(!res) { // there is an error: we keep everything as it is
@@ -350,7 +353,10 @@ int Channel::load(char *file) {
     delete ndec;
     return(0);
   }
-  
+
+  //  if(dec) dec->lock();
+
+  func("samplerate seems to be %u",ndec->samplerate);  
   res = set_resampler(ndec);
 
   if(!res) {
@@ -370,17 +376,19 @@ int Channel::load(char *file) {
   //  if(dec) delete dec; // delete the old decoder if present
   tmpdec = dec; // save to delete it after
   dec = ndec; // atomical swap!
+
   opened = true;
 
   res = (dec->seekable)?1:2;
   seekable = (res==1) ? true : false;
   state = 0.0;
+
+  //  tmpdec->unlock();
+  if(tmpdec) delete tmpdec; // delete the old decoder if present
   
-  //  unlock();
-  //  func("lock removed");
 
-  if(tmpdec) delete (tmpdec);
 
+  
   notice(_("loaded %s"),file);
   if(dec->bitrate)
     notice("%s %s %iHz %s %iKb/s",
@@ -398,7 +406,7 @@ int Channel::load(char *file) {
 	   
   return res;
 }
-     
+
 bool Channel::pos(float pos) {
   func("%u:%s:%s",__LINE__,__FILE__,__FUNCTION__);
   PARADEC

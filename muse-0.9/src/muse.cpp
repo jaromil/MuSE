@@ -454,7 +454,7 @@ bool take_args(int argc, char **argv) {
 
     case 'P':
       playmode = 0;
-      if(strncasecmp(optarg,"play",4)==0) playmode=PLAYMODE_PLAY;
+      if(strncasecmp(optarg,"play",4)==0) playmode=PLAYMODE_PLAYLIST;
       if(strncasecmp(optarg,"cont",4)==0) playmode=PLAYMODE_CONT;
       if(strncasecmp(optarg,"loop",4)==0) playmode=PLAYMODE_LOOP;
       if(!playmode)
@@ -843,8 +843,10 @@ int main(int argc, char **argv) {
 	else
 	  if(!mix->play_channel(c))
 	    error("CLI: error in play_channel(%i)",c);
-	  else
+	  else {
 	    has_playlist = true;
+	    func("ok channel %u has playlist",c);
+	  }
   } /* === END CLI === */
 
   if((!has_playlist && !micrec) && (thegui==CLI)) {

@@ -416,7 +416,7 @@ hopen( const char *url, const char *mode )
 {
     FILE *fd = NULL;
     if (!url) return NULL;
-	notice("hopen: '%s'", url);
+    act("opening stream: '%s'", url);
     if (strstr(url, HTTP_PREFIX)) {
 	    fd = http_open(url);
 		if (fd) {

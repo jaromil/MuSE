@@ -1,6 +1,7 @@
 /* MuSE - Multiple Streaming Engine
  * SoundDevice class interfacing Portaudio PABLIO library
- * Copyright (C) 2004 Denis Roio aka jaromil <jaromil@dyne.org>
+ * Copyright (C) 2004-2005 Denis Roio aka jaromil <jaromil@dyne.org>
+ *               2005 Xant <xant@xant.net>
  *
  * This source code is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Public License as published 
@@ -37,52 +38,53 @@
 
 #ifdef HAVE_JACK
 int dev_jack_process(jack_nframes_t nframes, void *arg) {
-jack_nframes_t opframes;
-SoundDevice *dev = (SoundDevice*)arg;
-if(!dev->jack) return 0; // just return
-
-// take output from pipe and send it to jack
-dev->jack_out_buf = (jack_default_audio_sample_t*)
-jack_port_get_buffer(dev->jack_out_port,nframes);
-opframes = dev->jack_out_pipe->read
-(nframes * sizeof(float) * 2 , dev->jack_out_buf);
-
-// take input from jack and send it in pipe
-dev->jack_in_buf = (jack_default_audio_sample_t*)
-jack_port_get_buffer(dev->jack_in_port,nframes);
-dev->jack_in_pipe->write // does the float2int conversion in one pass
-(nframes * sizeof(float) * 2 , dev->jack_in_buf);
-
-return 0;
+  
+  jack_nframes_t opframes;
+  SoundDevice *dev = (SoundDevice*)arg;
+  if(!dev->jack) return 0; // just return
+  
+  // take output from pipe and send it to jack
+  dev->jack_out_buf = (jack_default_audio_sample_t*)
+    jack_port_get_buffer(dev->jack_out_port,nframes);
+  opframes = dev->jack_out_pipe->read
+    (nframes * sizeof(float) * 2 , dev->jack_out_buf);
+  
+  // take input from jack and send it in pipe
+  dev->jack_in_buf = (jack_default_audio_sample_t*)
+    jack_port_get_buffer(dev->jack_in_port,nframes);
+  dev->jack_in_pipe->write // does the float2int conversion in one pass
+    (nframes * sizeof(float) * 2 , dev->jack_in_buf);
+  
+  return 0;
 }
 
 void dev_jack_shutdown(void *arg) {
-SoundDevice *dev = (SoundDevice*)arg;
-// close the jack channels
-dev->jack = false;
-jack_port_unregister(dev->jack_client, dev->jack_in_port);
-jack_port_unregister(dev->jack_client, dev->jack_out_port);
-jack_deactivate(dev->jack_client);
-delete dev->jack_in_pipe;
-delete dev->jack_out_pipe;
+  SoundDevice *dev = (SoundDevice*)arg;
+  // close the jack channels
+  dev->jack = false;
+  jack_port_unregister(dev->jack_client, dev->jack_in_port);
+  jack_port_unregister(dev->jack_client, dev->jack_out_port);
+  jack_deactivate(dev->jack_client);
+  delete dev->jack_in_pipe;
+  delete dev->jack_out_pipe;
 }
 #endif
 
 
 SoundDevice::SoundDevice() {
-memset(&input_device,0,sizeof(input_device));
-memset(&output_device,0,sizeof(output_device));
-pa_dev.input = &input_device;
-pa_dev.output = &output_device;
-input_device.pipe = new Pipe(PA_PIPE_SIZE);
-input_device.pipe->set_block(false,true);
-output_device.pipe = new Pipe(PA_PIPE_SIZE);
-output_device.pipe->set_block(true,false);
-input_device.pipe->set_output_type("copy_float_to_int16");
-output_device.pipe->set_input_type("copy_int16_to_float");
-jack = false;
-jack_in = false;
-jack_out = false;
+  memset(&input_device,0,sizeof(input_device));
+  memset(&output_device,0,sizeof(output_device));
+  pa_dev.input = &input_device;
+  pa_dev.output = &output_device;
+  input_device.pipe = new Pipe(PA_PIPE_SIZE);
+  input_device.pipe->set_block(false,true);
+  output_device.pipe = new Pipe(PA_PIPE_SIZE);
+  output_device.pipe->set_block(true,false);
+  input_device.pipe->set_output_type("copy_float_to_int16");
+  output_device.pipe->set_input_type("copy_int16_to_float");
+  jack = false;
+  jack_in = false;
+  jack_out = false;
 }
 
 SoundDevice::~SoundDevice() {
@@ -271,33 +273,33 @@ bool SoundDevice::open(bool read, bool write) {
 
 void SoundDevice::close() {
   if((pa_mode&PaInput) == PaInput) {
-	if((pa_mode&PaOutput) == PaOutput) {
-	  pa_mode = PaOutput;
-	  if(output_device.stream == input_device.stream)
-	    output_device.stream = NULL;
-	}
-	else pa_mode = PaNull;
-	if(input_device.stream) {
-       Pa_StopStream( input_device.stream);
-       Pa_CloseStream( input_device.stream );
-       input_device.stream = NULL;
-	}
+    if((pa_mode&PaOutput) == PaOutput) {
+      pa_mode = PaOutput;
+      if(output_device.stream == input_device.stream)
+	output_device.stream = NULL;
+    }
+    else pa_mode = PaNull;
+    if(input_device.stream) {
+      Pa_StopStream( input_device.stream);
+      Pa_CloseStream( input_device.stream );
+      input_device.stream = NULL;
+    }
     input_device.pipe->flush();
     //delete input_device.pipe;
   }
-
+  
   if((pa_mode&PaOutput) == PaOutput) {
     if(output_device.stream) {
-       Pa_StopStream( output_device.stream);
-       Pa_CloseStream( output_device.stream );
-       output_device.stream = NULL;
-	}
+      Pa_StopStream( output_device.stream);
+      Pa_CloseStream( output_device.stream );
+      output_device.stream = NULL;
+    }
     output_device.pipe->flush();
-	if((pa_mode&PaInput) == PaInput)
-		pa_mode = PaInput;
-	else pa_mode = PaNull;
+    if((pa_mode&PaInput) == PaInput)
+      pa_mode = PaInput;
+    else pa_mode = PaNull;
   }
-    //delete output_device.pipe;
+  //delete output_device.pipe;
 }
 
 int SoundDevice::read(void *buf, int len) {
@@ -331,8 +333,16 @@ int SoundDevice::write(void *buf, int len) {
 }
 
 void SoundDevice::flush_output() {
-   output_device.pipe->flush();
+  if(jack)
+    jack_out_pipe->flush();
+  else if(output_device.stream) { // portaudio
+    output_device.pipe->flush();
+  }
 }
 void SoundDevice::flush_input() {
+  if(jack)
+    jack_in_pipe->flush();
+  else if(input_device.stream) {
    input_device.pipe->flush();
+  }
 }

@@ -349,20 +349,15 @@ bool Stream_mixer::create_channel(int ch) {
   Channel *nch;
   nch = new Channel();
 
+  nch->lock();
   nch->start();
-  while(!nch->running) {
-    func("waiting for channel %i thread to start",ch);
-    jsleep(0,20);
-  }	
-  //  lock();
-  chan[ch] = nch;
-  //  unlock();
+  //  while(!nch->running) {
+  func("waiting for channel %i thread to start",ch);
+  nch->wait();
 
-  nch->signal();
-  
-//   lock();
-//   chan[ch] = nch;
-//   unlock();
+  chan[ch] = nch;
+
+  nch->unlock();
   
   return(true);
 }
@@ -375,15 +370,12 @@ bool Stream_mixer::delete_channel(int ch) {
 
   if(chan[ch]->on) chan[ch]->stop();
   // quit the thread
-  if(chan[ch]->running) {
+
+  // be sure it quitted
+  while(chan[ch]->running) {
     chan[ch]->quit = true;
-    // be sure it quitted
-    chan[ch]->signal();
-    jsleep(0,50);
-    //    chan[ch]->lock(); chan[ch]->unlock();
-
+    jsleep(0,10);
   }
-
 
   /* clean internal allocated buffers */
   delete chan[ch];
@@ -436,12 +428,9 @@ bool Stream_mixer::set_channel(int ch, int pos) {
     if(!chan[ch]->playlist->sel(pos))
       return(false);
     else
+      // channel is selected ok, but we need to open before playing
       chan[ch]->opened = false;
 
-  /* if have_gui select the choosen song
-  if(have_gui)
-    gui->sel_playlist( ch , pos );
-  */
   return(true);
 }
 
@@ -462,12 +451,10 @@ int Stream_mixer::play_channel(int ch) {
   /* paranoia */
   PARACHAN
 
-    //  lock();
   if(!chan[ch]->play())
     error("can't play channel %u",ch);
   else
     res = (chan[ch]->seekable) ? 1 : 2;
-  //  unlock();
 
   return(res);
 }
@@ -718,9 +705,7 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
   /* if it's a url, just add it */
   if(strncasecmp(temp,"http://",7)==0) {
     func("it's a network stream url");
-    //    lock();
     path = chan[ch]->playlist->addurl(temp);
-    //    unlock();
     if(have_gui) gui->add_playlist(ch,path);
     return(true);
   }
@@ -782,9 +767,7 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
       || strncasecmp(temp+strlen(temp)-4,".mat",4)==0
       ) {
     func("it's a local file",temp);
-    //    lock();
     path = chan[ch]->playlist->addurl(temp);
-    //    unlock();
     
     if(have_gui) {
       p = path+strlen(path);// *p='\0';
@@ -950,7 +933,7 @@ bool Stream_mixer::apply_enc(int id) {
 
   //  if(!outch->profile_changed) return true;
 
-  char *qstr = outch->quality_desc;
+  // quality is in outch->quality_desc;
 
   //  lock();
   outch->lock();
@@ -1030,7 +1013,7 @@ void Stream_mixer::clip_audio(int samples) {
       audio_buffer[c] = -32768;
       }
     else {
-      audio_buffer[c] = (short)pproc;
+      audio_buffer[c] = (int16_t)pproc;
       if (pproc>peak[cpeak])
 	peak[cpeak] = pproc;
     }

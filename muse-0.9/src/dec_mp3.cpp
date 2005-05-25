@@ -50,20 +50,16 @@ int MuseDecMp3::load(char *file) {
   loader = Soundinputstream::hopen(file,&res);
   if(loader == NULL) {
     warning("MuseDecMp3::load : i don't see any stream flowing from %s",file);
-    //    clean(); // QUAAAAAAA
-    //    unlock();
     return(0);
-  } // else func("MuseDecMp3->loader %p - OK",loader);
+  }
 
   server = new Mpegtoraw(loader);
   if(server == NULL) {
     warning("MuseDecMp3::load(%s) - uuops! NULL Mpegtoraw",file);
     delete loader;
     loader = NULL;
-    //    clean();
-    //    unlock();
     return(0);
-  } // else func("MuseDecMp3->server %p - OK",server);
+  }
 
   server->initialize(file);
 
