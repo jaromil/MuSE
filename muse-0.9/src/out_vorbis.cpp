@@ -179,7 +179,7 @@ int OutVorbis::prepare(float *buf, float **fbuf, int num) {
   int i=0;
   switch(channels()) {
   case 1:
-    for(i=num; i>0; i--)
+    for(i=num-1; i>=0; i--)
       fbuf[0][i] = buf[i]; // short buf: (buf[i*2] + buf[i*2+1]) / 65536.0f; // /2 /32768.0f;
     break;
   case 2:
