@@ -257,21 +257,21 @@ int resample_mono_22(IN_DATATYPE *dest, IN_DATATYPE *src, IN_DATATYPE *prev,
   dest[2] = dest[3] = (IN_DATATYPE)((float)src[0] * volume);
   
   for (i = 1 ; i < num ; i++) {
-    ipu = i*2;
+    ipu = i*4;
     dest[ipu] = dest[ipu+1] = (IN_DATATYPE)((float)((long)src[i-1] + 
                                                     (long)src[i]) * volmez);
     dest[ipu+2] = dest[ipu+3] = (IN_DATATYPE)((float)src[i] * volume);
   }
 
-  return((int)num*2);
+  return((int)num*4);
 #else
   unsigned int c,cc;
   for(c=0,cc=0;c<num;c++) {
-    cc = c*2;
+    cc = c*4;
     dest[cc] = dest[cc+1] = dest[cc+2] = dest[cc+3] =
       (IN_DATATYPE) (src[c]*volume);
   }
-  return((int)num*2);
+  return((int)num*4);
 #endif
 }
 
