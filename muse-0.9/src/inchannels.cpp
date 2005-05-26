@@ -506,9 +506,9 @@ void Channel::prev() {
 }
 
 void Channel::sel(int newpos) {
-  float st=state;
+  bool st=on; /* save status */
   if(newpos) {
-    switch(playmode) {
+   switch(playmode) {
     case PLAYMODE_PLAY:
       stop();
       break;
@@ -522,20 +522,20 @@ void Channel::sel(int newpos) {
       stop();
       n = (Url*)playlist->pick(newpos);
       if(n && playlist->sel(newpos)) { 
-	while( ! load(n->path) ) {
+        while( ! load(n->path) ) {
           n->sel(false); n = (Url*)n->next;
-	  if(!n && playmode==PLAYMODE_PLAYLIST) break;
-	  if(!n) n = (Url*)playlist->begin();
-	  if(!n) break;
-	  n->sel(true);
+          if(!n && playmode==PLAYMODE_PLAYLIST) break;
+          if(!n) n = (Url*)playlist->begin();
+          if(!n) break;
+          n->sel(true);
         }
       }
       if(n) {
-        if(st!=0.0) play();
+        if(st) play();
         update = true;
       }
       break;
-    default: break;
+	 default: break;
     }
   }
 }
