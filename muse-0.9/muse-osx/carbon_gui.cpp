@@ -36,7 +36,7 @@ const EventTypeSpec statusEvents[] = {
 
 const EventTypeSpec events[] = {
 	{ kEventClassWindow, kEventWindowClosed },
-	{ CARBON_GUI_EVENT_CLASS, CARBON_GUI_REMOVE_CHANNEL},
+	{ CARBON_GUI_EVENT_CLASS, CG_RMCH_EVENT},
 	//{ kEventClassWindow, kEventWindowGetClickActivation },
 	{ kEventClassWindow, kEventWindowActivated }
 };
@@ -286,6 +286,7 @@ bool CARBON_GUI::new_channel(int i) {
 bool CARBON_GUI::remove_channel(int idx) {
 	lock();
 	if(channel[idx]) {
+		if(selectedChannel==channel[idx]) selectedChannel=NULL;
 		delete channel[idx];
 		channel[idx] = NULL;
 		unlock(); /* unlock mutex asap */
@@ -579,9 +580,9 @@ static OSStatus MainWindowEventHandler (
 		case kEventWindowActivated:
 			me->bringToFront();
 			break;
-		case CARBON_GUI_REMOVE_CHANNEL:
+		case CG_RMCH_EVENT:
 			int idx;
-			GetEventParameter(event,'cidx',typeCFIndex,NULL,sizeof(int),NULL,&idx);
+			GetEventParameter(event,CG_RMCH_EVENT_PARAM,typeCFIndex,NULL,sizeof(int),NULL,&idx);
 			me->remove_channel(idx);
 			break;
         default:

@@ -54,6 +54,7 @@ class CarbonStreamEncoder {
 		int quality();
 		char *qualityString();
 		void saveFile(char *fileName);
+		void filterMode(int mode); /* 0 == auto, 1 == manual */
 		
 		bool startSaving();
 		bool stopSaving();
@@ -63,12 +64,12 @@ class CarbonStreamEncoder {
 		int frequency();
 		int lowpass();
 		int highpass();
+		int filterMode(); /* 0 == auto , 1 == manual */
 		int mode();
 		char *saveFile();
-		
+		bool update();
+		bool isSaving();
 	private:
-	
-		void update();
 	
 		CarbonMessage *msg;
 		enum codec _type;
@@ -81,7 +82,7 @@ class CarbonStreamEncoder {
 		int _channels;
 		int _lowpass;
 		int _highpass;
-		
+		int _filterMode;
 		int _quality;
 		char _qdescr[256];
 };

@@ -30,7 +30,6 @@ extern "C" OSStatus OpenFileWindow(WindowRef parent);
 /****************************************************************************/
 
 const ControlID selectedSongId = { CARBON_GUI_APP_SIGNATURE, SELECTED_SONG_CONTROL };
-const ControlID volId = { CARBON_GUI_APP_SIGNATURE,VOLUME_CONTROL };
 
 #define CARBON_CHANNEL_EVENTS 9
 const EventTypeSpec windowEvents[] = {
@@ -61,7 +60,6 @@ uint8_t playmodes[4] = { PLAYMODE_PLAYLIST, PLAYMODE_CONT, PLAYMODE_PLAY, PLAYMO
 
 CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsigned int chan) {
 	Rect bounds;
-	ControlRef volCtrl;
 	HISize minBounds = {CHANNEL_WINDOW_WIDTH_MIN,CHANNEL_WINDOW_HEIGHT_MIN};
 	HISize maxBounds = {CHANNEL_WINDOW_WIDTH_MAX,CHANNEL_WINDOW_HEIGHT_MAX};
 
@@ -79,7 +77,7 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 	isDrawing=false;
 	status=CC_STOP;
 	savedStatus=-1;
-	seek=0;
+	_seek=0;
 	loadedPlaylist=NULL;
 	playList = inChannel->playlist; //new Playlist();
 	msg = new CarbonMessage(nibRef);
@@ -124,12 +122,6 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 	CFRelease(format);
 	CFRelease(wName);
 	
-	err = GetControlByID(window,&volId,&volCtrl);
-	SetControlValue(volCtrl,(int)(inChannel->volume*100));
-	EventLoopTimerUPP timerUPP = NewEventLoopTimerUPP(ChannelLoop);
-	err = InstallEventLoopTimer( GetCurrentEventLoop(),0,1,timerUPP,this,&updater);
-	if(err!=noErr) msg->error("Can't install the idle eventloop handler(%d)!!",err);
-
 	/* install fader window */
 	setupFaderWindow();
 	err=CreateWindowGroup(WINDOW_GROUP_ATTRIBUTES,&faderGroup);
@@ -151,6 +143,24 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 
 	setupOpenUrlWindow();
 	setupSavePlaylistWindow();
+	
+	/* setup seek control */
+	const ControlID seekId = { CARBON_GUI_APP_SIGNATURE, SEEK_CONTROL };
+	err = GetControlByID(window,&seekId,&seekControl);
+	SetControlAction(seekControl,NewControlActionUPP(&SeekHandler));
+	CarbonChannel *self=this;
+	err = SetControlProperty(seekControl,CARBON_GUI_APP_SIGNATURE,SEEK_PROPERTY,
+		sizeof(CarbonChannel *),&self);
+	
+	/* setup volume control */
+	const ControlID volId = { CARBON_GUI_APP_SIGNATURE,VOLUME_CONTROL };
+	err = GetControlByID(window,&volId,&volControl);
+	SetControlValue(volControl,(int)(inChannel->volume*100));
+	EventLoopTimerUPP timerUPP = NewEventLoopTimerUPP(ChannelLoop);
+	err = InstallEventLoopTimer( GetCurrentEventLoop(),0,1,timerUPP,this,&updater);
+	if(err!=noErr) msg->error("Can't install the idle eventloop handler(%d)!!",err);
+
+	
 	SelectWindow(window);
 	err=GetWindowBounds(window,kWindowGlobalPortRgn,&bounds);
 	if(err==noErr) {
@@ -420,11 +430,11 @@ void CarbonChannel::setPos(int pos) {
 	OSStatus err;
 	ControlRef seekControl;
 	const ControlID seekId = { CARBON_GUI_APP_SIGNATURE, SEEK_CONTROL };
-	if(pos!=seek) {
+	if(pos!=_seek) {
 		err = GetControlByID(window,&seekId,&seekControl);
 		if(err != noErr) msg->warning("Can't update seek control (%d)!!",err);
 		SetControl32BitValue(seekControl,pos);
-		seek = pos;
+		_seek = pos;
 	}
 }
 
@@ -484,10 +494,9 @@ void CarbonChannel::plMove(int from, int dest) {
 }
 
 void CarbonChannel::plRemove(int pos) {
-	lock();
 	if(playList->selected_pos()==pos) {
 		if(playList->len() > 1) {
-			if(inChannel->state==1.0) inChannel->skip();
+			if(inChannel->on) inChannel->next();
 			else {
 				if(pos==playList->len()) {
 					plSelect(pos-1);
@@ -502,6 +511,7 @@ void CarbonChannel::plRemove(int pos) {
 			plSelect(0);
 		}
 	}
+	lock();
 	playList->rem(pos);
 	unlock();
 	plUpdate();
@@ -510,8 +520,10 @@ void CarbonChannel::plRemove(int pos) {
 void CarbonChannel::plRemoveSelection() {
 	DataBrowserItemID first,last;
 	GetDataBrowserSelectionAnchor(playListControl,&first,&last);
-	for (int i=first;i<=last;i++) {
-		plRemove(first);
+	if(first) { /* is there something selected? */
+		for (int i=first;i<=last;i++) {
+			plRemove(first);
+		}
 	}
 }
 
@@ -601,6 +613,7 @@ void CarbonChannel::doAttach() {
 }
 
 void CarbonChannel::crossFade(int fadeVal) {
+	const ControlID volId = { CARBON_GUI_APP_SIGNATURE,VOLUME_CONTROL };
 	ControlRef volCtrl;
 	OSStatus err;
 	/* XXX - jmix->crossfade() doesn't work properly?? :O */
@@ -614,9 +627,7 @@ void CarbonChannel::crossFade(int fadeVal) {
 }
 
 void CarbonChannel::setVol(int vol) {
-	ControlRef volCtrl;
-	OSStatus err = GetControlByID(window,&volId,&volCtrl);
-	SetControlValue(volCtrl,(int)(vol));
+	SetControlValue(volControl,(int)(vol));
 	jmix->set_volume(chIndex,(float)vol/100);
 }
 
@@ -735,17 +746,11 @@ void CarbonChannel::run() { /* channel main loop */
 	lock();
 	/* update status - this can override the status setted by user controls
 	 * in respect of inChannel behaviour */
-	 float cState=inChannel->state;
-	 if(cState==0.0) {
-		if(status!=CC_PAUSE) status=CC_STOP;
-	}
-	else if(cState >= 2.0) {
-		status=CC_STOP;
-	}
-	else {
-		if(status != CC_PAUSE) 
-			status=CC_PLAY;
-	}	
+	 bool cState=inChannel->on;
+	 if(cState) 
+		if(status != CC_PAUSE) status=CC_PLAY;
+	 else status=CC_STOP;
+
 	if(status!=savedStatus) { /* status change */
 		ControlID butId = { CARBON_GUI_APP_SIGNATURE ,PLAY_BUT};
 		ControlRef playButton,pauseButton,stopButton;
@@ -810,6 +815,7 @@ void CarbonChannel::stop() {
 		msg->warning("Can't stop channel %d!!",chIndex);
 		func("Error trying to stop channel %d!!",chIndex);
 	}
+	SetControl32BitValue(seekControl,0); /* reset seek control to 0 */
 	lock();
 	status=CC_STOP;
 	unlock();
@@ -821,6 +827,13 @@ void CarbonChannel::prev() {
 
 void CarbonChannel::next() {
 	inChannel->next();
+}
+
+void CarbonChannel::seek(int pos) {
+	printf("EKKOMI %d\n",pos);
+	if(inChannel->seekable && pos) {
+		inChannel->pos((float)pos/1000);
+	}
 }
 
 void CarbonChannel::pause() {
@@ -857,6 +870,9 @@ bool CarbonChannel::plLoad(int idx) {
 	if(idx) {
 		Playlist *newPl=plManager->load(idx);
 		if(newPl) {
+			/* stop channel if it's playing */
+			stop();
+			/* clean current playlist */
 			for(i=playList->len();i>0;i--) {
 				plRemove(i);
 			}
@@ -1300,6 +1316,16 @@ void FaderHandler (ControlRef theControl, ControlPartCode partCode) {
 	}
 }
 
+void SeekHandler (ControlRef theControl, ControlPartCode partCode) {
+	CarbonChannel *me;
+	OSStatus err = GetControlProperty(theControl,CARBON_GUI_APP_SIGNATURE,
+		SEEK_PROPERTY,sizeof(CarbonChannel *),NULL,&me);
+printf("CIAO1\n");
+	if(err==noErr) {
+printf("CIAO2\n");
+		me->seek(GetControlValue(theControl));
+	}
+}
 
 // --------------------------------------------------------------------------------------------------------------
 
@@ -1425,16 +1451,18 @@ static OSStatus ChannelCommandHandler (
 			me->prev();
 			break;
 		case VOL_CMD:
-			ControlRef volCtrl;
-			err = GetControlByID(me->window,&volId,&volCtrl);
 			if(err != noErr) {
 				me->msg->warning("Can't get volume control (%d)!!",err);
 			}
 			else {
-				SInt16 vol = GetControlValue(volCtrl);
+				SInt16 vol = GetControlValue(me->volControl);
 				func("Setting volume to %f for channel %d",((float)vol)/100,me->chIndex);
 				me->jmix->set_volume(me->chIndex,((float)vol)/100); 
 			}
+			break;
+		case SEEK_CMD:
+			/* disable while handled live */
+			//me->seek(GetControlValue(me->seekControl));
 			break;
 		case MENU_REMOVE_CMD:
 			me->plRemoveSelection();

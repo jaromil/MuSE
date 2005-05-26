@@ -34,7 +34,8 @@ CarbonStreamEncoder::CarbonStreamEncoder(Stream_mixer *mix,CarbonMessage *cmsg) 
 	strcpy(_qdescr,DEFAULT_QUALITY_DESCR);
 	_channels=DEFAULT_MODE; /* defaults to mono */
 	type(DEFAULT_ENCODER);
-	
+	_filterMode=0;
+	update();
 }
 
 CarbonStreamEncoder::~CarbonStreamEncoder() {
@@ -42,7 +43,7 @@ CarbonStreamEncoder::~CarbonStreamEncoder() {
 	if(enc) jmix->delete_enc(encoderID);
 }
 
-void CarbonStreamEncoder::update() {
+bool CarbonStreamEncoder::update() {
 	OutChannel *enc = jmix->get_enc(encoderID);
 	if(enc) { /* encoder already exists */
 		if(enc->tipo!=_type) { /* codec change!! */
@@ -63,13 +64,22 @@ void CarbonStreamEncoder::update() {
 	enc->channels(_channels);
 	enc->lowpass(_lowpass);
 	enc->highpass(_highpass);
-	jmix->apply_enc(encoderID);
+	bool res=jmix->apply_enc(encoderID);
+//	if(!res) { /* if errors committing new encoder profile */ 
+//		/* restore current values */
+//		_bitrate=enc->bps();
+//		_frequency=enc->freq();
+//		_channels=enc->channels();
+//		_lowpass=enc->lowpass();
+//		_highpass=enc->highpass();
+//	}
 	if(!enc->running) enc->start();
+	return res;
 }
 
 void CarbonStreamEncoder::type(enum codec t) {
 	_type=t;
-	update();
+	//update();
 }
 
 OutChannel *CarbonStreamEncoder::getOutChannel() {
@@ -79,7 +89,7 @@ OutChannel *CarbonStreamEncoder::getOutChannel() {
 void CarbonStreamEncoder::mode(int chans) {
 	if(chans==1||chans==2) {
 		_channels=chans;
-		update();
+	//	update();
 	}
 	else {
 		warning("Bad value at CarbonStreamEncoder::mode() ... was %d .. should be 1 || 2",chans);
@@ -92,20 +102,16 @@ int CarbonStreamEncoder::mode() {
 
 void CarbonStreamEncoder::bitrate(int bps) {
 	_bitrate=bps;
-	jmix->apply_enc(encoderID);
 }
 
 void CarbonStreamEncoder::frequency(int freq) {
 	_frequency=freq;
-	jmix->apply_enc(encoderID);
 }
 void CarbonStreamEncoder::lowpass(int filter) {
 	_lowpass=filter;
-	jmix->apply_enc(encoderID);
 }
 void CarbonStreamEncoder::highpass(int filter) {
 	_highpass=filter;
-	jmix->apply_enc(encoderID);
 }
 
 int CarbonStreamEncoder::bitrate() {
@@ -135,7 +141,7 @@ char *CarbonStreamEncoder::quality(int q) {
 		OutChannel *chan = getOutChannel();
 		if(chan) {
 			char *descr=chan->quality(((float)q));
-			jmix->apply_enc(encoderID);
+		//	jmix->apply_enc(encoderID);
 			_quality=q;
 			strncpy(_qdescr,descr,255);
 			_qdescr[255]=0;
@@ -152,17 +158,45 @@ char *CarbonStreamEncoder::qualityString() {
 }
 
 void CarbonStreamEncoder::saveFile(char *fileName) {
-	if(fileName) {
-		outFile=strdup(fileName);
-	}
+	if(outFile) free(outFile);
+	if(fileName) outFile=strdup(fileName);
+	else outFile=NULL;
 }
 
 char *CarbonStreamEncoder::saveFile() {
 	return outFile;
 }
+bool CarbonStreamEncoder::isSaving() {
+	OutChannel *chan = getOutChannel();
+	if(chan && chan->fd) return true;
+	return false;
+}
 
 bool CarbonStreamEncoder::startSaving() {
+	OutChannel *chan = getOutChannel();
+	if(chan && outFile) {
+		return chan->dump_start(outFile);
+	}
+	return false;
 }
 
 bool CarbonStreamEncoder::stopSaving() {
+	OutChannel *chan = getOutChannel();
+	if(chan) {
+		return chan->dump_stop();
+	}
+	return false;
+}
+
+void CarbonStreamEncoder::filterMode(int mode) {
+	if(mode>=0) 
+		_filterMode=mode;
+	if(mode==0) {
+		highpass(0);
+		lowpass(0);
+	}
+}
+
+int CarbonStreamEncoder::filterMode() {
+	return _filterMode;
 }

@@ -163,7 +163,7 @@ OSStatus OpenDialog(OSType applicationSignature,short numTypes,OSType typeList[]
 		*outDialog = gOpenFileDialog;
 	}
 
-	return NULL;
+	return 0;
 }
 
 OSStatus OpenFileDialog(

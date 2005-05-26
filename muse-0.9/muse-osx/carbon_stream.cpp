@@ -450,6 +450,8 @@ CarbonStreamServer *CarbonStream::getServer(int strIdx,int srvIdx) {
 
 bool CarbonStream::updateStreamTab() {
 	SInt32 val = GetControl32BitValue(streamTabControl);
+	int idx = getTabValue(STREAM_TAB_CONTROL,_selectedStream)-1;
+	if(enc[idx]) saveStreamInfo(enc[idx]);
 	if(_selectedStream==val) return false; /* no changes ... */
 	if(IsControlVisible(streamTabControl)) {
 		changeServerTab();
@@ -502,6 +504,27 @@ bool CarbonStream::changeServerTab() {
 		int newServerIndex=getTabValue(SERVER_TAB_CONTROL,1)-1;
 		updateServerInfo(servers[newStreamIndex][newServerIndex]);
 	}
+}
+
+void CarbonStream::saveStreamInfo(CarbonStreamEncoder *encoder) {
+	ControlRef control;
+	ControlID cid={CARBON_GUI_APP_SIGNATURE,0};
+	OSStatus err;
+	
+	/* record filename text control */
+	cid.id=RECORD_STREAM_FILENAME;
+	err=GetControlByID(window,&cid,&control);
+	if(err!=noErr) msg->error("Can't get recordFilename control (%d)!!",err);
+	Size nameSize;
+	err=GetControlDataSize(control,0,kControlEditTextTextTag,&nameSize);
+	if(err!=noErr) msg->error("Can't get text size for saveName (%d)!!\n",err);
+	char *outFilename=(char *)malloc(nameSize+1);
+	memset(outFilename,0,nameSize+1);
+	err=GetControlData(control,0,kControlEditTextTextTag,nameSize,outFilename,NULL);
+	if(err==noErr) {
+		encoder->saveFile(outFilename);
+	}
+	free(outFilename);
 }
 
 #define SAVE_SERVER_INFO(__id,__name) \
@@ -629,17 +652,11 @@ void CarbonStream::updateServerInfo(CarbonStreamServer *server) {
 bool CarbonStream::doConnect() {
 	CarbonStreamServer *server=selectedServer();
 	saveServerInfo(server);
-	ControlID cbutID={ CARBON_GUI_APP_SIGNATURE, CONNECT_BUTTON };
-	ControlRef cbutControl;
-	OSStatus err=GetControlByID(window,&cbutID,&cbutControl);
-	if(err!=noErr) msg->error("Can't get connect button control (%d)!!",err);
-
-	if(server->isConnected() && disconnectServer(server)) {
-		SetControlTitleWithCFString(cbutControl,CFSTR("Connect"));
-	}
-	else if(connectServer(server)) {
-		SetControlTitleWithCFString(cbutControl,CFSTR("Disconnect"));
-	}
+	bool res=false;
+	if(server->isConnected()) res=disconnectServer(server);
+	else res=connectServer(server);
+	updateServerInfo(server);
+	return res;
 }
 
 bool CarbonStream::disconnectServer(CarbonStreamServer *server) {
@@ -679,9 +696,17 @@ bool CarbonStream::updateQuality() {
 	
 	/* get selected value */
 	SInt32 quality = GetControlValue(qualityControl);
-	enc->quality(quality);
-	updateStreamInfo(enc);
-	return true;
+	int cur=enc->quality();
+	if(quality!=cur) {
+		enc->quality(quality);
+		if(!enc->update()) {
+			/* TODO - WARNING MESSAGES ?? */
+			enc->quality(cur); /* restore old value */
+		}
+		updateStreamInfo(enc);
+		return true;
+	}
+	return false;
 }
 
 bool CarbonStream::updateBitrate() {
@@ -691,7 +716,13 @@ bool CarbonStream::updateBitrate() {
 	OSStatus err=GetControlByID(window,&bpsID,&bpsControl);
 	if(err!=noErr) msg->error("Can't get bps control (%d)!!",err);
 	SInt32 val = GetControlValue(bpsControl);
+	int cur = enc->bitrate();
 	enc->bitrate(bps[val-1]);
+	if(!enc->update()) {
+		/* TODO - WARNING MESSAGES ?? */
+		enc->bitrate(cur); /* restore old value */
+		updateStreamInfo(enc);
+	}
 	return true;
 }
 
@@ -702,7 +733,13 @@ bool CarbonStream::updateFrequency() {
 	OSStatus err=GetControlByID(window,&freqID,&freqControl);
 	if(err!=noErr) msg->error("Can't get frequency control (%d)!!",err);
 	SInt32 val = GetControlValue(freqControl);
+	int cur = enc->frequency();
 	enc->frequency(freq[val-1]);
+	if(!enc->update()) {
+		/* TODO - WARNING MESSAGES ?? */
+		enc->frequency(cur); /* restore old value */
+		updateStreamInfo(enc);
+	}
 	return true;
 }
 
@@ -713,25 +750,53 @@ bool CarbonStream::updateMode() {
 	OSStatus err=GetControlByID(window,&modeID,&modeControl);
 	if(err!=noErr) msg->error("Can't get mode control (%d)!!",err);
 	SInt32 val = GetControlValue(modeControl);
+	int cur=enc->mode();
 	enc->mode(val);
+	if(!enc->update()) {
+		/* TODO - WARNING MESSAGES ?? */
+		enc->mode(cur);
+		updateStreamInfo(enc);
+	}
+	return true;
+}
+
+bool CarbonStream::updateFilteringMode() {
+	ControlRef control;
+	ControlID cid={CARBON_GUI_APP_SIGNATURE,FREQUENCY_FILTER_CONTROL};
+	OSStatus err=GetControlByID(window,&cid,&control);
+	if(err!=noErr) msg->error("Can't get freqfiltering control (%d)!!",err);
+	SInt16 sel=GetControlValue(control);
+	CarbonStreamEncoder *enc=selectedStream();
+	enc->filterMode(sel-1);
+	//enc->update();
+	updateStreamInfo(enc);
 	return true;
 }
 
 void CarbonStream::recordStreamPath(char *path) {
-	ControlRef recordNameControl;
-	SInt32 selectedStream=GetControl32BitValue(streamTabControl);
-	int encIdx=getTabValue(STREAM_TAB_CONTROL,selectedStream)-1;
-	const ControlID recordNameID = { CARBON_GUI_APP_SIGNATURE, RECORD_STREAM_FILENAME };
-	OSStatus err=GetControlByID(window,&recordNameID,&recordNameControl);
-	if(err!=noErr) msg->error("Can't get recordName text control (%d)!!",err);
-	char *outFilename = (char *)malloc(strlen(path)+12); /* XXX - HC LEN */
-	sprintf(outFilename,"%s/Stream_%d",path,selectedStream);
-	err=SetControlData(recordNameControl,0,kControlEditTextTextTag,strlen(outFilename),outFilename);
-	if(err!=noErr) msg->warning("Can't set record filename control (%d)!!",err);
+	SInt32 selectedStreamIndex=GetControl32BitValue(streamTabControl);
+	CarbonStreamEncoder *encoder=selectedStream();
+	char *outFilename = (char *)malloc(strlen(path)+16); /* XXX - HC LEN */
+	sprintf(outFilename,"%s/Stream_%d.%s",path,selectedStreamIndex,encoder->type()==OGG?"ogg":"mp3");
+	if(encoder) encoder->saveFile(outFilename); /* XXX - no need of check on encoder */
+	updateStreamInfo(encoder);
 	free(outFilename);
 }
 
-void CarbonStream::recordStream(bool on) {
+void CarbonStream::recordStream() {
+	CarbonStreamEncoder *encoder=selectedStream();
+	if(encoder) {
+		saveStreamInfo(encoder);
+		if(encoder->isSaving()) {
+			if(!encoder->stopSaving()) 
+				msg->warning("Can't stop dumping on file");
+		}
+		else {
+			if(!encoder->startSaving()) 
+				msg->warning("Can't start dumping on file");
+		}
+		updateStreamInfo(encoder);
+	}
 }
 
 void CarbonStream::codecChange() {
@@ -742,6 +807,7 @@ void CarbonStream::codecChange() {
 	if(err!=noErr) msg->error("Can't get type control (%d)!!",err);
 	SInt32 val = GetControlValue(typeControl);
 	enc->type((val==1)?OGG:MP3);
+	enc->update();
 	updateStreamInfo(enc);
 }
 
@@ -852,18 +918,65 @@ void CarbonStream::updateStreamInfo(CarbonStreamEncoder *encoder) {
 	err=GetControlByID(window,&cid,&control);
 	if(err!=noErr) msg->error("Can't get mode control (%d)!!",err);
 	MenuRef chMenu=GetControlPopupMenuHandle(control);
-	if(encoder->type()==OGG) { /* XXX - DISABLED BECAUSE MUSE CRASH */
-		if(encoder->bitrate()>=48 && encoder->frequency()>=22050) {
-			EnableMenuItem(chMenu,2);
-		}
-		else {
-			DisableMenuItem(chMenu,2);
-		}
+/* XXX - THE FOLLOWING CODE IS NO MORE NEEDED */
+//	if(encoder->type()==OGG) { /* XXX - DISABLED BECAUSE MUSE CRASH */
+//		if(encoder->bitrate()>=48 && encoder->frequency()>=22050) {
+//			EnableMenuItem(chMenu,2);
+//		}
+//		else {
+//			DisableMenuItem(chMenu,2);
+//		}
+//	}
+//	else {
+//		EnableMenuItem(chMenu,2);
+//	}
+	SetControlValue(control,encoder->mode());
+	/* frequency filtering */
+	ControlRef hpControl,lpControl,applyButton;
+	cid.id=FREQUENCY_FILTER_CONTROL;
+	err=GetControlByID(window,&cid,&control);
+	if(err!=noErr) msg->error("Can't get freqfiltering control (%d)!!",err);
+	cid.id=LOWPASS_CONTROL;
+	err=GetControlByID(window,&cid,&lpControl);
+	if(err!=noErr) msg->error("Can't get lowPass control (%d)!!",err);
+	cid.id=HIGHPASS_CONTROL;
+	err=GetControlByID(window,&cid,&hpControl);
+	if(err!=noErr) msg->error("Can't get highPass control (%d)!!",err);
+	cid.id=FREQ_FILTER_APPLY;
+	err=GetControlByID(window,&cid,&applyButton);
+	if(err!=noErr) msg->error("Can't get applyButton control (%d)!!",err);
+	if(encoder->filterMode()) {
+		SetControlValue(control,2);
+		EnableControl(lpControl);
+		EnableControl(hpControl);
+		EnableControl(applyButton);
 	}
 	else {
-		EnableMenuItem(chMenu,2);
+		SetControlValue(control,1);
+		DisableControl(lpControl);
+		DisableControl(hpControl);
+		DisableControl(applyButton);
+
 	}
-	SetControlValue(control,encoder->mode());
+	/* record fileName */
+	cid.id=RECORD_STREAM_FILENAME;
+	err=GetControlByID(window,&cid,&control);
+	if(err!=noErr) msg->error("Can't get recordFilename control (%d)!!",err);
+	char *outFilename=encoder->saveFile();
+	if(outFilename) err=SetControlData(control,0,kControlEditTextTextTag,strlen(outFilename),outFilename);
+	else err=SetControlData(control,0,kControlEditTextTextTag,0,NULL);
+	if(err!=noErr) msg->warning("Can't update recordFilename text control (%d)!!",err);
+	
+	/* record button */
+	cid.id=RECORD_STREAM_BUT;
+	err=GetControlByID(window,&cid,&control);
+	if(err!=noErr) msg->error("Can't get recordButton control (%d)!!",err);
+	if(encoder->isSaving()) {
+		SetControlTitleWithCFString(control,CFSTR("Stop recording"));
+	}
+	else {
+		SetControlTitleWithCFString(control,CFSTR("Record now!"));
+	}
 }
 
 void CarbonStream::activateMenuBar() {
@@ -897,6 +1010,7 @@ bool CarbonStream::loadPreset(int idx) {
 								if(sscanf(cfg->value(),"%d",&val)==1) {
 									if(val==0) encoder->type(OGG); /* XXX - HC relation beetwen 0/1 and OGG/MP3 */
 									else if(val==1) encoder->type(MP3);
+									encoder->update(); /* extra update here to change codec before creating servers */
 								}
 							}
 							else if(strcmp(cfgName,"quality")==0) {
@@ -995,6 +1109,7 @@ bool CarbonStream::loadPreset(int idx) {
 							}
 						}
 					}
+					encoder->update();
 					updateStreamInfo(encoder); /* make the new changes on encoder visible in the gui */
 				} /* end of stream entry */
 			} /* end of cycle on streams */
@@ -1259,6 +1374,15 @@ static OSStatus StreamCommandHandler (
 			break;
 		case DELETE_STREAM_PRESET_CMD:
 			me->deletePreset(command.menu.menuItemIndex);
+			break;
+		case FREQ_FILTERING:
+			me->updateFilteringMode();
+			break;
+		case APPLY_FILTER_CMD:
+			me->msg->warning("Manual frequency filtering is still unimplemented!!");
+			break;
+		case RECORD_STREAM_CMD:
+			me->recordStream();
 			break;
 		default:
 			err = eventNotHandledErr;

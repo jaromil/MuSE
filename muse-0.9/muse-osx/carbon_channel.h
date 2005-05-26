@@ -68,12 +68,16 @@ class CarbonChannel {
 		void tryOpenUrl();
 		void cancelOpenUrl();
 		void updatePlaymode();
-		/* */
+		void setVol(int vol);
+		void crossFade(int fadeVal);
+		
+		/* playing related methods */
 		void play();
 		void stop();
 		void pause();
 		void prev();
 		void next();
+		void seek(int pos);
 		
 		/* magnetic methods */
 		void redrawFader();
@@ -90,9 +94,6 @@ class CarbonChannel {
 		bool slave();
 		void activate();
 		
-		void setVol(int vol);
-		void crossFade(int fadeVal);
-		
 				
 		WindowRef window;
 		WindowRef fader;
@@ -106,11 +107,13 @@ class CarbonChannel {
 		AttractedChannel neigh;
 		ControlRef playListControl;
 		ControlRef faderControl;
+		ControlRef seekControl;
+		ControlRef volControl;
 		Playlist *playList;
 		unsigned int chIndex;
 		CarbonMessage *msg;
 		Channel *inChannel;
-		int seek;
+		int _seek;
 
 	private:
 		void lock() { pthread_mutex_lock(&_mutex); };
@@ -205,6 +208,7 @@ void SelectPLMenu(ControlRef browser,MenuRef menu,UInt32 selectionType,
 void RemovePlaylistItem (DataBrowserItemID item,DataBrowserItemState state,void *clientData);
 
 void FaderHandler (ControlRef theControl, ControlPartCode partCode);
+void SeekHandler (ControlRef theControl, ControlPartCode partCode);
 
 /****************************************************************************/
 /* OpenDocument callbacks (called when opening from dialog) */

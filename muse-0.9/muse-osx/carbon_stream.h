@@ -63,8 +63,9 @@ class CarbonStream {
 		bool updateBitrate();
 		bool updateFrequency();
 		bool updateMode();
+		bool updateFilteringMode();
 		void recordStreamPath(char *path);
-		void recordStream(bool on);
+		void recordStream();
 		void activateMenuBar();
 		void codecChange();
 		bool loadPreset(int idx);
@@ -90,6 +91,7 @@ class CarbonStream {
 		void delTab(SInt32 controlID,int idx);
 		int nextTabIndex(SInt32 controlID);
 		void saveServerInfo(CarbonStreamServer *server);
+		void saveStreamInfo(CarbonStreamEncoder *encoder);
 		void updateServerInfo(CarbonStreamServer *server);
 		void updateStreamInfo(CarbonStreamEncoder *encoder);
 		void updatePresetControls();
