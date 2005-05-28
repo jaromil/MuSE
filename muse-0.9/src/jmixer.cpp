@@ -958,8 +958,8 @@ bool Stream_mixer::apply_enc(int id) {
 void Stream_mixer::updchan(int ch) {
   if(!chan[ch]) return;
   if(chan[ch]->seekable) {
-	// gui->lock(); /* XXX - gtk gui SOMETIMES hangs on this lock... i disable it for now 
-    //               * but we have to track the problem...or even change this mechanism (xant)*/
+    gui->lock(); /* XXX - gtk gui SOMETIMES hangs on this lock... 
+                  * we have to track the problem...or even change this mechanism (xant)*/
 	/* XXX - here gui should set values directly...they should not be setted by jmixer */
     snprintf(gui->ch_lcd[ch],9,"%02u:%02u:%02u",
 	     chan[ch]->time.h,chan[ch]->time.m,chan[ch]->time.s);
@@ -970,16 +970,9 @@ void Stream_mixer::updchan(int ch) {
     //	func("%i: %s %f",ch,gui->ch_lcd[ch],chan[ch]->state);
     //	}
     //	if(gui->ch_pos[ch] != chan[ch]->state) { /* POSITION changed */
-	gui->lock();
     gui->ch_pos[ch] = chan[ch]->state;
-	gui->unlock();
     gui->set_pos(ch, chan[ch]->state);
-
-/* XXX - I will remove this soon (just for testing - xant) */
-#ifdef CARBON_GUI
-	gui->sel_playlist(ch,chan[ch]->playlist->selected_pos());
-#endif
-    //	}
+	gui->unlock();
   }
 }
 
