@@ -64,18 +64,15 @@ XmlErr XmlProfile::XmlStartHandler(char *element,
         char **attr_names, char **attr_values) 
 {
 	XmlTag *newTag = new XmlTag(element,cTag);
-	XmlErr err;
 	func("new tag found %s\n",element);
 	if(cTag) {
-		err = cTag->addChild(newTag);
-		if(err!=XML_NOERR)
+		if(!cTag->addChild(newTag))
 			error("Can't add new child %s for element %s ",newTag->name(),cTag->name());
 		else
 			func("Added new child %s for element %s ",newTag->name(),cTag->name());
 	}
 	else {
-		err = addRootElement(newTag);
-		if(err!=XML_NOERR)
+		if(!addRootElement(newTag))
 			error("Can't add new root element %s",newTag->name());
 		else
 			func("Added new root element %s",newTag->name());
@@ -84,8 +81,7 @@ XmlErr XmlProfile::XmlStartHandler(char *element,
 	unsigned int offset = 0;
 	if(attr_names && attr_values) {
 		while(attr_names[offset]!=NULL) {
-			err=newTag->addAttribute(attr_names[offset],attr_values[offset]);
-			if(err==XML_NOERR) {
+			if(!newTag->addAttribute(attr_names[offset],attr_values[offset])) {
 				func("Added new attr %s => %s for element %s",
 					attr_names[offset],attr_values[offset],newTag->name());
 			} else {
@@ -306,23 +302,23 @@ XmlErr XmlProfile::XmlParseBuffer(char *buffer) {
 	return XML_NOERR;
 }
 
-XmlErr XmlProfile::addRootElement(XmlTag *element) {
-	if(!element) return XML_BADARGS;
+bool XmlProfile::addRootElement(XmlTag *element) {
+	if(!element) return false;
 	Entry *newEntry = new Entry((void *)element);
 	if(newEntry) rootElements->append(newEntry);
-	return XML_NOERR;
+	return true;
 }
 
-XmlTag *XmlProfile::getRootElement(char *name) {
+XmlTag *XmlProfile::getBranch(char *name) {
 	for(int i=1;i<=rootElements->len();i++) {
-		XmlTag *element = getRootElement(i);
+		XmlTag *element = getBranch(i);
 		if(element && strcmp(element->name(),name) == 0) 
 			return(element);
 	}
 	return NULL;
 }
 
-XmlTag *XmlProfile::getRootElement(int index) {
+XmlTag *XmlProfile::getBranch(int index) {
 	Entry *entry = rootElements->pick(index);
 	if(entry) {
 		XmlTag *element = (XmlTag *)entry->get_value();
@@ -341,7 +337,7 @@ XmlTag *XmlProfile::getElement(char *path) {
 	char *lbuf = strdup(path);
 	char *rootTagName = strtok_r(lbuf,"/",&tkContext);
 	if(rootTagName) {
-		tag=getRootElement(rootTagName);
+		tag=getBranch(rootTagName);
  		for (tagName = strtok_r(lbuf,"/",&tkContext);
 			tagName; tagName = strtok_r(NULL,"/",&tkContext))
 		{
@@ -353,7 +349,7 @@ XmlTag *XmlProfile::getElement(char *path) {
 		}
 	}
 	else {
-		tag=getRootElement(path);
+		tag=getBranch(path);
 	}
 	free(lbuf);
 	return tag;
@@ -463,7 +459,7 @@ char *XmlProfile::dumpBranch(XmlTag *rTag,unsigned int depth) {
 	return out;
 }
 
-XmlErr XmlProfile::update() {
+bool XmlProfile::update() {
 	struct stat fileStat;
 	stat(xmlFile,&fileStat);
 	FILE *saveFile=NULL;
@@ -471,11 +467,11 @@ XmlErr XmlProfile::update() {
 		saveFile=fopen(xmlFile,"r");
 		if(!saveFile) {
 			error("Can't open %s for reading !!",xmlFile);
-			return XML_UPDATE_ERR;
+			return false;
 		}
 		if(!fileLock(saveFile)) {
 			error("Can't lock %s for reading ",xmlFile);
-			return XML_UPDATE_ERR;
+			return false;
 		}
 		char *backup = (char *)malloc(fileStat.st_size+1);
 		fread(backup,1,fileStat.st_size,saveFile);
@@ -490,7 +486,7 @@ XmlErr XmlProfile::update() {
 				error("Can't lock %s for writing ",backupPath);
 				free(backupPath);
 				free(backup);
-				return XML_UPDATE_ERR;
+				return false;
 			}
 			fwrite(backup,1,fileStat.st_size,backupFile);
 			fileUnlock(backupFile);
@@ -500,7 +496,7 @@ XmlErr XmlProfile::update() {
 			error("Can't open backup file (%s) for writing! ",backupPath);
 			free(backupPath);
 			free(backup);
-			return XML_UPDATE_ERR;
+			return false;
 		}
 		free(backupPath);
 		free(backup);
@@ -512,7 +508,7 @@ XmlErr XmlProfile::update() {
 			if(!fileLock(saveFile)) {
 				error("Can't lock %s for writing ",xmlFile);
 				free(dump);
-				return XML_UPDATE_ERR;
+				return false;
 			}
 			fwrite(dump,1,strlen(dump),saveFile);
 			free(dump);
@@ -523,11 +519,11 @@ XmlErr XmlProfile::update() {
 			error("Can't open output file %s",xmlFile);
 			if(!saveFile) {
 				free(dump);
-				return XML_UPDATE_ERR;
+				return false;
 			}
 		}
 	}
-	return XML_NOERR;
+	return true;
 }
 
 int XmlProfile::numBranches() {
@@ -535,7 +531,7 @@ int XmlProfile::numBranches() {
 }
 
 bool XmlProfile::removeBranch(int index) {
-	XmlTag *branch=getRootElement(index);
+	XmlTag *branch=getBranch(index);
 	if(branch) {
 		if(rootElements->rem(index)) {
 			delete branch;
@@ -548,7 +544,7 @@ bool XmlProfile::removeBranch(int index) {
 bool XmlProfile::removeBranch(char *name) {
 	if(name) {
 		for (int i=1;i<=rootElements->len();i++) {
-			XmlTag *branch=getRootElement(i);
+			XmlTag *branch=getBranch(i);
 			if(branch && strcmp(name,branch->name())==0) {
 				if(rootElements->rem(i)) {
 					delete branch;
@@ -589,6 +585,19 @@ bool XmlProfile::fileUnlock(FILE *file) {
 	if(file) {
 		if(flock(fileno(file),LOCK_UN)==0) 
 			return true;
+	}
+	return false;
+}
+
+bool XmlProfile::swapBranch(int index, XmlTag *newBranch) {
+	Entry *entry = rootElements->pick(index);
+	if(entry) {
+		XmlTag *element = (XmlTag *)entry->get_value();
+		if(element) {
+			entry->set_value(newBranch);
+			delete element;
+			return true;
+		}
 	}
 	return false;
 }
@@ -691,28 +700,28 @@ XmlTag *XmlTag::parent() {
 	return _parent;
 }
 
-XmlErr XmlTag::value(char *val) {
+bool XmlTag::value(char *val) {
 	unsigned int valLen=0;
-	if(!val) return XML_BADARGS;
+	if(!val) return false;
 	if(_value) _value=(char *)realloc(_value,strlen(val)+1);
 	else _value=strdup(val);
-	return XML_NOERR;
+	return true;
 }
 
-XmlErr XmlTag::addChild(char *name, char *val) {
+bool XmlTag::addChild(char *name, char *val) {
 	XmlTag *newTag = new XmlTag(name,val,this);
 	if(newTag) addChild(newTag);
-	return XML_NOERR;
+	return true;
 }
 
-XmlErr XmlTag::addChild(XmlTag *child) {
-	if(!child) return XML_BADARGS;
+bool XmlTag::addChild(XmlTag *child) {
+	if(!child) return false;
 	Entry *newEntry = new Entry((void *)child);
 	children->append(newEntry);
-	return XML_NOERR;
+	return true;
 }
 
-XmlErr XmlTag::numChildren() {
+int XmlTag::numChildren() {
 	return children->len();
 }
 
@@ -731,14 +740,14 @@ XmlTag *XmlTag::getChild(char *name) {
 	return NULL;
 }
 
-XmlErr XmlTag::addAttribute(char *attrName, char *attrValue) {
-	if(!attrName||!attrValue) return XML_BADARGS;
+bool XmlTag::addAttribute(char *attrName, char *attrValue) {
+	if(!attrName||!attrValue) return false;
 	XmlTagAttribute *newAttr = (XmlTagAttribute *)malloc(sizeof(XmlTagAttribute));
 	newAttr->name = strdup(attrName);
 	newAttr->value = strdup(attrValue);
 	Entry *newEntry = new Entry((void *)newAttr);
 	attributes->append(newEntry);
-	return XML_NOERR;
+	return true;
 }
 
 XmlTagAttribute *XmlTag::getAttribute(int index) {
@@ -761,5 +770,53 @@ XmlTagAttribute *XmlTag::getAttribute(char *name) {
 
 int XmlTag::numAttributes() {
 	return attributes->len();
+}
+
+bool XmlTag::removeChild(char *name) {
+	for(int i=1;i<=children->len();i++) {
+		XmlTag *child=getChild(i);
+		if(strcmp(child->name(),name)==0) 
+			return removeChild(i);
+	}
+	return false;
+}
+
+bool XmlTag::removeChild(int index) {
+	XmlTag *child=getChild(index);
+	if(child) {
+		if(children->rem(index)) {
+			delete child;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool XmlTag::removeChildren() {
+	bool ret=true;
+	for(int i=children->len();i>0;i--) {
+		XmlTag *child=getChild(i);
+		if(children->rem(i)) {
+			if(child) {
+				delete child;
+			}
+		}
+		else {
+			error("Can't remove child at index %d for tag %s\n",i,name());
+			ret=false;
+		}
+	}
+	return ret;
+}
+
+bool XmlTag::swapChild(int index,XmlTag *newChild) {
+	Entry *entry = children->pick(index);
+	if(entry) {
+		XmlTag *old=(XmlTag *)entry->get_value();
+		entry->set_value(newChild);
+		delete old;
+		return true;
+	}
+	return false;
 }
 

@@ -116,24 +116,43 @@ class XmlTag {
 		/**
 			@brief set the element value
 			@param val the new value
-			@return an XmlErr result status. (XML_NOERR if successfull)
+			@return bool if success, false otherwise
 		*/
-		XmlErr  value(char *val);
+		bool  value(char *val);
 		/**
 			@brief add a new child to the current XmlTag element
 			@param child the new child object
-			@return an XmlErr result status. (XML_NOERR if successfull)
+			@return bool if success, false otherwise
 		*/
-		XmlErr  addChild(XmlTag *child);
+		bool  addChild(XmlTag *child);
 		/**
 			@brief add a new child to the current XmlTag element
 			@param name of the new child object
 			@param value of the new child object
-			@return an XmlErr result status. (XML_NOERR if successfull)
+			@return bool if success, false otherwise
 		*/
-		XmlErr XmlTag::addChild(char *name, char *val);
-		XmlTag  *removeChild(int index); ///< XXX - UNIMPLEMENTED
-		XmlTag  *removeChild(char *name); ///< XXX - UNIMPLEMENTED
+		bool XmlTag::addChild(char *name, char *val);
+		/**
+			@brief remove a child object
+			@param the child index
+			@return true if child has been remove successfully, false otherwise
+		*/
+		bool removeChild(int index); 
+		/**
+			@brief remove a child object
+			@param the child name ( note that if more than one child share the same name ,
+			       this method will remove always the first one)
+			@return true if child has been remove successfully, false otherwise
+		*/
+		bool removeChild(char *name); 
+		bool removeChildren(); ///< remove all children
+		/**
+			@brief substitute the child at "index" with "newChild"
+			@param the index of the child we want to substitute
+			@param the new child that will be put in place of the old one at "index"
+			@return true if the child has been substituted successfully , false otherwise
+		*/
+		bool swapChild(int index,XmlTag *newChild);
 		/**
 			@brief get the number of children 
 			@return the number of childer
@@ -147,7 +166,8 @@ class XmlTag {
 		XmlTag  *getChild(int index);
 		/**
 			@brief get a child object
-			@param the child name
+			@param the child name ( note that if more than one child share the same name ,
+			       this method will return always the first one)
 			@return the selected child object (if present) or NULL if no such child
 		*/
 		XmlTag  *getChild(char *name);
@@ -170,12 +190,13 @@ class XmlTag {
 			@return an XmlErr error status. XML_NOERR is returned if the new attribute 
 			have been added successfully
 		*/
-		XmlErr  addAttribute(char *attrName,char *attrValue);
+		bool  addAttribute(char *attrName,char *attrValue);
 		/**
 			@brief get the number of element's attributes
 			@return the number of element's attributes 
 		*/
 		int  numAttributes();		
+		
 		Linklist *children; ///< linked list containing element's children 
 		Linklist *attributes; ///< linked list containing element's attributes
 	
@@ -212,19 +233,19 @@ class XmlProfile {
 			@param the XmlTag object representing the new element
 			@return an XmlErr result status. (XML_NOERR if successfull)
 		*/
-		XmlErr addRootElement(XmlTag *element);
+		bool addRootElement(XmlTag *element);
 		/**
 			@brief get a root element by its name
 			@param the null terminated string representing the name of the root element
 			@return the XmlTag object representing the selected root element
 		*/
-		XmlTag *getRootElement(char *name);
+		XmlTag *getBranch(char *name);
 		/**
 			@brief get a root element by its index
 			@param the null terminated string representing the name of the root element we are looking for
 			@return the XmlTag object representing the selected root element
 		*/
-		XmlTag *getRootElement(int index);
+		XmlTag *getBranch(int index);
 		/**
 			@brief get an element inside the configuration profile
 			@arg the path (in the configuration tree) to reach the element.
@@ -254,10 +275,13 @@ class XmlProfile {
 			@return true if success, false otherwise
 		*/
 		bool removeElement(char *path); ///<  XXX - UNIMPLEMENTED
+	
+		bool swapBranch(int index, XmlTag *newBranch);
+		
 		/***
 			@brief parse a string buffer containing an xml profile and fills internal structures appropriately
 			@arg the null terminated string buffer containing the xml profile
-			@return an XmlErr error status (XML_NOERR if buffer was parsed successfully)
+			@return true if buffer is parsed successfully , false otherwise)
 		*/
 		XmlErr XmlParseBuffer(char *buf);
 		/***
@@ -272,7 +296,7 @@ class XmlProfile {
 			in the repository directory specified during object construction.
 			@return an XmlErr error status (XML_NOERR if buffer was parsed successfully)
 		*/
-		XmlErr update();
+		bool update();
 		/***
 			@brief dump a configuration branch starting from a given XmlTag element
 			@arg the XmlTag element where to start dumping the configuration branch
