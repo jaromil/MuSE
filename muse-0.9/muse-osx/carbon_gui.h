@@ -1,5 +1,5 @@
 /* MuSE - Multiple Streaming Engine
- * Copyright (C) 2002-2004 jaromil <jaromil@dyne.org>
+ * Copyright (C) 2005 xant <xant@dyne.org>
  *
  * This source code is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Public License as published 
@@ -35,8 +35,8 @@ class CARBON_GUI : public GUI {
   ~CARBON_GUI();
 
   void run();
-  void set_pos(unsigned int chan, float pos) {lock(); new_pos[chan] = true; unlock(); };
-  void set_lcd(unsigned int chan, char *lcd) { lock(); new_lcd[chan] = true; unlock(); };
+  void set_pos(unsigned int chan, float pos) {new_pos[chan] = true;};
+  void set_lcd(unsigned int chan, char *lcd) {new_lcd[chan] = true;};
   void set_title(char *txt);
   void set_status(char *txt); 
   void add_playlist(unsigned int ch, char *txt);

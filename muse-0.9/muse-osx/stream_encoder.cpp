@@ -1,5 +1,5 @@
 /* MuSE - Multiple Streaming Engine
- * Copyright (C) 2002-2004 jaromil <jaromil@dyne.org>
+ * Copyright (C) 2005 xant <xant@dyne.org>
  *
  * This sourcCARBONe code is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Public License as published 

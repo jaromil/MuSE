@@ -1,7 +1,7 @@
 /* MuSE - Multiple Streaming Engine
- * Copyright (C) 2002-2004 jaromil <jaromil@dyne.org>
+ * Copyright (C) 2005 xant <xant@dyne.org>
  *
- * This sourcCARBONe code is free software; you can redistribute it and/or
+ * This source code is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Public License as published 
  * by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
@@ -837,7 +837,7 @@ void CarbonStream::updatePresetControls() {
 
 	int npr = presets->numBranches();
 	for(int i=1;i<=npr;i++) {
-		XmlTag *profile=presets->getRootElement(i);
+		XmlTag *profile=presets->getBranch(i);
 		if(profile && strcmp(profile->name(),"profile")==0) {
 			char *name = profile->value();
 			if(name) {
@@ -986,7 +986,7 @@ void CarbonStream::activateMenuBar() {
 }
 
 bool CarbonStream::loadPreset(int idx) {
-	XmlTag *profile = presets->getRootElement(idx);
+	XmlTag *profile = presets->getBranch(idx);
 	int val,i,n,k;
 	if(profile) {
 		/* remove current streams */
@@ -1121,7 +1121,7 @@ bool CarbonStream::loadPreset(int idx) {
 bool CarbonStream::deletePreset(int idx) {
 	if(presets->removeBranch(idx)) {
 		updatePresetControls();
-		if(presets->update()==XML_NOERR) 
+		if(presets->update()) 
 			return true;
 	}
 	return false;
@@ -1172,8 +1172,8 @@ bool CarbonStream::savePreset(char *name) {
 			newProfile->addChild(newStream);
 		}
 	}
-	if(presets->addRootElement(newProfile)==XML_NOERR) {
-		if(presets->update()==XML_NOERR) {
+	if(presets->addRootElement(newProfile)) {
+		if(presets->update()) {
 			updatePresetControls();
 			return true;
 		}

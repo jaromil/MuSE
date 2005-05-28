@@ -1,7 +1,7 @@
 /* MuSE - Multiple Streaming Engine
- * Copyright (C) 2002-2004 jaromil <jaromil@dyne.org>
+ * Copyright (C) 2005 xant <xant@dyne.org>
  *
- * This sourcCARBONe code is free software; you can redistribute it and/or
+ * This source code is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Public License as published 
  * by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
@@ -93,7 +93,7 @@ class CarbonChannel {
 		bool resizing();
 		bool slave();
 		void activate();
-		
+		char *loadedPlaylist(); //< returns the name of the loadedPlaylist
 				
 		WindowRef window;
 		WindowRef fader;
@@ -146,7 +146,7 @@ class CarbonChannel {
 		int status;
 		int savedStatus;
 		PlaylistManager *plManager;
-		char *loadedPlaylist;
+		int loadedPlaylistIndex;
 #define CC_STOP	0
 #define CC_PLAY	1
 #define CC_PAUSE 3

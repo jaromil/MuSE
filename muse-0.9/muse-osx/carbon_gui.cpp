@@ -1,7 +1,7 @@
 /* MuSE - Multiple Streaming Engine
- * Copyright (C) 2002-200f4 jaromil <jaromil@dyne.org>
+ * Copyright (C) 2005 xant <xant@dyne.org>
  *
- * This sourcCARBONe code is free software; you can redistribute it and/or
+ * This source code is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Public License as published 
  * by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
@@ -40,7 +40,8 @@ const EventTypeSpec events[] = {
 	//{ kEventClassWindow, kEventWindowGetClickActivation },
 	{ kEventClassWindow, kEventWindowActivated }
 };
-	/* HANDLED COMMANDS */
+
+/* HANDLED COMMANDS */
 const EventTypeSpec commands[] = {
 	{ kEventClassCommand, kEventCommandProcess }
 };
@@ -177,8 +178,10 @@ void CARBON_GUI::run() {
 	int o = 0;
 	UInt32 finalTicks;
 	while(!quit) {
+		
 		lock(); /* lock before iterating on channel array ... if all is sane
 				 * nobody can modify the channel list while we are managing it */
+	//	wait(); /* wait the tick signal from jmixer */
 		for(i=0;i<MAX_CHANNELS;i++) {
 			if(channel[i]) {
 				if(new_pos[i]) {
@@ -197,7 +200,7 @@ void CARBON_GUI::run() {
 		if(playlistManager->isTouched()) playlistManager->untouch(); /* reset playlistManager update flag */
 		unlock();
 		if(meterShown()) updateVumeters();
-		Delay(2,&finalTicks);
+		Delay(2,&finalTicks); /* DISABLED BEACAUSE NOW TICK IS SIGNALED BY JMIXER */
 	}
  }
 

@@ -382,12 +382,12 @@
             </object>
           </object>
           <object class="IBCarbonGroupBox" id="434">
-            <string name="bounds">125 104 140 372 </string>
-            <string name="viewFrame">104 125 268 15 </string>
+            <string name="bounds">125 88 140 372 </string>
+            <string name="viewFrame">88 125 284 15 </string>
             <array count="1" name="subviews">
               <object class="IBCarbonStaticText" id="435">
                 <string name="bounds">125 120 138 356 </string>
-                <string name="viewFrame">16 0 236 13 </string>
+                <string name="viewFrame">32 0 236 13 </string>
                 <ostype name="controlSignature">MuSE</ostype>
                 <int name="controlID">313</int>
                 <int name="fontStyle">-5</int>
@@ -501,11 +501,11 @@
             <string name="title">VOL</string>
           </object>
           <object class="IBCarbonStaticText" id="641">
-            <string name="bounds">125 20 140 94 </string>
-            <string name="viewFrame">20 125 74 15 </string>
+            <string name="bounds">125 20 140 84 </string>
+            <string name="viewFrame">20 125 64 15 </string>
             <boolean name="small">TRUE</boolean>
             <int name="controlSize">3</int>
-            <string name="title">Mini Static Text</string>
+            <string name="title">Selected Song:</string>
           </object>
           <object class="IBCarbonBevelButton" id="664">
             <string name="bounds">342 344 365 372 </string>
@@ -2052,7 +2052,7 @@
             <ostype name="controlSignature">MuSE</ostype>
             <int name="controlID">777</int>
             <boolean name="indeterminate">FALSE</boolean>
-            <int name="maximumValue">300000</int>
+            <int name="maximumValue">100000</int>
           </object>
           <object class="IBCarbonStaticText" id="580">
             <string name="bounds">21 347 34 397 </string>
@@ -2095,7 +2095,7 @@
     <reference idRef="581"/>
     <reference idRef="582"/>
     <object class="IBCarbonWindow" id="583">
-      <string name="windowRect">393 62 642 443 </string>
+      <string name="windowRect">243 61 492 442 </string>
       <string name="title">Status</string>
       <object name="rootControl" class="IBCarbonRootControl" id="584">
         <string name="bounds">0 0 249 381 </string>
@@ -2148,6 +2148,7 @@
       <int name="themeBrush">51</int>
       <int name="windowPosition">1</int>
       <boolean name="isConstrained">FALSE</boolean>
+      <boolean name="hideOnSuspend">TRUE</boolean>
       <boolean name="doesNotCycle">TRUE</boolean>
       <boolean name="inWindowMenu">FALSE</boolean>
     </object>

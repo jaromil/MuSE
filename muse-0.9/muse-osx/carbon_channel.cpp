@@ -1,7 +1,7 @@
 /* MuSE - Multiple Streaming Engine
- * Copyright (C) 2002-2004 jaromil <jaromil@dyne.org>
+ * Copyright (C) 2005 xant <xant@dyne.org>
  *
- * This sourcCARBONe code is free software; you can redistribute it and/or
+ * This source code is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Public License as published 
  * by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
@@ -78,7 +78,7 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 	status=CC_STOP;
 	savedStatus=-1;
 	_seek=0;
-	loadedPlaylist=NULL;
+	loadedPlaylistIndex=0;
 	playList = inChannel->playlist; //new Playlist();
 	msg = new CarbonMessage(nibRef);
 	plManager = parent->playlistManager;
@@ -213,7 +213,7 @@ void CarbonChannel::updatePlaylistControls() {
 	err=DeleteMenuItems(loadMenu,1,nItems);
 	err=SetMenuFont(loadMenu,0,9);
 //	lock();
-//	if(loadedPlaylist) {
+//	if(loadedPlaylistIndex) {
 //		EnableMenuItem(loadMenu,1);
 		/* TODO - if loadedSong is pointing to an unexistant (maybe removed in another channel?) playlist
 		 * we have to unload the current playlist to prevent unexpected behaviours */
@@ -236,7 +236,7 @@ void CarbonChannel::updatePlaylistControls() {
 	if(err!=noErr) msg->error("Can't get menuref for the savePlaylist button (%d)!!",err);
 	err=SetMenuFont(saveMenu,0,9);
 	lock();
-	if(loadedPlaylist) EnableMenuItem(saveMenu,2);
+	if(loadedPlaylistIndex) EnableMenuItem(saveMenu,2);
 	else DisableMenuItem(saveMenu,2);
 	unlock();
 	SetMenuItemCommandID(saveMenu,1,SAVE_PLAYLIST_CMD);
@@ -301,6 +301,7 @@ void CarbonChannel::plSetup() {
 	if(err != noErr) {
 		msg->error("Can't obtain dataBrowser ControlRef (%d)!!",err);
 	}
+	//SetDataBrowserListViewUsePlainBackground(playListControl,false);
 	EventTargetRef dbTarget = GetControlEventTarget (playListControl);
 	
 	CarbonChannel *self=this;
@@ -830,7 +831,6 @@ void CarbonChannel::next() {
 }
 
 void CarbonChannel::seek(int pos) {
-	printf("EKKOMI %d\n",pos);
 	if(inChannel->seekable && pos) {
 		inChannel->pos((float)pos/1000);
 	}
@@ -883,9 +883,9 @@ bool CarbonChannel::plLoad(int idx) {
 			char *n=plManager->getName(idx);
 			/* fill 'save button' menu with the current playlist name */
 			lock();
-			loadedPlaylist=strdup(n);
+			loadedPlaylistIndex=idx; //strdup(n);
 			CFStringRef format = CFStringCreateWithCString(NULL,"update %s",0);
-			CFStringRef text=CFStringCreateWithFormat(NULL,NULL,format,loadedPlaylist );
+			CFStringRef text=CFStringCreateWithFormat(NULL,NULL,format,loadedPlaylist() );
 			unlock();
 			err=SetMenuItemTextWithCFString(saveMenu,2,text);
 			EnableMenuItem(saveMenu,2);
@@ -893,7 +893,7 @@ bool CarbonChannel::plLoad(int idx) {
 			CFRelease(text);
 		
 			/* fill playlist (databrowser) header with loadedPlaylist value */
-			text = CFStringCreateWithCString(NULL,loadedPlaylist,kCFStringEncodingMacRoman);
+			text = CFStringCreateWithCString(NULL,loadedPlaylist(),kCFStringEncodingMacRoman);
 			header.titleString=text;
 			SetDataBrowserListViewHeaderDesc(playListControl,'SONG',&header);
 			CFRelease(text);
@@ -919,7 +919,7 @@ bool CarbonChannel::plLoad(int idx) {
 		DisableMenuItem(saveMenu,2);
 		//DisableMenuItem(loadMenu,1);
 		lock();
-		loadedPlaylist=NULL;
+		loadedPlaylistIndex=0;
 		unlock();
 	}
 }
@@ -927,7 +927,7 @@ bool CarbonChannel::plLoad(int idx) {
 bool CarbonChannel::plDelete(int idx) {
 	char *name=plManager->getName(idx);
 	if(name) {
-		if(loadedPlaylist && strcmp(name,loadedPlaylist)==0) { /* XXX - should i lock() before looking at loadedPlaylist ? */
+		if(loadedPlaylistIndex && strcmp(name,loadedPlaylist())==0) { /* XXX - should i lock() before looking at loadedPlaylist ? */
 			plLoad(0);
 		}
 		if(plManager->remove(idx)) {
@@ -945,7 +945,7 @@ bool CarbonChannel::plSave(int mode) {
 	OSStatus err;
 	if(mode) { /* update current playlist */
 		lock(); /* lock to prevent loadedPlaylist changes (for example by scheduler thread while user is saving */
-		bool res=plManager->update(loadedPlaylist);
+		bool res=plManager->update(loadedPlaylistIndex,playList);
 		unlock();
 		return res;
 	}
@@ -1029,10 +1029,17 @@ void CarbonChannel::updatePlaymode() {
 }
 
 
-void CarbonChannel::activate() {
+void CarbonChannel::activate() { /* this method is needed ti handle window layering correctly */
 	activateMenuBar();
 	if(!attached()||!slave()) /* don't notify activation if we are a slave window in a magnetic-fade */ 
 		parent->activatedChannel(chIndex);
+}
+
+char *CarbonChannel::loadedPlaylist() {
+	if(loadedPlaylistIndex) {
+		return plManager->getName(loadedPlaylistIndex);
+	}
+	return NULL;
 }
 /* End of CarbonChannel */
 
@@ -1320,9 +1327,7 @@ void SeekHandler (ControlRef theControl, ControlPartCode partCode) {
 	CarbonChannel *me;
 	OSStatus err = GetControlProperty(theControl,CARBON_GUI_APP_SIGNATURE,
 		SEEK_PROPERTY,sizeof(CarbonChannel *),NULL,&me);
-printf("CIAO1\n");
 	if(err==noErr) {
-printf("CIAO2\n");
 		me->seek(GetControlValue(theControl));
 	}
 }

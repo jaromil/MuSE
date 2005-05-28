@@ -1,5 +1,5 @@
 /* MuSE - Multiple Streaming Engine
- * Copyright (C) 2002-2004 jaromil <jaromil@dyne.org>
+ * Copyright (C) 2005 xant <xant@dyne.org>
  *
  * This sourcCARBONe code is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Public License as published 
@@ -35,7 +35,7 @@
 		~PlaylistManagerEntry();
 		char *name();
 		Playlist *playlist();
-		bool update();
+		bool update(Playlist *playlist);
 		
 	private:
 		int idx;
@@ -58,17 +58,17 @@
 		bool remove(int index);
 		char *getName(int index);
 		bool save(char *name,Playlist *playlist);
-		bool update(char *name); /* actually just calls update() for all playlists */
-		bool update(int index); /* actually just calls update() for all playlists */
+		bool update(char *name,Playlist *playlist); /* actually just calls update() for all playlists */
+		bool update(int index,Playlist *playlist); /* actually just calls update() for all playlists */
 		bool update();
 		int len();
 		bool isTouched();
 		void touch();
 		void untouch();
+		XmlTag *pl2xml(char *name,Playlist *playlist);
 		
 	private:
 		void PlaylistManager::initPlaylists();
-		XmlTag *pl2xml(char *name,Playlist *playlist);
 		
 		XmlProfile *xml;
 		Linklist *playlists;
