@@ -17,6 +17,9 @@
  = Eugen Melinte
    scheduler, http player ( /radiosched.* httpstream.* )
 
+ = Andrea "xant" Guzzo
+   OSX porting and native Carbon user interface ( /muse-osx/* )
+
  if you wish to collaborate, join us on irc.freenode.net #dyne
  or on the mailinglist at http://lists.dyne.org/muse
 
