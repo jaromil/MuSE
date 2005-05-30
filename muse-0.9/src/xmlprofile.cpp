@@ -177,10 +177,12 @@ XmlErr XmlProfile::XmlParseBuffer(char *buffer) {
 	if(start) free(start);
 
 #define SKIP_BLANKS(__p) \
-	while((*__p==' ' || *__p=='\t' || *__p=='\r' || *__p == '\n') && *__p!=0) __p++; 
+	while((*__p==' ' || *__p=='\t' || *__p=='\r' || *__p == '\n') && *__p!=0) __p++; \
+	if(*__p==0) break;
 		
 #define ADVANCE_ELEMENT(__p) \
-	while(*__p!='>' && *__p!=' ' && *__p!='\t' && *__p!='\r' && *__p != '\n' && *__p!=0 && *__p!='/') __p++;
+	while(*__p!='>' && *__p!=' ' && *__p!='\t' && *__p!='\r' && *__p != '\n' && *__p!=0) __p++; \
+	if(*__p==0) break;
 		
 #define ADVANCE_TO_ATTR_VALUE(__p) \
 	while(*__p!='=' && *__p!=' ' && *__p!='\t' && *__p!='\r' && *__p != '\n' && *__p!=0) __p++;\
