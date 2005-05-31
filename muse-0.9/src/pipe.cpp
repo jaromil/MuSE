@@ -70,7 +70,7 @@ static inline void copy_int16_to_float(void *dst, void *src, int samples) {
 static inline void copy_float_to_int16(void *dst, void *src, int samples) {
   register int c;
   for( c = samples-1; c>=0 ; c-- ) {
-    ((int16_t*)dst)[c] = (int16_t) ( ((float*)src)[c] );
+    ((int16_t*)dst)[c] = (int16_t) ( ((float*)src)[c]*32768.0f);
   }
 }
 
