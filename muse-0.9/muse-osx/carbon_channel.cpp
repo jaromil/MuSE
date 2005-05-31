@@ -336,14 +336,15 @@ void CarbonChannel::plSetup() {
 	dbCallbacks.u.v1.addDragItemCallback=NewDataBrowserAddDragItemUPP(&AddDrag);
 	
 	/* custom callbacks */
-//	DataBrowserCustomCallbacks  dbCustomCallbacks;
-//	InitDataBrowserCustomCallbacks(&dbCustomCallbacks);
+	//DataBrowserCustomCallbacks  dbCustomCallbacks;
+	//InitDataBrowserCustomCallbacks(&dbCustomCallbacks);
 	/* Tracking Handler */
-//	dbCustomCallbacks.u.v1.trackingCallback=NewDataBrowserTrackingUPP(&PlaylistTracking);	
+	//dbCustomCallbacks.u.v1.trackingCallback=NewDataBrowserTrackingUPP(&PlaylistTracking);	
+	//dbCustomCallbacks.u.v1.drawItemCallback=NewDataBrowserDrawItemUPP(&DrawPLItem);
 	
 	/* register callbacks */
 	SetDataBrowserCallbacks(playListControl, &dbCallbacks);
-	
+	//SetDataBrowserCustomCallbacks(playListControl,&dbCustomCallbacks);
 	SetControlDragTrackingEnabled(playListControl,true);
 }
 
@@ -969,16 +970,19 @@ bool CarbonChannel::plSave(int mode) {
 		if( plManager->save(name,playList)) {
 		//	msg->notify("Playlist \"%s\" saved successfully",name);
 			plManager->touch();
-			if(!plLoad(plManager->len())) {
-				msg->warning("Can't load the just created playlist!!");
-			}
+		//	if(!plLoad(plManager->len())) {
+		//		msg->warning("Can't load the just created playlist!!");
+		//	}
+			//lock();
+			//loadedPlaylistIndex=plManager->len();
+			//unlock();
 			return true;
 		}
-		else {
-			msg->warning("Can't save playlist \"%s\"",name);
-			return false;
-		}
-	
+		//else {
+		//	msg->warning("Can't save playlist \"%s\"",name);
+		//	return false;
+		//}
+		
 		/*	TODO - little bug... when in saveAs mode, save button remains hilited ... 
 		ControlID buttonID = { CARBON_GUI_APP_SIGNATURE, SAVE_PLAYLIST_BUT };
 		ControlRef button;
@@ -987,6 +991,11 @@ bool CarbonChannel::plSave(int mode) {
 		SetControlValue(button,0);
 		*/
 	}
+	ControlRef saveButton;
+		ControlID saveButtonId = {CARBON_GUI_APP_SIGNATURE,SAVE_PLAYLIST_BUT};
+
+	 err=GetControlByID(window,&saveButtonId,&saveButton);
+	if(err!=noErr) msg->error("Can't get controlref for savePlaylist button (%d)!!",err);
 }
 
 void CarbonChannel::plSaveDialog() {
@@ -1312,6 +1321,14 @@ void GetPLMenu (ControlRef browser,MenuRef *menu,UInt32 *helpType,
 void SelectPLMenu (ControlRef browser,MenuRef menu,UInt32 selectionType,SInt16 menuID,MenuItemIndex menuItem) {
 
 }
+
+
+void DrawPLItem (ControlRef browser,DataBrowserItemID item,DataBrowserPropertyID property,
+   DataBrowserItemState itemState, const Rect *theRect,SInt16 gdDepth, Boolean colorDevice)
+{
+	printf("EKKOMI \n");
+}
+
 */
 
 void FaderHandler (ControlRef theControl, ControlPartCode partCode) {
@@ -1483,6 +1500,12 @@ static OSStatus ChannelCommandHandler (
 			break;
 		case SHOW_STREAMS_CMD:
 			me->parent->showStreamWindow();
+			break;
+		case SHOW_STATUS_CMD:
+			me->parent->toggleStatus();
+			break;
+		case SHOW_VUMETERS_CMD:
+			me->parent->toggleVumeters();
 			break;
 		case SAVE_PLAYLIST_CMD:
 			if(command.menu.menuItemIndex==1) // save a new playlist

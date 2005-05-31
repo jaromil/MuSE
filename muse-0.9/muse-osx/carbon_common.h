@@ -47,10 +47,12 @@
 #define NEWC_CMD 'newc'
 #define SHOW_STREAMS_CMD 'stre'
 #define SHOW_STATUS_CMD 'shlo'
+#define SHOW_VUMETERS_CMD 'vol '
 #define CLOSE_STATUS_CMD 'cllo'
 #define CLEAR_STATUS_CMD 'clel'
 
 #define STATUS_TEXT_ID 199
+
 
 /* VUMETER WINDOW */
 #define VUMETER_VOL 777

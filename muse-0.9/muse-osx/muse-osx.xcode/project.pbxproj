@@ -224,8 +224,10 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				HEADER_SEARCH_PATHS = "/sw/include/ ../src//** /Developer/Headers/FlatCarbon/";
 				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
+				PUBLIC_HEADERS_FOLDER_PATH = "";
 				ZERO_LINK = NO;
 			};
 			isa = PBXBuildStyle;
@@ -357,7 +359,6 @@
 				AA3FD9A607FCE1410061F816,
 				AA3FD9B807FCE1410061F816,
 				AA3FD9BB07FCE1410061F816,
-				AA3FD9BD07FCE1410061F816,
 				AA3FD9BF07FCE1410061F816,
 				AA3FD9C107FCE1410061F816,
 				AA3FD9C407FCE1410061F816,
@@ -1051,7 +1052,6 @@
 				AA3FD70E07FCE13D0061F816,
 				AA3FD71007FCE13D0061F816,
 				AA3FD71107FCE13D0061F816,
-				AA3FD71307FCE13D0061F816,
 				AA3FD71507FCE13D0061F816,
 				AA3FD71707FCE13D0061F816,
 				AA3FD71807FCE13D0061F816,
@@ -1114,14 +1114,6 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.c;
 			path = pa_lib.c;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		AA3FD71307FCE13D0061F816 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.c;
-			path = pa_mac.c;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -1786,12 +1778,6 @@
 		};
 		AA3FD9BB07FCE1410061F816 = {
 			fileRef = AA3FD71107FCE13D0061F816;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		AA3FD9BD07FCE1410061F816 = {
-			fileRef = AA3FD71307FCE13D0061F816;
 			isa = PBXBuildFile;
 			settings = {
 			};

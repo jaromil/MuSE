@@ -87,7 +87,7 @@ private:
   OSStatus		err;
   CarbonChannel	*channel[MAX_CHANNELS];
   CarbonChannel *selectedChannel;
-
+  TXNObject statusText;
   CarbonStream *streamHandler;
 };
 

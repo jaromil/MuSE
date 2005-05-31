@@ -35,7 +35,7 @@ const EventTypeSpec statusEvents[] = {
 };
 
 const EventTypeSpec events[] = {
-	{ kEventClassWindow, kEventWindowClosed },
+	{ kEventClassWindow, kEventWindowClose },
 	{ CARBON_GUI_EVENT_CLASS, CG_RMCH_EVENT},
 	//{ kEventClassWindow, kEventWindowGetClickActivation },
 	{ kEventClassWindow, kEventWindowActivated }
@@ -69,6 +69,10 @@ static OSStatus StatusWindowCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
 static OSStatus StatusWindowEventHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
+
+const RGBColor white = {0xFFFF,0xFFFF,0xFFFF};
+const RGBColor lgrey = {0xCCCC,0xCCCC,0xCCCC};
+const RGBColor black = {0x0000,0x0000,0x0000 };
 
 CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix) 
  : GUI(argc,argv,mix) {
@@ -104,7 +108,7 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 		err=CreateWindowGroup(kWindowGroupAttrLayerTogether,&mainGroup);
 		err=SetWindowGroup(window,mainGroup);
 		err=SetWindowGroup(vumeterWindow,mainGroup);
-		//err=SetWindowGroup(statusWindow,mainGroup);
+		err=SetWindowGroup(statusWindow,mainGroup);
 		SetWindowGroupOwner(mainGroup,window);
 		/* let's create a channel window for each active input channel */
 		unsigned int i;
@@ -137,23 +141,53 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 }
 
 CARBON_GUI::~CARBON_GUI() { 
-// We don't need the nib reference anymore.
-    DisposeNibReference(nibRef);
+	for (int i=0;i<MAX_CHANNELS;i++) {
+		if(channel[i]) delete channel[i];
+	}
+// We don't need the nib reference anymore.    
 	delete playlistManager;
+	DisposeNibReference(nibRef);
 }
 
 void CARBON_GUI::setupStatusWindow() {
 	OSStatus err=CreateWindowFromNib(nibRef,CFSTR("StatusWindow"),&statusWindow);
 	if(err!=noErr) msg->error("Can't create status window (%d)!!",err);
-	SetDrawerParent(statusWindow,window);
-	SetDrawerPreferredEdge(statusWindow,kWindowEdgeBottom);
-	SetDrawerOffsets(statusWindow,20,20);
+	//SetDrawerParent(statusWindow,window);
+	//SetDrawerPreferredEdge(statusWindow,kWindowEdgeBottom);
+	//SetDrawerOffsets(statusWindow,20,20);
 	err = InstallWindowEventHandler (statusWindow, 
 		NewEventHandlerUPP (StatusWindowEventHandler), 
 		GetEventTypeCount(statusEvents), statusEvents, this, NULL);
 	if(err != noErr) msg->error("Can't install vumeter eventHandler");
 	err=InstallWindowEventHandler(statusWindow,NewEventHandlerUPP(StatusWindowCommandHandler),
 		GetEventTypeCount(commands),commands,this,NULL);
+	HIViewRef statusTextView;
+	const ControlID txtid={ CARBON_GUI_APP_SIGNATURE, STATUS_TEXT_ID };
+	err= HIViewFindByID(HIViewGetRoot(statusWindow), txtid, &statusTextView);
+	if(err!=noErr) return;// msg->warning("Can't get textView for status window (%d)!!",err);
+	statusText = HITextViewGetTXNObject(statusTextView);
+	if(!statusText) {
+		msg->error("Can't get statusText object from status window!!");
+	}
+	struct TXNBackground bg = {  kTXNBackgroundTypeRGB, black };
+	TXNSetBackground(statusText,&bg);
+
+	/* setup status text font size and color */
+	// Create type attribute data structure
+	UInt32   fontSize = 9 << 16; // needs to be in Fixed format
+	TXNTypeAttributes attributes[] = {
+		//{ kTXNQDFontStyleAttribute, kTXNQDFontStyleAttributeSize, bold },
+		{ kTXNQDFontColorAttribute, kTXNQDFontColorAttributeSize,(void *)&lgrey },
+		{ kTXNQDFontSizeAttribute, kTXNQDFontSizeAttributeSize, (UInt32)fontSize }
+	};
+	err= TXNSetTypeAttributes( statusText, 2, attributes,
+		kTXNStartOffset,kTXNEndOffset );
+		
+	/* block user input in the statusText box */
+	TXNControlTag tags[] = { kTXNNoUserIOTag };
+	TXNControlData vals[] = { kTXNReadOnly };
+	err=TXNSetTXNObjectControls(statusText,false,1,tags,vals);
+	if(err!=noErr) msg->error("Can't set statusText properties (%d)!!",err);
 }
 
 void CARBON_GUI::setupVumeters() {
@@ -181,7 +215,7 @@ void CARBON_GUI::run() {
 		
 		lock(); /* lock before iterating on channel array ... if all is sane
 				 * nobody can modify the channel list while we are managing it */
-	//	wait(); /* wait the tick signal from jmixer */
+		wait(); /* wait the tick signal from jmixer */
 		for(i=0;i<MAX_CHANNELS;i++) {
 			if(channel[i]) {
 				if(new_pos[i]) {
@@ -200,7 +234,7 @@ void CARBON_GUI::run() {
 		if(playlistManager->isTouched()) playlistManager->untouch(); /* reset playlistManager update flag */
 		unlock();
 		if(meterShown()) updateVumeters();
-		Delay(2,&finalTicks); /* DISABLED BEACAUSE NOW TICK IS SIGNALED BY JMIXER */
+	//	Delay(2,&finalTicks); /* DISABLED BEACAUSE NOW TICK IS SIGNALED BY JMIXER */
 	}
  }
 
@@ -292,10 +326,13 @@ bool CARBON_GUI::remove_channel(int idx) {
 		if(selectedChannel==channel[idx]) selectedChannel=NULL;
 		delete channel[idx];
 		channel[idx] = NULL;
-		unlock(); /* unlock mutex asap */
-		jmix->stop_channel(idx);
-		jmix->delete_channel(idx);
-		notice("deleted channel %d",idx);
+		unlock(); /* unlock mutex asap (but we have to delete CarbonChannel object first */
+		if(jmix->chan[idx]) {
+			/* if still present, destroy the underlying muse channel object */
+			jmix->stop_channel(idx);
+			jmix->delete_channel(idx);
+			notice("deleted channel %d",idx);
+		}
 		return true;
 	}
 	unlock();
@@ -311,19 +348,13 @@ void CARBON_GUI::set_title(char *txt) {
 }
  
 void CARBON_GUI::set_status(char *txt) {
-	HIViewRef statusTextView;
-	TXNObject statusText;
-	const ControlID txtid={ CARBON_GUI_APP_SIGNATURE, STATUS_TEXT_ID };
-	err= HIViewFindByID(HIViewGetRoot(statusWindow), txtid, &statusTextView);
-	if(err!=noErr) return;// msg->warning("Can't get textView for status window (%d)!!",err);
-	statusText = HITextViewGetTXNObject(statusTextView);
-	if(!statusText) {
-		msg->error("Can't get statusText object from status window!!");
-	}
 	if(txt) {
 		TXNSetData(statusText,kTXNTextData,"[*] ",4,kTXNEndOffset,kTXNEndOffset);
 		TXNSetData(statusText,kTXNTextData,txt,strlen(txt),kTXNEndOffset,kTXNEndOffset);
 		TXNSetData(statusText,kTXNTextData,"\n",1,kTXNEndOffset,kTXNEndOffset);
+		
+	//	err=TXNSetTypeAttributes(statusText,3,attributes,kTXNUseCurrentSelection,kTXNUseCurrentSelection);
+	//	if(err!=noErr) msg->warning("Can't set status text attributes (%d)!!",err); 
 	}
 }
 
@@ -405,7 +436,7 @@ void CARBON_GUI::showVumeters(bool flag) {
 	//	OpenDrawer(vumeterWindow,kWindowEdgeTop,false);
 		Rect bounds;
 		GetWindowBounds(window,kWindowGlobalPortRgn,&bounds);
-		MoveWindow(vumeterWindow,bounds.right+10,bounds.top,false);
+		MoveWindow(vumeterWindow,bounds.right+15,bounds.top-5,false);
 		ShowWindow(vumeterWindow);
 	}
 	else {
@@ -417,16 +448,23 @@ void CARBON_GUI::showVumeters(bool flag) {
 void CARBON_GUI::showStatus(bool flag) {
 	OSStatus err;
 	if(flag) { 
-		OpenDrawer(statusWindow,kWindowEdgeBottom,false);
+		Rect bounds;
+		GetWindowBounds(window,kWindowGlobalPortRgn,&bounds);
+		MoveWindow(statusWindow,bounds.left,bounds.bottom+30,false);
+		ShowWindow(statusWindow);
+		//OpenDrawer(statusWindow,kWindowEdgeBottom,false);
 
 	}
 	else {
-		CloseDrawer(statusWindow,false);
+		HideWindow(statusWindow);
+		//CloseDrawer(statusWindow,false);
 	}
 }
 
 void CARBON_GUI::toggleStatus() {
-	ToggleDrawer(statusWindow);
+	//ToggleDrawer(statusWindow);
+	if(IsWindowVisible(statusWindow)) showStatus(false);
+	else showStatus(true);
 }
 
 void CARBON_GUI::toggleVumeters() {
@@ -436,6 +474,7 @@ void CARBON_GUI::toggleVumeters() {
 }
 
 void CARBON_GUI::clearStatus() {
+	TXNSetData(statusText,kTXNTextData,"",4,kTXNStartOffset,kTXNEndOffset);
 }
 
 void CARBON_GUI::bringToFront() {
@@ -506,13 +545,17 @@ static OSStatus MainWindowCommandHandler (
 			val = GetControlValue(mainControls[SNDOUT_BUT]);
             me->jmix->set_lineout(val?true:false);
             break;
+		case 'sndi':
+			val = GetControlValue(mainControls[SNDIN_BUT]);
+			me->jmix->set_live(val?true:false);
+			break;
 		case 'newc':
 			me->new_channel();
 			break;
 		case SHOW_STREAMS_CMD:
 				me->showStreamWindow();
 			break;
-		case 'vol ':
+		case SHOW_VUMETERS_CMD:
 		//	val = GetControlValue(mainControls[VOL_BUT]);
 		//	me->showVumeters(val?true:false);
 			me->toggleVumeters();
@@ -522,7 +565,6 @@ static OSStatus MainWindowCommandHandler (
 		//	me->showStatus(val?true:false);
 			me->toggleStatus();
 			break;
-		case 'sndi':
 		case 'abou':
         default:
             err = eventNotHandledErr;
@@ -573,7 +615,7 @@ static OSStatus MainWindowEventHandler (
     CARBON_GUI *me = (CARBON_GUI *)userData;
 	switch (GetEventKind (event))
     {
-        case kEventWindowClosed: 
+        case kEventWindowClose: 
             QuitApplicationEventLoop();
             break;
 	//	case kEventWindowGetClickActivation:  /* TODO - propagate activation click to the right control */

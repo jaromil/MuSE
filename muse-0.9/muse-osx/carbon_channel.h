@@ -147,6 +147,8 @@ class CarbonChannel {
 		int savedStatus;
 		PlaylistManager *plManager;
 		int loadedPlaylistIndex;
+		int runningPlaylistIndex;
+		bool plLoaded;
 #define CC_STOP	0
 #define CC_PLAY	1
 #define CC_PAUSE 3
@@ -202,6 +204,10 @@ void HandleNotification (ControlRef browser,DataBrowserItemID item,
 void GetPLMenu (ControlRef browser,MenuRef *menu,UInt32 *helpType,
 	CFStringRef *helpItemString, AEDesc *selection);
 /*
+void DrawPLItem (ControlRef browser,DataBrowserItemID item,DataBrowserPropertyID property,
+   DataBrowserItemState itemState, const Rect *theRect,SInt16 gdDepth, Boolean colorDevice);
+
+
 void SelectPLMenu(ControlRef browser,MenuRef menu,UInt32 selectionType,
 	SInt16 menuID,MenuItemIndex menuItem);
 */	
