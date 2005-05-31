@@ -77,16 +77,11 @@ O- Add support for native sample data formats other than int16.
 O- Review buffer sizing. Should it be based on result of siDeviceBufferInfo query?
 O- Determine default devices somehow.
 */
-
-#include <config.h>
-#ifdef HAVE_MAC
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <memory.h>
 #include <math.h>
-
 
 /* Mac specific includes */
 #include "OSUtils.h"
@@ -1690,5 +1685,3 @@ gotError:
 done:
     return;
 }
-
-#endif // HAVE_MAC
