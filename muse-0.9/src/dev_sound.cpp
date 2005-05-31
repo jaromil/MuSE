@@ -95,19 +95,41 @@ static int pa_process( void *inputBuffer, void *outputBuffer,
 	unsigned long framesPerBuffer, 
 	PaTimestamp outTime, void *userData )
 {
+void *rBuf;
 int readBytes;
 PaDevices *dev = (PaDevices *)userData;
 long len = framesPerBuffer * (PA_SAMPLES_PER_FRAME*sizeof(PA_SAMPLE_TYPE));
   if(inputBuffer != NULL) {
-    readBytes = dev->input->pipe->write(len,inputBuffer);
+	if(dev->input->info)  {
+		if(dev->input->info->maxInputChannels>1) {
+			readBytes = dev->input->pipe->write(len,inputBuffer);
+		}
+		else {
+			rBuf = malloc(len);
+			memcpy(rBuf,inputBuffer,len/2);
+			memcpy((uint8_t *)rBuf+len/2,inputBuffer,len/2);
+			readBytes = dev->input->pipe->write(len,rBuf);
+			free(rBuf);
+		}
+	}
   }
   if(outputBuffer != NULL) {
-    readBytes = dev->output->pipe->read(len,outputBuffer);
-	
-    /* Zero out remainder of buffer if we run out of data. */
-    for(int i=readBytes;i<len;i++) {
-       ((char *)outputBuffer)[i] = 0;
-    }
+	if(dev->output->info) {
+		if(dev->output->info->maxOutputChannels>1) {
+			readBytes = dev->output->pipe->read(len,outputBuffer);
+		}
+		else {
+			rBuf = malloc(len);
+			memcpy(rBuf,outputBuffer,len/2);
+			memcpy((uint8_t *)rBuf+len/2,outputBuffer,len/2);
+			readBytes = dev->input->pipe->write(len,rBuf);
+			free(rBuf);
+		}
+		/* Zero out remainder of buffer if we run out of data. */
+		for(int i=readBytes;i<len;i++) {
+		((char *)outputBuffer)[i] = 0;
+		}
+	}
   }
   return 0;
 }
@@ -122,11 +144,11 @@ bool SoundDevice::input(bool state) {
 PaError SoundDevice::pa_real_open(int mode) {
   return Pa_OpenStream( ((mode & PaInput) == PaInput)?&input_device.stream:&output_device.stream,
     ((mode & PaInput) == PaInput)?input_device.id:paNoDevice,
-    ((mode & PaInput) == PaInput)?2:0,
+    ((mode & PaInput) == PaInput)?(input_device.info->maxInputChannels>1?2:1):0,
     PA_SAMPLE_TYPE,
     NULL,
     ((mode & PaOutput) == PaOutput)?output_device.id:paNoDevice,
-    ((mode & PaOutput) == PaOutput)?2:0,
+    ((mode & PaOutput) == PaOutput)?(output_device.info->maxOutputChannels>1?2:1):0,
     PA_SAMPLE_TYPE,
     NULL,
     SAMPLE_RATE,
@@ -141,6 +163,15 @@ bool SoundDevice::pa_open(bool state,int mode) {
   PaDevInfo *dev,*other;
   int creq,oreq;
   char dir[7];
+  
+ // PaDeviceInfo *k=NULL;
+ // int i=0;
+ // do {
+//	k=Pa_GetDeviceInfo(i);
+//	i++;
+///	if(k) printf("KKK %d - %s \n",i,k->name);
+//  } while (k!=NULL);
+  
   if(mode == PaInput) { // input requested
     dev = &input_device;
     other = &output_device;
@@ -159,7 +190,7 @@ bool SoundDevice::pa_open(bool state,int mode) {
   }
   if(state && ((pa_mode & creq) != creq)) {
     dev->info = (PaDeviceInfo*)Pa_GetDeviceInfo( dev->id );
-    if(dev->info) func("%s device: %s",dir,dev->info->name);
+    if(dev->info) notice("Opening %s device: %s",dir,dev->info->name);
     else {
       error("%s device not available",dir);
       return false;
@@ -167,16 +198,11 @@ bool SoundDevice::pa_open(bool state,int mode) {
     if((pa_mode & oreq) == oreq) {
       /* input device is already opened...check if we are trying to open the same device */
       if(other->info) { 
-        if(strcmp(other->info->name,dev->info->name) == 0) {
-          Pa_StopStream( other->stream );
+		  Pa_StopStream( other->stream );
           Pa_CloseStream( other->stream );
           err = pa_real_open(PaInput|PaOutput);
           if(err == paNoError ) output_device.stream = input_device.stream;
-		}
-		else {
-          err = pa_real_open(mode);
-		}
-      }
+	  }
       else {
         error("Full duplex has been requested but we don't have portaudio information");
         return false;
@@ -199,7 +225,7 @@ bool SoundDevice::pa_open(bool state,int mode) {
       pa_mode = pa_mode | creq;
     }
   } else if(!state && dev->stream) { // XXX - i have to check if this is still right
-    
+     if(dev->info) notice("Closing %s device: %s",dir,dev->info->name);
     if((pa_mode & creq) == creq) {
        if((pa_mode & oreq) == oreq) {
          pa_mode = oreq;
