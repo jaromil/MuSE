@@ -167,9 +167,7 @@ void Channel::run() {
 
       // just hang on
       idle = true;
-
-      jsleep(0,20);
-
+      jsleep(0,100); /* don't waste cpu time */
     }
 
 
@@ -516,7 +514,10 @@ void Channel::sel(int newpos) {
       pos(0.0);
       break;
     case PLAYMODE_PLAYLIST:
-      if(newpos==1 && playlist->selected_pos()==playlist->len()) break;
+      if(newpos==1 && playlist->selected_pos()==playlist->len()) {
+		if(on) stop(); /* let's stop if this is last track in PLAYMODE_PLAYLIST */
+		break;
+	  }
     case PLAYMODE_CONT:
       Url *n;
       stop();
