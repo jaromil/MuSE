@@ -95,41 +95,46 @@ static int pa_process( void *inputBuffer, void *outputBuffer,
 	unsigned long framesPerBuffer, 
 	PaTimestamp outTime, void *userData )
 {
+int i,n;
 void *rBuf;
 int readBytes;
 PaDevices *dev = (PaDevices *)userData;
 long len = framesPerBuffer * (PA_SAMPLES_PER_FRAME*sizeof(PA_SAMPLE_TYPE));
-  if(inputBuffer != NULL) {
+  if(inputBuffer != NULL) { /* handle input from soundcard */
 	if(dev->input->info)  {
-		if(dev->input->info->maxInputChannels>1) {
-			readBytes = dev->input->pipe->write(len,inputBuffer);
-		}
-		else {
-			rBuf = malloc(len);
-			memcpy(rBuf,inputBuffer,len/2);
-			memcpy((uint8_t *)rBuf+len/2,inputBuffer,len/2);
-			readBytes = dev->input->pipe->write(len,rBuf);
-			free(rBuf);
-		}
+      if(dev->input->info->maxInputChannels>1) {  
+        readBytes = dev->input->pipe->write(len,inputBuffer);
+	  }
+      else {
+        rBuf = malloc(len);
+        n=0;
+        for(i=0;i<(len/sizeof(PA_SAMPLE_TYPE))/2;i++) {
+          ((float *)rBuf)[n]=((float *)inputBuffer)[i];
+          ((float *)rBuf)[n+1]=((float *)inputBuffer)[i];
+          n+=2;
+        }
+        readBytes = dev->input->pipe->write(len,rBuf);
+        free(rBuf);
+      }
 	}
   }
-  if(outputBuffer != NULL) {
+  if(outputBuffer != NULL) { /* handle output from soundcard */
 	if(dev->output->info) {
-		if(dev->output->info->maxOutputChannels>1) {
-			readBytes = dev->output->pipe->read(len,outputBuffer);
-		}
-		else {
-			rBuf = malloc(len);
-			memcpy(rBuf,outputBuffer,len/2);
-			memcpy((uint8_t *)rBuf+len/2,outputBuffer,len/2);
-			readBytes = dev->input->pipe->write(len,rBuf);
-			free(rBuf);
-		}
-		/* Zero out remainder of buffer if we run out of data. */
-		for(int i=readBytes;i<len;i++) {
-		((char *)outputBuffer)[i] = 0;
-		}
-	}
+	  if(dev->output->info->maxOutputChannels>1) {
+	     readBytes = dev->output->pipe->read(len,outputBuffer);
+	   }
+	   else {
+	     rBuf = malloc(len);
+		 n=0;
+         for(i=0;i<(len/sizeof(PA_SAMPLE_TYPE))/2;i++) {
+           ((float *)rBuf)[n]=((float *)outputBuffer)[i];
+           ((float *)rBuf)[n+1]=((float *)outputBuffer)[i];
+		   n+=2;
+         }
+         readBytes = dev->output->pipe->write(len,rBuf);
+		 free(rBuf);
+	  }
+    }
   }
   return 0;
 }
