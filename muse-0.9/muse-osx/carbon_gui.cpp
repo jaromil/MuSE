@@ -169,15 +169,13 @@ void CARBON_GUI::setupStatusWindow() {
 	if(!statusText) {
 		msg->error("Can't get statusText object from status window!!");
 	}
-	struct TXNBackground bg = {  kTXNBackgroundTypeRGB, black };
-	TXNSetBackground(statusText,&bg);
 
 	/* setup status text font size and color */
 	// Create type attribute data structure
-	UInt32   fontSize = 9 << 16; // needs to be in Fixed format
+	UInt32   fontSize = 10 << 16; // needs to be in Fixed format
 	TXNTypeAttributes attributes[] = {
 		//{ kTXNQDFontStyleAttribute, kTXNQDFontStyleAttributeSize, bold },
-		{ kTXNQDFontColorAttribute, kTXNQDFontColorAttributeSize,(void *)&lgrey },
+		{ kTXNQDFontColorAttribute, kTXNQDFontColorAttributeSize,(void *)&black}, //&lgrey },
 		{ kTXNQDFontSizeAttribute, kTXNQDFontSizeAttributeSize, (UInt32)fontSize }
 	};
 	err= TXNSetTypeAttributes( statusText, 2, attributes,
@@ -188,6 +186,9 @@ void CARBON_GUI::setupStatusWindow() {
 	TXNControlData vals[] = { kTXNReadOnly };
 	err=TXNSetTXNObjectControls(statusText,false,1,tags,vals);
 	if(err!=noErr) msg->error("Can't set statusText properties (%d)!!",err);
+	
+	//struct TXNBackground bg = {  kTXNBackgroundTypeRGB, black };
+	//TXNSetBackground(statusText,&bg);
 }
 
 void CARBON_GUI::setupVumeters() {
