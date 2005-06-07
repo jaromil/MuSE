@@ -486,7 +486,11 @@ stream_detect( const char *url )
       ret = HS_OGG;
     else if (strstr(hdr,"SHOUTcast") || strstr(hdr,"ICY 200")) 
       ret = HS_MP3;
+    else if (strstr(hdr,"icy-")) // add for compatibility to proton
+      ret = HS_MP3;
     
+	 
+	 
     free(hdr);
     return ret;
 }

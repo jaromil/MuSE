@@ -273,11 +273,38 @@ int Channel::load(char *file) {
 
   snprintf(tmp,256,"%s",file);
   
-  if (strstr(file, "http://")) {
+  
+  cod = stream_detect(file);
 
-    cod = stream_detect(file);
+  //* try if it's a file
+  func("detect stream type %s",
+       (cod==HS_MP3)?"mp3":
+       (cod==HS_OGG)?"ogg":"failed");
+  
+  if(cod!=HS_NONE) {
+    
+    
+    switch(cod) { // various stream types
 
-  } else if(strncasecmp(file+strlen(file)-4,".ogg",4)==0 || cod==HS_OGG) {
+    case HS_MP3:
+      func("creating Mp3 decoder");
+      ndec = new MuseDecMp3();
+      break;
+
+    case HS_OGG:
+#ifdef HAVE_VORBIS
+      func("creating Ogg decoder");
+      ndec = new MuseDecOgg();
+#else
+      error(_("Can't open OggVorbis (support not compiled)"));
+#endif
+      break;
+    default: break;
+    }
+
+    
+
+  } else if(strncasecmp(file+strlen(file)-4,".ogg",4)==0) {
 
 #ifdef HAVE_VORBIS
     func("creating Ogg decoder");
@@ -286,7 +313,7 @@ int Channel::load(char *file) {
     error(_("Can't open OggVorbis (support not compiled)"));
 #endif
 
-  } else if(strncasecmp(file+strlen(file)-4,".mp3",4)==0 || cod==HS_MP3) {
+  } else if(strncasecmp(file+strlen(file)-4,".mp3",4)==0) {
 
     func("creating Mp3 decoder");
     ndec = new MuseDecMp3();
@@ -408,7 +435,10 @@ int Channel::load(char *file) {
 bool Channel::pos(float pos) {
   func("%u:%s:%s",__LINE__,__FILE__,__FUNCTION__);
   PARADEC
+
   if(!dec->seekable) return false;
+
+  func("requesto to seek position %f",pos);
   pos = (pos<0.0) ? 0.0 : (pos>1.0) ? 1.1 : pos;
   dec->lock();
   if(!dec->seek(pos))
