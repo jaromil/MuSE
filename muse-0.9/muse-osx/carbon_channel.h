@@ -137,6 +137,9 @@ class CarbonChannel {
 		IBNibRef nibRef;
 		MenuRef plMenu;
 		MenuRef plEntryMenu;
+		MenuRef loadMenu;
+		MenuRef deleteMenu;
+		MenuRef saveMenu;
 		EventLoopTimerRef updater;
 		EventHandlerRef windowEventHandler;
 		EventHandlerRef playListEventHandler;

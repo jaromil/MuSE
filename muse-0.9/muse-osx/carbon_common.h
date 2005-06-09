@@ -169,6 +169,8 @@
 #define SERVER_STATUS_CONTROL 827
 #define CONNECT_BUTTON 828
 
+#define SERVER_TEXT_PROPERTY 'stex'
+
 #define ADD_STREAM_CMD 'adst'
 #define DELETE_STREAM_CMD 'dest'
 #define ADD_SERVER_CMD 'adse'

@@ -92,14 +92,33 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 		msg->error("Can't create channel window (%d)!!",err);
 	}
 	SetWindowResizeLimits(window,&minBounds,&maxBounds);
+	
+	
+	/* create main contextual menu for the channel window */
 	err = CreateMenuFromNib (nibRef,CFSTR("PLMenu"),&plMenu);
 	if(err != noErr) {
 		msg->error("Can't create plMenu ref (%d)!!",err);
 	}
+	
+	/* create the item contextual menu that is shown when right-click on a selected item */
 	err = CreateMenuFromNib (nibRef,CFSTR("PLEntryMenu"),&plEntryMenu);
 	if(err != noErr) {
-		msg->error("Can't create plMenu ref (%d)!!",err);
+		msg->error("Can't create plEntryMenu ref (%d)!!",err);
 	}
+	
+	MenuRef playlistSubMenu;
+	err = GetMenuItemHierarchicalMenu(plMenu,3,&playlistSubMenu);
+	if(err!=noErr) msg->error("Can't get playlist sumenu (%d)!!",err);
+	/* loadPlaylist menu */
+	err=GetMenuItemHierarchicalMenu(playlistSubMenu,4,&loadMenu);
+	if(err!=noErr) msg->error("Can't get menuref for the loadPlaylist menu (%d)!!",err);
+	/* deletePlaylist menu */
+	err=GetMenuItemHierarchicalMenu(playlistSubMenu,5,&deleteMenu);
+	if(err!=noErr) msg->error("Can't get menuref for the deletePlaylist menu (%d)!!",err);
+	/* savePlaylist menu */
+	err=GetMenuItemHierarchicalMenu(playlistSubMenu,6,&saveMenu);
+	if(err!=noErr) msg->error("Can't get menuref for the savePlaylist menu (%d)!!",err);
+	
 	
 	err = InstallWindowEventHandler(window,ChannelEventHandler,CARBON_CHANNEL_EVENTS,
 		windowEvents,this,NULL);
@@ -198,43 +217,24 @@ CarbonChannel::~CarbonChannel() {
 }
 
 void CarbonChannel::updatePlaylistControls() {
-	MenuRef loadMenu,deleteMenu,saveMenu;
-	ControlRef loadButton,deleteButton,saveButton;
-	ControlID loadButtonId = {CARBON_GUI_APP_SIGNATURE,LOAD_PLAYLIST_BUT};
-	ControlID deleteButtonId = {CARBON_GUI_APP_SIGNATURE,DELETE_PLAYLIST_BUT};
-	ControlID saveButtonId = {CARBON_GUI_APP_SIGNATURE,SAVE_PLAYLIST_BUT};
-
-	/* LOAD PLAYLIST BBUTTON */
-	OSStatus err=GetControlByID(window,&loadButtonId,&loadButton);
-	if(err!=noErr) msg->error("Can't get controlref for loadPlaylist button (%d)!!",err);
-	err=GetBevelButtonMenuHandle(loadButton,&loadMenu);
-	if(err!=noErr) msg->error("Can't get menuref for the loadPlaylist button (%d)!!",err);
+	MenuRef playlistSubMenu;
+	OSStatus err;
+	err = GetMenuItemHierarchicalMenu(plMenu,3,&playlistSubMenu);
+	if(err!=noErr) msg->error("Can't get playlist sumenu (%d)!!",err);
+	
+	
+	/* LOAD PLAYLIST  */
 	UInt16 nItems=CountMenuItems(loadMenu);
 	err=DeleteMenuItems(loadMenu,1,nItems);
-	err=SetMenuFont(loadMenu,0,9);
-//	lock();
-//	if(loadedPlaylistIndex) {
-//		EnableMenuItem(loadMenu,1);
-		/* TODO - if loadedSong is pointing to an unexistant (maybe removed in another channel?) playlist
-		 * we have to unload the current playlist to prevent unexpected behaviours */
-//	}
-//	else DisableMenuItem(loadMenu,1);
-//	unlock();
-	/* DELETE PLAYLIST BUTTON */
-	err=GetControlByID(window,&deleteButtonId,&deleteButton);
-	if(err!=noErr) msg->error("Can't get controlref for deletePlaylist button (%d)!!",err);
-	err=GetBevelButtonMenuHandle(deleteButton,&deleteMenu);
-	if(err!=noErr) msg->error("Can't get menuref for the deletePlaylist button (%d)!!",err);
+//	err=SetMenuFont(loadMenu,0,9);
+	
+	/* DELETE PLAYLIST  */
 	nItems=CountMenuItems(deleteMenu);
 	err=DeleteMenuItems(deleteMenu,1,nItems);
-	err=SetMenuFont(deleteMenu,0,9);
+//	err=SetMenuFont(deleteMenu,0,9);
 
-	/* SAVE PLAYLIST BUTTON */
-	err=GetControlByID(window,&saveButtonId,&saveButton);
-	if(err!=noErr) msg->error("Can't get controlref for savePlaylist button (%d)!!",err);
-	err=GetBevelButtonMenuHandle(saveButton,&saveMenu);
-	if(err!=noErr) msg->error("Can't get menuref for the savePlaylist button (%d)!!",err);
-	err=SetMenuFont(saveMenu,0,9);
+	/* SAVE PLAYLIST  */
+	//	err=SetMenuFont(saveMenu,0,9);
 	lock();
 	if(loadedPlaylistIndex) EnableMenuItem(saveMenu,2);
 	else DisableMenuItem(saveMenu,2);
@@ -413,7 +413,7 @@ MenuRef CarbonChannel::plGetMenu() {
 
 void CarbonChannel::activateMenuBar() {
 	OSStatus err;
-	err = SetMenuBarFromNib(nibRef, CFSTR("PLMenu"));
+	err = SetRootMenu(plMenu);//SetMenuBarFromNib(nibRef, CFSTR("PLMenu"));
 	if(err != noErr) msg->error("Can't get MenuBar!!");
 }
 
@@ -753,7 +753,7 @@ void CarbonChannel::run() { /* channel main loop */
 		if(status != CC_PAUSE) status=CC_PLAY;
 	 else status=CC_STOP;
 
-	if(status!=savedStatus) { /* status change */
+	if(status!=savedStatus) { // status change 
 		ControlID butId = { CARBON_GUI_APP_SIGNATURE ,PLAY_BUT};
 		ControlRef playButton,pauseButton,stopButton;
 		OSStatus err =  GetControlByID(window,&butId,&playButton);
@@ -776,6 +776,8 @@ void CarbonChannel::run() { /* channel main loop */
 				EnableControl(playButton);
 				DisableControl(stopButton);
 				DisableControl(pauseButton);
+			//	setPos(0);
+			//	setLCD("00:00:00");
 				break;
 			case CC_PAUSE:
 				EnableControl(playButton);
@@ -783,35 +785,44 @@ void CarbonChannel::run() { /* channel main loop */
 				DisableControl(pauseButton);
 				break;
 		}
-		
 		savedStatus=status;
 	}
+
 	unlock();
 	if(plDisplay!=playList->selected_pos()) { /* should mantain lock until comparison has done? */
 		updateSelectedSong(playList->selected_pos());
 	}
 	if(plManager->isTouched()) updatePlaylistControls();
+/*	
+	EventRef event;
+	err = CreateEvent (NULL,kEventClassWindow,kEventWindowUpdate,0,kEventAttributeNone,&event);
+	if(err != noErr) msg->error("Can't create update event!!");
+	err = SendEventToEventTarget(event,GetWindowEventTarget(window));
+	if(err != noErr) {
+		msg->error("Can't send update event to channel %d window!!",chIndex);
+	} 
+*/
 }
 
 void CarbonChannel::play() {
 	if(!playList->selected_pos()) plSelect(1);
 	if(jmix->play_channel(chIndex)) {
+		lock();
+		status=CC_PLAY;
+		unlock();
 		func("Playing channel %d",chIndex);
 	}
 	else {
 		msg->warning("Can't play channel %d!!",chIndex);
 		func("Error trying to play channel %d!!",chIndex);
 	}
-	lock();
-	status=CC_PLAY;
-	unlock();
 }
 
 void CarbonChannel::stop() {
-	if(jmix->stop_channel(chIndex)) {
+	if(inChannel->stop()) {
 		func("Channel %d stopped",chIndex);
-		setPos(0);
-		setLCD("00:00:00");
+		inChannel->pos(0.0);
+		//jmix->updchan(chIndex);
 	}
 	else {
 		msg->warning("Can't stop channel %d!!",chIndex);
@@ -834,6 +845,7 @@ void CarbonChannel::next() {
 void CarbonChannel::seek(int pos) {
 	if(inChannel->seekable && pos) {
 		inChannel->pos((float)pos/1000);
+		//jmix->updchan(chIndex);
 	}
 }
 
@@ -845,23 +857,9 @@ void CarbonChannel::pause() {
 }
 
 bool CarbonChannel::plLoad(int idx) { 
-	ControlID saveButtonId = {CARBON_GUI_APP_SIGNATURE,SAVE_PLAYLIST_BUT};
-//	ControlID loadButtonId = {CARBON_GUI_APP_SIGNATURE,LOAD_PLAYLIST_BUT};
-	ControlRef saveButton;//,loadButton;
-	MenuRef saveMenu,loadMenu;
 	OSStatus err;
 	int i;
-	
-	/* get load/save controls and menu handles */
-//	err=GetControlByID(window,&loadButtonId,&loadButton);
-//	if(err!=noErr) msg->error("Can't get controlref for loadPlaylist button (%d)!!",err);
-//	err=GetBevelButtonMenuHandle(loadButton,&loadMenu);
-//	if(err!=noErr) msg->error("Can't get menuref for the loadPlaylist button (%d)!!",err);
-	err=GetControlByID(window,&saveButtonId,&saveButton);
-	if(err!=noErr) msg->error("Can't get controlref for savePlaylist button (%d)!!",err);
-	err=GetBevelButtonMenuHandle(saveButton,&saveMenu);
-	if(err!=noErr) msg->error("Can't get menuref for the savePlaylist button (%d)!!",err);
-	
+		
 	/* init databrowser header structure */
 	DataBrowserListViewHeaderDesc header;
 	header.version=kDataBrowserListViewLatestHeaderDesc;
@@ -872,7 +870,10 @@ bool CarbonChannel::plLoad(int idx) {
 		Playlist *newPl=plManager->load(idx);
 		if(newPl) {
 			/* stop channel if it's playing */
-			stop();
+			lock();
+			int st=status;
+			unlock();
+			if(st!=CC_STOP)	stop();
 			/* clean current playlist */
 			for(i=playList->len();i>0;i--) {
 				plRemove(i);
@@ -991,11 +992,6 @@ bool CarbonChannel::plSave(int mode) {
 		SetControlValue(button,0);
 		*/
 	}
-	ControlRef saveButton;
-		ControlID saveButtonId = {CARBON_GUI_APP_SIGNATURE,SAVE_PLAYLIST_BUT};
-
-	 err=GetControlByID(window,&saveButtonId,&saveButton);
-	if(err!=noErr) msg->error("Can't get controlref for savePlaylist button (%d)!!",err);
 }
 
 void CarbonChannel::plSaveDialog() {

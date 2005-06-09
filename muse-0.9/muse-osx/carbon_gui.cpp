@@ -84,6 +84,12 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 	selectedChannel=NULL;
 	memset(channel,0,sizeof(channel));
 	playlistManager=new PlaylistManager();
+	
+	if(pthread_mutex_init(&_statusLock,NULL) == -1) {
+		error("error initializing POSIX thread mutex creating a new CarbonChannel");
+		QuitApplicationEventLoop();
+	}
+	
 	// Create a Nib reference 
     err = CreateNibReference(CFSTR("main"), &nibRef);
 	if(err != noErr) error("Can't get NIB reference to obtain gui controls!!");
@@ -98,7 +104,10 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 		msg = new CarbonMessage(nibRef);
 		BringToFront(window);
 		init_controls();
-	
+		err=CreateMenuFromNib(nibRef,CFSTR("MenuBar"),&mainMenu);
+		if(err!=noErr) {
+			msg->error("Can't create main menu (%d)!!",err);
+		}
 		// The window was created hidden so show it.
 		ShowWindow( window );
 		
@@ -146,6 +155,7 @@ CARBON_GUI::~CARBON_GUI() {
 	}
 // We don't need the nib reference anymore.    
 	delete playlistManager;
+	DisposeMenu(mainMenu);
 	DisposeNibReference(nibRef);
 }
 
@@ -176,7 +186,7 @@ void CARBON_GUI::setupStatusWindow() {
 	TXNTypeAttributes attributes[] = {
 		//{ kTXNQDFontStyleAttribute, kTXNQDFontStyleAttributeSize, bold },
 		{ kTXNQDFontColorAttribute, kTXNQDFontColorAttributeSize,(void *)&black}, //&lgrey },
-		{ kTXNQDFontSizeAttribute, kTXNQDFontSizeAttributeSize, (UInt32)fontSize }
+		{ kTXNQDFontSizeAttribute, kTXNQDFontSizeAttributeSize,fontSize }
 	};
 	err= TXNSetTypeAttributes( statusText, 2, attributes,
 		kTXNStartOffset,kTXNEndOffset );
@@ -350,12 +360,13 @@ void CARBON_GUI::set_title(char *txt) {
  
 void CARBON_GUI::set_status(char *txt) {
 	if(txt) {
+		statusLock();
 		TXNSetData(statusText,kTXNTextData,"[*] ",4,kTXNEndOffset,kTXNEndOffset);
 		TXNSetData(statusText,kTXNTextData,txt,strlen(txt),kTXNEndOffset,kTXNEndOffset);
 		TXNSetData(statusText,kTXNTextData,"\n",1,kTXNEndOffset,kTXNEndOffset);
-		
 	//	err=TXNSetTypeAttributes(statusText,3,attributes,kTXNUseCurrentSelection,kTXNUseCurrentSelection);
-	//	if(err!=noErr) msg->warning("Can't set status text attributes (%d)!!",err); 
+	//	if(err!=noErr) msg->warning("Can't set status text attributes (%d)!!",err);
+		statusUnlock(); 
 	}
 }
 
@@ -488,8 +499,8 @@ void CARBON_GUI::bringToFront() {
 	}
 	if(!anyChannel) BringToFront(window);
 	SelectWindow(window);
-	OSStatus err = SetMenuBarFromNib(nibRef, CFSTR("MenuBar"));
-	if(err != noErr) msg->error("Can't get MenuBar!!");
+	OSStatus err = SetRootMenu(mainMenu);
+	if(err != noErr) msg->error("Can't set MenuBar!!");
 }
 
 void CARBON_GUI::activatedChannel(int idx) {

@@ -42,7 +42,12 @@ const EventTypeSpec streamCommands[] = {
 };
 
 static const EventTypeSpec tabControlEvents[] = {
-    {kEventClassControl, kEventControlHit} 
+    {kEventClassControl, kEventControlHit}
+};
+
+static const EventTypeSpec serverTextEvents[] = {
+	{kEventClassControl, kEventControlHit},
+	{kEventClassControl,kEventControlSetFocusPart}
 };
 
 const EventTypeSpec windowCommands[] = {
@@ -61,8 +66,27 @@ OSStatus StreamTabEventHandler(EventHandlerCallRef inCallRef,
 OSStatus ServerTabEventHandler(EventHandlerCallRef inCallRef, 
 	EventRef inEvent, void* inUserData );
 
+OSStatus ServerTextEventHandler(EventHandlerCallRef inCallRef,
+	EventRef inEvent, void* inUserData);
+	
 static OSStatus SavePresetCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
+	
+
+#define kLeftArrow   0x1C
+#define kRightArrow  0x1D
+#define kUpArrow     0x1E
+#define kDownArrow   0x1F
+#define kBackspace   0x08
+#define kDelete	     0x18
+#define kCopy        0x63
+#define kPaste       0x76
+#define kCut         0x78
+
+ControlKeyFilterResult ServerTextFilterProc (ControlRef theControl,
+   SInt16 * keyCode, SInt16 * charCode,EventModifiers * modifiers);	
+
+void  ServerTextValidator(ControlRef theControl);
 	
 #define CS_ALLOWED_BPS_NUM 8
 #define CS_ALLOWED_FREQ_NUM 4
@@ -90,6 +114,8 @@ CarbonStream::CarbonStream(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib) {
 			msg->error("Can't create the stream configuration window (%d)!!",err);
 		}
 		
+		err=CreateMenuFromNib(nibRef,CFSTR("StreamMenu"),&streamMenu);
+		if(err!=noErr) msg->error("Can't create streamMenu (%d)!!",err);
 		/* Create a window group and put the stream window inside it ...
 		 * this is done just to let Quartz handle window layering correctly */
 		err=CreateWindowGroup(kWindowGroupAttrMoveTogether|kWindowGroupAttrLayerTogether|
@@ -116,6 +142,8 @@ CarbonStream::CarbonStream(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib) {
 		HideControl(streamTabControl);
 		_selectedStream=0;
 		
+		/* init all server textcontrols */ 
+		initServerControls();
 		/* setup server tab control */
 		err=GetControlByID(window,&serverTabID,&serverTabControl);
 		if(err!=noErr) msg->error("Can't get serverTabControl (%d)!!",err);
@@ -170,7 +198,6 @@ CarbonStream::CarbonStream(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib) {
 CarbonStream::~CarbonStream() {
 	int i,n;
 	ReleaseWindowGroup(streamGroup);
-	DisposeWindow(window);
 	for(i=0;i<MAX_STREAM_ENCODERS;i++) {
 		if(enc[i]) {
 			for(n=0;n<MAX_STREAM_SERVERS;n++) {
@@ -180,14 +207,24 @@ CarbonStream::~CarbonStream() {
 		}
 	}
 	if(presets) delete presets;
+	DisposeControlKeyFilterUPP(textFilterRoutine);
+	DisposeControlEditTextValidationUPP(textValidationRoutine);
 	DisposeWindow(savePresetWindow);
+	DisposeMenu(streamMenu);
+	DisposeWindow(window);
 }
-
+/*
+CarbonStream::run() {
+	if(IsControlVisible()) {
+	}
+}
+*/
 void CarbonStream::show() {
 	RepositionWindow(window,parent,kWindowCenterOnMainScreen);
 	ShowWindow(window);
 	BringToFront(window);
 	ActivateWindow(window,true);
+	if(!IsControlVisible(streamTabControl)) addStream();
 }
 
 void CarbonStream::hide() {
@@ -407,8 +444,11 @@ void CarbonStream::deleteServer(int encIdx,int serIdx) {
 }
 
 int CarbonStream::addServer() {
-	int selectedStream = getTabValue(STREAM_TAB_CONTROL,GetControl32BitValue(streamTabControl))-1;
-	return addServer(selectedStream);
+	if(IsControlVisible(streamTabControl)) {
+		int selectedStream = getTabValue(STREAM_TAB_CONTROL,GetControl32BitValue(streamTabControl))-1;
+		return addServer(selectedStream);
+	}
+	return -1;
 }
 
 int CarbonStream::addServer(int strIdx) {
@@ -466,7 +506,11 @@ bool CarbonStream::updateServerTab() {
 	SInt32 max = GetControl32BitMaximum(serverTabControl);
 	int streamIndex=getTabValue(STREAM_TAB_CONTROL,_selectedStream)-1;
 	if(_selectedServer>max) _selectedServer=max;
-	else if(_selectedServer==val) return false;
+	else if(_selectedServer==val) {
+		saveServerInfo(selectedServer());
+		updateServerInfo(selectedServer());
+		return false;
+	}
 	if(_selectedServer && IsControlVisible(serverTabControl)) { 
 		int serverIndex=getTabValue(SERVER_TAB_CONTROL,_selectedServer)-1;
 		saveServerInfo(servers[streamIndex][serverIndex]);
@@ -527,22 +571,63 @@ void CarbonStream::saveStreamInfo(CarbonStreamEncoder *encoder) {
 	free(outFilename);
 }
 
-#define SAVE_SERVER_INFO(__id,__name) \
+
+void CarbonStream::initServerControls() {
+	ControlID cid = {CARBON_GUI_APP_SIGNATURE,0};
+	textFilterRoutine=NewControlKeyFilterUPP(&ServerTextFilterProc);
+	textValidationRoutine=NewControlEditTextValidationUPP(ServerTextValidator); 
+	CarbonStream *self=this;
+	OSStatus err;
+#define GET_SERVER_CONTROL(__win,__cid,__id,__c) \
+	__cid.id=__id;\
+	if(GetControlByID(__win,&__cid,&__c)!=noErr) \
+		msg->error("Can't get __c server control!!");\
+	if(SetControlProperty(__c,CARBON_GUI_APP_SIGNATURE,SERVER_TEXT_PROPERTY,\
+		sizeof(CarbonStream *),&self)!=noErr) \
+		msg->error("Can't attach CarbonChannel object to a serverText control!!");
+
+#define INIT_SERVER_TEXT_CONTROL(__win,__cid,__id,__c,__r1,__r2) \
+	GET_SERVER_CONTROL(__win,__cid,__id,__c);\
+	SetControlData(__c,kControlNoPart,kControlEditTextKeyFilterTag,sizeof(__r1),(Ptr) &__r1);\
+	SetControlData(__c,kControlNoPart,kControlEditTextValidationProcTag,sizeof(__r2),(Ptr) &__r2);\
+	if(InstallControlEventHandler (__c,NewEventHandlerUPP(ServerTextEventHandler), \
+		GetEventTypeCount(serverTextEvents),serverTextEvents,this, NULL)!=noErr)\
+		msg->error("Can't install eventHandler for a serverText control!!");
+
+	/* Here we also initialize internal ControlRefs for all those controls */
+	INIT_SERVER_TEXT_CONTROL(window,cid,HOST_CONTROL,serverHost,textFilterRoutine,textValidationRoutine);
+	INIT_SERVER_TEXT_CONTROL(window,cid,PORT_CONTROL,serverPort,textFilterRoutine,textValidationRoutine);
+	INIT_SERVER_TEXT_CONTROL(window,cid,MNT_CONTROL,serverMount,textFilterRoutine,textValidationRoutine);
+	INIT_SERVER_TEXT_CONTROL(window,cid,NAME_CONTROL,serverName,textFilterRoutine,textValidationRoutine);
+	INIT_SERVER_TEXT_CONTROL(window,cid,URL_CONTROL,serverUrl,textFilterRoutine,textValidationRoutine);
+	INIT_SERVER_TEXT_CONTROL(window,cid,DESCRIPTION_CONTROL,serverDescr,textFilterRoutine,textValidationRoutine);
+	INIT_SERVER_TEXT_CONTROL(window,cid,USERNAME_CONTROL,serverUser,textFilterRoutine,textValidationRoutine);
+	INIT_SERVER_TEXT_CONTROL(window,cid,PASSWORD_CONTROL,serverPass,textFilterRoutine,textValidationRoutine);
+	
+	cid.id=CONNECT_BUTTON;
+	err=GetControlByID(window,&cid,&serverConnectButton);
+	if(err!=noErr) msg->error("Can't get serverConnectButton control (%d)!!",err);
+//	err=SetControlProperty(serverConnectButton,CARBON_GUI_APP_SIGNATURE,SERVER_TEXT_PROPERTY,
+//		sizeof(CarbonStream *),&self);
+//	if(err!=noErr) msg->error("Can't attach CarbonStream pointer to serverConnectButtonControl (%d)!!",err);
+//	InstallControlEventHandler(serverConnectButton,NewEventHandlerUPP(ServerTextEventHandler),
+//		GetEventTypeCount(serverTextEvents),serverTextEvents,this, NULL);
+}
+
+#define SAVE_SERVER_INFO(__c) \
 	{\
-		cid.id=__id;\
-		err=GetControlByID(window,&cid,&control);\
-		err=GetControlData(control,0,kControlEditTextTextTag,SERVER_STRING_BUFFER_LEN-1,buffer,NULL);\
+		err=GetControlData(__c,0,kControlEditTextTextTag,SERVER_STRING_BUFFER_LEN-1,buffer,NULL);\
 		if(err!=noErr) msg->error("Can't get %s from text control (%d)!!","__name",err);\
 	}
-#define SAVE_SERVER_TEXT_INFO(__id,__name,__func) \
+#define SAVE_SERVER_TEXT_INFO(__c,__func) \
 	{\
-		SAVE_SERVER_INFO(__id,__name) \
+		SAVE_SERVER_INFO(__c)\
 		server->__func(buffer);\
 		memset(buffer,0,sizeof(buffer));\
 	}
-#define SAVE_SERVER_INT_INFO(__id,__name,__func) \
+#define SAVE_SERVER_INT_INFO(__c,__func) \
 	{\
-		SAVE_SERVER_INFO(__id,__name) \
+		SAVE_SERVER_INFO(__c)\
 		intBuffer=0;\
 		sscanf(buffer,"%d",&intBuffer);\
 		server->__func(intBuffer);\
@@ -557,53 +642,47 @@ void CarbonStream::saveServerInfo(CarbonStreamServer *server) {
 	if(!server) return;
 	char buffer[SERVER_STRING_BUFFER_LEN];
 	ControlID cid;
-
 	cid.signature=CARBON_GUI_APP_SIGNATURE;
 	// memset(buffer,0,sizeof(buffer)); // should be useless
 	
 	/* port */
-	SAVE_SERVER_INT_INFO(PORT_CONTROL,port,port);
+	SAVE_SERVER_INT_INFO(serverPort,port);
 	/* login type */
 	//SAVE_SERVER_INT_INFO(server	
 	/* host */
-	SAVE_SERVER_TEXT_INFO(HOST_CONTROL,host,host);
+	SAVE_SERVER_TEXT_INFO(serverHost,host);
 	/* mnt */
-	SAVE_SERVER_TEXT_INFO(MNT_CONTROL,mnt,mount);
+	SAVE_SERVER_TEXT_INFO(serverMount,mount);
 	/* name */
-	SAVE_SERVER_TEXT_INFO(NAME_CONTROL,name,name);
+	SAVE_SERVER_TEXT_INFO(serverName,name);
 	/* url */
-	SAVE_SERVER_TEXT_INFO(URL_CONTROL,url,url);
+	//SAVE_SERVER_TEXT_INFO(serverUrl,url);
 	/*description */
-	SAVE_SERVER_TEXT_INFO(DESCRIPTION_CONTROL,description,description);
+	SAVE_SERVER_TEXT_INFO(serverDescr,description);
 	/* username */
-	SAVE_SERVER_TEXT_INFO(USERNAME_CONTROL,username,username);
+	SAVE_SERVER_TEXT_INFO(serverUser,username);
 	/* password */
-	SAVE_SERVER_TEXT_INFO(PASSWORD_CONTROL,password,password);
+	SAVE_SERVER_TEXT_INFO(serverPass,password);
 }
 
-#define UPDATE_SERVER_TEXT_INFO(__id,__name,__func) \
+#define UPDATE_SERVER_TEXT_INFO(__c,__func) \
 	{\
-		cid.id=__id;\
-		err=GetControlByID(window,&cid,&control);\
 		buffer = server->__func();\
 		len=buffer?strlen(buffer):0;\
-		err=SetControlData(control,0,(__id==PASSWORD_CONTROL)?kControlEditTextPasswordTag:\
+		err=SetControlData(__c,0,(__c==serverPass)?kControlEditTextPasswordTag:\
 			kControlEditTextTextTag,len,buffer);\
-		if(err!=noErr) msg->warning("Can't set %s for text control (%d)!!","__name",err);\
+		if(err!=noErr) msg->warning("Can't set __name for text control (%d)!!",err);\
 		buffer=NULL;\
 	}
 
-#define UPDATE_SERVER_INT_INFO(__id,__name,__func) \
+#define UPDATE_SERVER_INT_INFO(__c,__func) \
 	{\
-		cid.id=__id;\
-		err=GetControlByID(window,&cid,&control);\
-		if(err!=noErr) msg->error("Can't get control (%d)!!",err);\
 		intBuf = server->__func();\
 		if(intBuf) sprintf(intBufStr,"%d",intBuf);\
 		else *intBufStr=0;\
 		len=strlen(intBufStr);\
-		err=SetControlData(control,0,kControlEditTextTextTag,len,intBufStr);\
-		if(err!=noErr) msg->warning("Can't set %s from text control (%d)!!","__name",err);\
+		err=SetControlData(__c,0,kControlEditTextTextTag,len,intBufStr);\
+		if(err!=noErr) msg->warning("Can't set __name from text control (%d)!!",err);\
 		intBuf=0;\
 		*intBufStr=0;\
 	}
@@ -619,33 +698,29 @@ void CarbonStream::updateServerInfo(CarbonStreamServer *server) {
 	cid.signature=CARBON_GUI_APP_SIGNATURE;
 
 	/* host */
-	UPDATE_SERVER_TEXT_INFO(HOST_CONTROL,host,host);
+	UPDATE_SERVER_TEXT_INFO(serverHost,host);
 	/* mnt */
-	UPDATE_SERVER_TEXT_INFO(MNT_CONTROL,mnt,mount);
+	UPDATE_SERVER_TEXT_INFO(serverMount,mount);
 	/* name */
-	UPDATE_SERVER_TEXT_INFO(NAME_CONTROL,name,name);
+	UPDATE_SERVER_TEXT_INFO(serverName,name);
 	/* url */
-	UPDATE_SERVER_TEXT_INFO(URL_CONTROL,url,url);
+	UPDATE_SERVER_TEXT_INFO(serverUrl,url);
 	/*description */
-	UPDATE_SERVER_TEXT_INFO(DESCRIPTION_CONTROL,description,description);
+	UPDATE_SERVER_TEXT_INFO(serverDescr,description);
 	/* username */
-	UPDATE_SERVER_TEXT_INFO(USERNAME_CONTROL,username,username);
+	UPDATE_SERVER_TEXT_INFO(serverUser,username);
 	/* password */
-	UPDATE_SERVER_TEXT_INFO(PASSWORD_CONTROL,password,password);
+	UPDATE_SERVER_TEXT_INFO(serverPass,password);
 	
 	/*port */
-	UPDATE_SERVER_INT_INFO(PORT_CONTROL,port,port);
+	UPDATE_SERVER_INT_INFO(serverPort,port);
 	
 	/* connect button */
-	ControlID cbutID={ CARBON_GUI_APP_SIGNATURE, CONNECT_BUTTON };
-	cid.id=CONNECT_BUTTON;
-	err=GetControlByID(window,&cid,&control);
-	if(err!=noErr) msg->error("Can't get connect button control (%d)!!",err);
 	if(server->isConnected()) {
-		SetControlTitleWithCFString(control,CFSTR("Disconnect"));
+		SetControlTitleWithCFString(serverConnectButton,CFSTR("Disconnect"));
 	}
 	else {
-		SetControlTitleWithCFString(control,CFSTR("Connect"));
+		SetControlTitleWithCFString(serverConnectButton,CFSTR("Connect"));
 	}
 }
 
@@ -981,7 +1056,7 @@ void CarbonStream::updateStreamInfo(CarbonStreamEncoder *encoder) {
 
 void CarbonStream::activateMenuBar() {
 	OSStatus err;
-	err = SetMenuBarFromNib(nibRef, CFSTR("StreamMenu"));
+	err = SetRootMenu(streamMenu);
 	if(err != noErr) msg->error("Can't get MenuBar!!");
 }
 
@@ -1037,14 +1112,14 @@ bool CarbonStream::loadPreset(int idx) {
 								/* UNIMPLEMENTED */
 							}
 							else if(strcmp(cfgName,"lowpass")==0) {
-								if(sscanf(cfg->value(),"%d",&val)==1) {
-									encoder->lowpass(val);
-								}
+						//		if(sscanf(cfg->value(),"%d",&val)==1) {
+									encoder->lowpass(0); /* UNIMPLEMENTED */
+							//	}
 							}
 							else if(strcmp(cfgName,"highpass")==0) {
-								if(sscanf(cfg->value(),"%d",&val)==1) {
-									encoder->highpass(val);
-								}
+							//	if(sscanf(cfg->value(),"%d",&val)==1) {
+									encoder->highpass(0); /* UNIMPLEMENTED */
+							//	}
 							}
 							else if(strcmp(cfgName,"filename")==0) {
 								encoder->saveFile(cfg->value());
@@ -1134,20 +1209,20 @@ bool CarbonStream::savePreset(char *name) {
 	for(i=0;i<MAX_STREAM_ENCODERS;i++) {
 		if(enc[i]) {
 			XmlTag *newStream = new XmlTag("stream",newProfile);
-			if(enc[i]->bitrate()!=DEFAULT_BITRATE) {
-				sprintf(int2str,"%d",enc[i]->bitrate());
-				newStream->addChild("bitrate",int2str);
-			}
 			if(enc[i]->type() != DEFAULT_ENCODER) {
 				newStream->addChild("encoder","1");
-			}
-			if(enc[i]->mode() != DEFAULT_MODE) {
-				sprintf(int2str,"%d",enc[i]->mode());
-				newStream->addChild("mode",int2str);
 			}
 			if(enc[i]->quality() != DEFAULT_QUALITY) {
 				sprintf(int2str,"%d",enc[i]->quality());
 				newStream->addChild("quality",int2str);
+			}
+			if(enc[i]->bitrate()!=DEFAULT_BITRATE) {
+				sprintf(int2str,"%d",enc[i]->bitrate());
+				newStream->addChild("bitrate",int2str);
+			}
+			if(enc[i]->mode() != DEFAULT_MODE) {
+				sprintf(int2str,"%d",enc[i]->mode());
+				newStream->addChild("mode",int2str);
 			}
 			if(enc[i]->frequency() != DEFAULT_FREQUENCY) {
 				sprintf(int2str,"%d",enc[i]->frequency());
@@ -1304,16 +1379,44 @@ OSStatus StreamTabEventHandler(EventHandlerCallRef inCallRef,
 	EventRef inEvent, void* inUserData )
 {
 	CarbonStream        *me = (CarbonStream *)inUserData;
-	if(me->updateStreamTab()) return(noErr);
-	else return(eventNotHandledErr);
+	me->updateStreamTab();
+	return CallNextEventHandler(inCallRef,inEvent); /* propagate event */
 }
 
 OSStatus ServerTabEventHandler(EventHandlerCallRef inCallRef,
 	EventRef inEvent, void* inUserData)
 {
 	CarbonStream        *me = (CarbonStream *)inUserData;
-	if(me->updateServerTab()) return(noErr);
-	else return( eventNotHandledErr );
+	me->updateServerTab();
+	return CallNextEventHandler(inCallRef,inEvent); /* propagate event */
+}
+
+OSStatus ServerTextEventHandler(EventHandlerCallRef inCallRef,
+	EventRef inEvent, void* inUserData)
+{
+	CarbonStream *me=(CarbonStream *)inUserData;
+	if(GetEventKind(inEvent)==kEventControlHit) return noErr; /* don't propagate clicks to the tab handler */
+	me->updateServerTab();
+/*	
+	ControlRef control = (ControlRef) inUserData;
+	ControlID cid;
+	OSStatus err = GetControlID(control,&cid);
+	if(!IsControlActive(control)) { 
+		switch(cid.id) {
+			case PORT_CONTROL:
+				break;
+			case URL_CONTROL:
+			case MNT_CONTROL:
+			case HOST_CONTROL:
+			case NAME_CONTROL:
+			case DESCRIPTION_CONTROL:
+			case USERNAME_CONTROL:
+			case PASSWORD_CONTROL:
+				break;
+		}
+	}
+*/
+	return CallNextEventHandler(inCallRef,inEvent);
 }
 
 /****************************************************************************/
@@ -1370,6 +1473,7 @@ static OSStatus StreamCommandHandler (
 			me->loadPreset(command.menu.menuItemIndex);
 			break;
 		case SAVE_STREAM_PRESET_CMD:
+			me->updateServerTab();
 			me->savePresetDialog();
 			break;
 		case DELETE_STREAM_PRESET_CMD:
@@ -1413,4 +1517,92 @@ static OSStatus SavePresetCommandHandler (
 			err = eventNotHandledErr;
 	}
 	return err;
+}
+
+/****************************************************************************/
+/* TEXT CALLBACKS */
+/****************************************************************************/
+
+/* filter keystrokes on all server text controls */
+
+ControlKeyFilterResult ServerTextFilterProc (ControlRef theControl,
+   SInt16 * keyCode, SInt16 * charCode,EventModifiers * modifiers) 
+{
+	ControlKeyFilterResult res=kControlKeyFilterPassKey;
+	ControlID cid;
+	OSStatus err=GetControlID(theControl,&cid);
+	/* allow arrow,backspace and delete keystrokes and all copy/cut/paste commands */
+	if(*charCode != kLeftArrow && *charCode != kRightArrow && *charCode != kUpArrow
+		&& *charCode != kDownArrow && *charCode != kBackspace && *charCode != kDelete &&
+		*charCode != kCopy && *charCode != kCut && *charCode != kPaste)
+	{
+		switch(cid.id) {
+			
+			case PORT_CONTROL:
+				if(*charCode < '0' || *charCode > '9')
+					res=kControlKeyFilterBlockKey;
+				break;
+			case URL_CONTROL:
+					res=kControlKeyFilterBlockKey; /* don't let user modify the url field */
+				break;
+			case MNT_CONTROL:
+				if(*charCode == '/') res=kControlKeyFilterBlockKey;
+				break;
+			case HOST_CONTROL:
+			case NAME_CONTROL:
+			case DESCRIPTION_CONTROL:
+			case USERNAME_CONTROL:
+			case PASSWORD_CONTROL:
+				break;
+		}
+	}
+	return res;
+}
+
+/* validate pasted text on any server text control */
+void  ServerTextValidator(ControlRef theControl)
+ {
+	Str255  theText,rText;
+	Size   actualSize;
+	UInt8  i,n;
+	ControlID cid;
+	OSStatus err=GetControlID(theControl,&cid);
+	char *outText=NULL;
+	printf("CIAO \n");
+	// ................................. Get the text to be examined from the control
+
+	GetControlData(theControl,kControlNoPart,kControlEditTextTextTag,
+		sizeof(theText) -1,(Ptr) &theText,&actualSize);
+
+	CarbonStream *me;
+	err = GetControlProperty(theControl,CARBON_GUI_APP_SIGNATURE,
+		SERVER_TEXT_PROPERTY,sizeof(CarbonStream *),NULL,&me);
+		
+	CarbonStreamServer *server = me->selectedServer();
+	if(err!=noErr) error("Can't get CarbonStream pointer at ServerTextValidator (%d)!!",err);
+	if(actualSize > 255) actualSize = 255;
+	theText[actualSize]=0;
+	switch(cid.id) {
+		case PORT_CONTROL:
+			n=0;
+			for(i=0;i<=actualSize;i++) {
+				if(theText[i] >= '0' && theText[i] <= '9') { 
+					rText[n]=theText[i];
+					n++;
+				}
+			}
+			rText[n]=0;
+			outText=(char *)rText;
+			break;
+		case URL_CONTROL:
+			if(server) outText=server->url();
+			//outText=
+			break;
+		default:
+			outText=(char *)theText;
+			break;
+	}
+	if(outText) 
+		SetControlData(theControl,kControlNoPart,kControlEditTextTextTag,strlen(outText),(Ptr) outText);
+	Draw1Control(theControl);
 }

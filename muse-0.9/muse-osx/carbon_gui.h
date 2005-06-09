@@ -73,6 +73,9 @@ private:
   void updateVumeters();
   void setupStatusWindow();
   bool new_channel(int idx);
+  void statusLock() { pthread_mutex_lock(&_statusLock); };
+  void statusUnlock() { pthread_mutex_unlock(&_statusLock); };
+
 
   bool new_pos[MAX_CHANNELS];
   bool new_lcd[MAX_CHANNELS];
@@ -83,12 +86,13 @@ private:
   int vuband, vumeter;
   WindowRef vumeterWindow;
   WindowRef statusWindow;
-
+  MenuRef mainMenu;
   OSStatus		err;
   CarbonChannel	*channel[MAX_CHANNELS];
   CarbonChannel *selectedChannel;
   TXNObject statusText;
   CarbonStream *streamHandler;
+  pthread_mutex_t _statusLock;
 };
 
 #endif

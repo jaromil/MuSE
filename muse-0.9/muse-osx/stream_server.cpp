@@ -100,6 +100,7 @@ char *CarbonStreamServer::name() {
 	return _name;
 }
 char *CarbonStreamServer::url() {
+	sprintf(_url,"http://%s:%d/%s",_host,_port,_mount);
 	return _url;
 }
 char *CarbonStreamServer::description() {
@@ -131,8 +132,16 @@ void CarbonStreamServer::port(int p) {
 	_port=p;
 }
 void CarbonStreamServer::mount(char *m) {
-	strncpy(_mount,m,SERVER_STRING_BUFFER_LEN-1);
-	_mount[SERVER_STRING_BUFFER_LEN-1]=0;
+	//strncpy(_mount,m,SERVER_STRING_BUFFER_LEN-1);
+	//_mount[SERVER_STRING_BUFFER_LEN-1]=0;
+	memset(_mount,0,SERVER_STRING_BUFFER_LEN);
+	int len=strlen(m);
+	if(len>SERVER_STRING_BUFFER_LEN-1) len=SERVER_STRING_BUFFER_LEN-1;
+	for(int i=0;i<len;i++) {
+		if(m[i]=='/') _mount[i]='-';
+		else _mount[i]=m[i];
+	}
+	//_mount[i]=0;
 	Shouter *ice=getIce();
 	if(ice) {
 		ice->mount(_mount);

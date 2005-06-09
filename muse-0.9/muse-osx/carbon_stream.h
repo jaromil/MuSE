@@ -33,8 +33,6 @@
 #define CS_NOT_CONNECTED 0
 #define CS_CONNECTED 1
 
-
-
 class CarbonStream {
 	public:
 		CarbonStream(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib);
@@ -56,6 +54,10 @@ class CarbonStream {
 		int countServers(int strIdx);
 		bool updateServerTab();
 		bool changeServerTab();
+		void saveServerInfo(CarbonStreamServer *server);
+		void saveStreamInfo(CarbonStreamEncoder *encoder);
+		void updateServerInfo(CarbonStreamServer *server);
+		void updateStreamInfo(CarbonStreamEncoder *encoder);
 		bool doConnect();
 		bool connectServer(CarbonStreamServer *server);
 		bool disconnectServer(CarbonStreamServer *server);
@@ -90,10 +92,7 @@ class CarbonStream {
 		bool addTab(SInt32 controlID);
 		void delTab(SInt32 controlID,int idx);
 		int nextTabIndex(SInt32 controlID);
-		void saveServerInfo(CarbonStreamServer *server);
-		void saveStreamInfo(CarbonStreamEncoder *encoder);
-		void updateServerInfo(CarbonStreamServer *server);
-		void updateStreamInfo(CarbonStreamEncoder *encoder);
+		void initServerControls();
 		void updatePresetControls();
 		
 		IBNibRef nibRef;
@@ -103,6 +102,20 @@ class CarbonStream {
 		WindowGroupRef streamGroup;
 		XmlProfile *presets;
 		WindowRef savePresetWindow;
+		
+		ControlRef serverHost;
+		ControlRef serverPort;
+		ControlRef serverName;
+		ControlRef serverUrl;
+		ControlRef serverMount;
+		ControlRef serverDescr;
+		ControlRef serverUser;
+		ControlRef serverPass;
+		ControlRef serverConnectButton;
+	
+		ControlKeyFilterUPP textFilterRoutine;
+		ControlEditTextValidationUPP textValidationRoutine;
+		
 	protected:
 
 };
