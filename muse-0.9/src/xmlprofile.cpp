@@ -220,49 +220,49 @@ XmlErr XmlProfile::XmlParseBuffer(char *buffer) {
 				ADVANCE_ELEMENT(p);
 				start = (char *)malloc(p-mark+1);
 				strncpy(start,mark,p-mark);
-				start[p-mark]=0;
+				if(*p=='>' && *(p-1)=='/') {
+					start[p-mark-1]=0;
+					state=XML_ELEMENT_UNIQUE;
+				}
+				else {
+					start[p-mark]=0;
+				}
 				SKIP_BLANKS(p);
 				while(*p!='>' && *p!=0) {
-					if(*p=='/' && *(p+1)=='>') {
-						state=XML_ELEMENT_UNIQUE;
+					mark=p;
+					ADVANCE_TO_ATTR_VALUE(p);
+					if(*p=='=') {
+						char *tmpAttr=(char *)malloc(p-mark+1);
+						strncpy(tmpAttr,mark,p-mark);
+						tmpAttr[p-mark]=0;
 						p++;
-					}
-					else {
-						mark=p;
-						ADVANCE_TO_ATTR_VALUE(p);
-						if(*p=='=') {
-							char *tmpAttr=(char *)malloc(p-mark+1);
-							strncpy(tmpAttr,mark,p-mark);
-							tmpAttr[p-mark]=0;
+						SKIP_BLANKS(p);
+						if(*p == '"' || *p == '\'') {
+							int quote = *p;
 							p++;
-							SKIP_BLANKS(p);
-							if(*p == '"' || *p == '\'') {
-								int quote = *p;
+							mark=p;
+							while(*p!=quote && *p!=0) p++;
+							if(*p==quote) {
+								char *tmpVal = (char *)malloc(p-mark+1);
+								strncpy(tmpVal,mark,p-mark);
+								tmpVal[p-mark]=0;
+								/* add new attribute */
+								nAttrs++;
+								attrs=(char **)realloc(attrs,sizeof(char *)*nAttrs+1);
+								attrs[nAttrs-1]=tmpAttr;
+								attrs[nAttrs]=NULL;
+								values=(char **)realloc(values,sizeof(char *)*nAttrs+1);
+								values[nAttrs-1]=tmpVal;
+								values[nAttrs]=NULL;
 								p++;
-								mark=p;
-								while(*p!=quote && *p!=0) p++;
-								if(*p==quote) {
-									char *tmpVal = (char *)malloc(p-mark+1);
-									strncpy(tmpVal,mark,p-mark);
-									tmpVal[p-mark]=0;
-									/* add new attribute */
-									nAttrs++;
-									attrs=(char **)realloc(attrs,sizeof(char *)*nAttrs+1);
-									attrs[nAttrs-1]=tmpAttr;
-									attrs[nAttrs]=NULL;
-									values=(char **)realloc(values,sizeof(char *)*nAttrs+1);
-									values[nAttrs-1]=tmpVal;
-									values[nAttrs]=NULL;
-									p++;
-									SKIP_BLANKS(p);
-								}
-								else {
-									free(tmpAttr);
-								}
+								SKIP_BLANKS(p);
 							}
 							else {
 								free(tmpAttr);
 							}
+						}
+						else {
+							free(tmpAttr);
 						}
 					}
 				}
