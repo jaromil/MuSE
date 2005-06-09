@@ -84,7 +84,7 @@ Channel::Channel() {
   erbapipa->set_output_type("mix_int16_to_int32");
   // blocking input and output, default timeout is 200 ms
   erbapipa->set_block(true,true);
-  erbapipa->set_block_timeout(8000,4000);
+  //erbapipa->set_block_timeout(8000,4000);
 
   playlist = new Playlist();
   dec = NULL;
@@ -147,7 +147,7 @@ void Channel::run() {
 	buff = resample(buff);
 
 	/* at last pushes it up into the pipe
-	   bytes are samples<<2 being the audio 16bit stereo */
+	   bytes are samples*2 being the audio 16bit stereo */
 	erbapipa->write(frames*2,buff);
 
 	/* then calculates the position and time */
