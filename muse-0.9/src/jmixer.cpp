@@ -228,7 +228,7 @@ void Stream_mixer::cafudda()
       
       // mix and multiply for the volume coefficient
       process_buffer[cc] += (int32_t) (linein_buf[cc] * linein_vol);
-      
+     // process_buffer[cc+linein_samples] += (int32_t) (linein_buf[cc] * linein_vol);
     }
     c += linein_samples;
 #endif
@@ -328,12 +328,6 @@ void Stream_mixer::cafudda()
      
      here we give fifos a bit of air and avoid tight loops
      making the mixing engine wait 20 nanosecs */
-  //#ifdef CARBON_GUI
-  //  usleep(200);
-  //#else
-  //  jsleep(0,200);
-  //#endif
-
   tick_time();
 }
 
@@ -1047,12 +1041,8 @@ void Stream_mixer::tick_time() {
   if(cur_time.tv_sec>lst_time.tv_sec) elapsed+=1000000; // never more than a sec
 
   if(elapsed<=interval) {
-
     slp_time.tv_sec = 0;
-    // the following calculus is approximated to bitwise multiplication
-    // this wont really hurt our precision, anyway we care more about speed
-    slp_time.tv_nsec = (interval - elapsed)<<10;
-
+	slp_time.tv_nsec = (interval - elapsed)*1000;
     // handle signals (see man 2 nanosleep)
     while(nanosleep(&slp_time,rem)==-1 && (errno==EINTR));
 
