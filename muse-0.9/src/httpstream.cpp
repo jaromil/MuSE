@@ -24,6 +24,7 @@
 
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
 #include <sys/errno.h>
 #include <sys/socket.h>
 #include <sys/time.h>

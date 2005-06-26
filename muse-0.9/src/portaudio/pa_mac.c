@@ -82,6 +82,9 @@ O- Determine default devices somehow.
 #include <string.h>
 #include <memory.h>
 #include <math.h>
+#include <config.h>
+
+#ifdef HAVE_DARWIN
 
 /* Mac specific includes */
 #include "OSUtils.h"
@@ -1685,3 +1688,5 @@ gotError:
 done:
     return;
 }
+
+#endif // HAVE_DARWIN

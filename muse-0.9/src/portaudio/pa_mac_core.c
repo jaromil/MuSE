@@ -115,6 +115,10 @@
               current setting.
 */
 
+#include <config.h>
+
+#ifdef HAVE_DARWIN
+
 #include <CoreServices/CoreServices.h>
 #include <CoreAudio/CoreAudio.h>
 #include <sys/time.h>
@@ -2134,3 +2138,5 @@ const PaDeviceInfo* Pa_GetDeviceInfo( PaDeviceID id )
 }
 
 
+
+#endif

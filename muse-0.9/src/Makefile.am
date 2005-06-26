@@ -1,15 +1,16 @@
 SUBDIRS = resample libmpeg @GUI_DIRS@ @LIBSHOUT_DIR@ @PORTAUDIO_DIRS@
 
 INCLUDES = -Ishout -I/usr/X11R6/include -Incursesgui @GLIB2_CFLAGS@ \
-		@DARWIN_CFLAGS@ @PORTAUDIO_CFLAGS@ @LIBSHOUT_CFLAGS@
+		@DARWIN_CFLAGS@ @PORTAUDIO_CFLAGS@ @LIBSHOUT_CFLAGS@ \
+		@VORBIS_CFLAGS@ @OGG_CFLAGS@
 
 CFLAGS = @GUI_FLAGS@  @JACK_CFLAGS@ @OGG_CFLAGS@ @VORBIS_CFLAGS@
 
 bin_PROGRAMS = muse
 
 muse_SOURCES =  \
-    muse.cpp        \
-    jmixer.cpp      \
+    muse.cpp        	\
+    jmixer.cpp      	\
     audioproc.cpp       \
     inchannels.cpp      \
     decoder.cpp		\
@@ -20,14 +21,14 @@ muse_SOURCES =  \
     outchannels.cpp     \
     out_vorbis.cpp	\
     out_lame.cpp	\
-    pipe.cpp        \
-    shouter.cpp     \
+    pipe.cpp        	\
+    shouter.cpp     	\
     linklist.cpp        \
     playlist.cpp        \
-    jutils.cpp      \
+    jutils.cpp      	\
     radiosched.cpp      \
-    httpstream.cpp  \
-    gui.cpp \
+    httpstream.cpp  	\
+    gui.cpp 		\
     dev_sound.cpp
 
 muse_DEPENDENCIES = \

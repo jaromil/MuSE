@@ -21,10 +21,12 @@
  
  */
 
+#include <stdlib.h>
+#include <config.h>
+
 #include <dev_sound.h>
 #include <jutils.h>
 #include <generic.h>
-#include <config.h>
 
 #define PA_SAMPLE_TYPE paFloat32
 #define PA_SAMPLES_PER_FRAME 2

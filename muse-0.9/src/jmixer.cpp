@@ -637,7 +637,11 @@ bool Stream_mixer::set_playmode(int ch, int mode) {
 /* this is the function selecting files for the scandir
    on freebsd systems you should change the following line to:
    int selector(struct dirent *dir) {    */
+#ifdef HAVE_BSD
+int selector(const struct dirent *dir) { 
+#else
 int selector(const struct dirent *dir) {
+#endif
   if( strncasecmp(dir->d_name+strlen(dir->d_name)-4,".mp3",4)==0
 #ifdef HAVE_VORBIS
       || strncasecmp(dir->d_name+strlen(dir->d_name)-4,".ogg",4)==0
@@ -800,7 +804,7 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
       warning("cannot stat %s : %s",temp,strerror(errno));
     } else if(prcd.st_mode & S_IFDIR) {
       func("it's a directory");
-#ifdef HAVE_LINUX
+#ifndef HAVE_DARWIN
       struct dirent **filelist;
 #else
       const struct dirent **filelist;
