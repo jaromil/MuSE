@@ -183,10 +183,13 @@ void CARBON_GUI::setupStatusWindow() {
 	/* setup status text font size and color */
 	// Create type attribute data structure
 	UInt32   fontSize = 10 << 16; // needs to be in Fixed format
+	TXNAttributeData fsData,fcData;
+	fsData.dataValue=fontSize;
+	fcData.dataPtr=(void *)&black;
 	TXNTypeAttributes attributes[] = {
 		//{ kTXNQDFontStyleAttribute, kTXNQDFontStyleAttributeSize, bold },
-		{ kTXNQDFontColorAttribute, kTXNQDFontColorAttributeSize,(void *)&black}, //&lgrey },
-		{ kTXNQDFontSizeAttribute, kTXNQDFontSizeAttributeSize,fontSize }
+		{ kTXNQDFontColorAttribute, kTXNQDFontColorAttributeSize,fcData}, //&lgrey },
+		{ kTXNQDFontSizeAttribute, kTXNFontSizeAttributeSize,fsData }
 	};
 	err= TXNSetTypeAttributes( statusText, 2, attributes,
 		kTXNStartOffset,kTXNEndOffset );

@@ -640,7 +640,11 @@ bool Stream_mixer::set_playmode(int ch, int mode) {
 #ifdef HAVE_BSD
 int selector(const struct dirent *dir) { 
 #else
+#ifdef HAVE_DARWIN 
+int selector(struct dirent *dir) {
+#else
 int selector(const struct dirent *dir) {
+#endif
 #endif
   if( strncasecmp(dir->d_name+strlen(dir->d_name)-4,".mp3",4)==0
 #ifdef HAVE_VORBIS
@@ -804,12 +808,8 @@ bool Stream_mixer::add_to_playlist(int ch, const char *file) {
       warning("cannot stat %s : %s",temp,strerror(errno));
     } else if(prcd.st_mode & S_IFDIR) {
       func("it's a directory");
-#ifndef HAVE_DARWIN
-      struct dirent **filelist;
-#else
-      const struct dirent **filelist;
-#endif
 
+      struct dirent **filelist;
       int found = scandir(temp,&filelist,selector,alphasort);
 
       if(found<1) error("%i files found: %s",found,strerror(errno));
