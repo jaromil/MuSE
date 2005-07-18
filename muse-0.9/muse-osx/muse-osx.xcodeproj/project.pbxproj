@@ -10,7 +10,6 @@
 		8D0C4E8D0486CD37000505A6 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0867D6AAFE840B52C02AAC07 /* InfoPlist.strings */; };
 		8D0C4E8E0486CD37000505A6 /* main.nib in Resources */ = {isa = PBXBuildFile; fileRef = 02345980000FD03B11CA0E72 /* main.nib */; };
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
-		AA00BEEF083CFFA70084EC91 /* muse-icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = AA9ACF7D08061D9D0028BFCC /* muse-icon.icns */; };
 		AA15AF5F0839586700530BBD /* playlist_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA15AF5E0839586700530BBD /* playlist_manager.cpp */; };
 		AA3FCC3E07FCDD370061F816 /* carbon_gui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA3FCC3C07FCDD370061F816 /* carbon_gui.cpp */; };
 		AA3FD79807FCE13E0061F816 /* audioproc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA3FD4DD07FCE13D0061F816 /* audioproc.cpp */; };
@@ -86,6 +85,7 @@
 		AADDE577083D03D100EE8BDF /* libvorbisenc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AADDE576083D03D100EE8BDF /* libvorbisenc.a */; };
 		AADDE579083D03E100EE8BDF /* libvorbisfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AADDE578083D03E100EE8BDF /* libvorbisfile.a */; };
 		AADDE589083D04AD00EE8BDF /* libsndfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AADDE56E083D037F00EE8BDF /* libsndfile.a */; };
+		B3AC961E088BD81100B6C700 /* muse-icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = B3AC961D088BD81100B6C700 /* muse-icon.icns */; };
 		B3DDD65D088BBDEA0000B321 /* muse_icons.rsrc in Rez */ = {isa = PBXBuildFile; fileRef = B3DDD65C088BBDEA0000B321 /* muse_icons.rsrc */; };
 /* End PBXBuildFile section */
 
@@ -255,7 +255,6 @@
 		AA8D1B8F080B57B900193C49 /* carbon_stream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = carbon_stream.cpp; sourceTree = "<group>"; };
 		AA95A42B0815CD1A001BF965 /* open_dialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = open_dialog.h; sourceTree = SOURCE_ROOT; };
 		AA95A42C0815CD1A001BF965 /* open_dialog.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c; fileEncoding = 4; path = open_dialog.c; sourceTree = "<group>"; };
-		AA9ACF7D08061D9D0028BFCC /* muse-icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "muse-icon.icns"; sourceTree = "<group>"; };
 		AAC26995081955F000C45B1E /* xmlprofile.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = xmlprofile.cpp; sourceTree = "<group>"; };
 		AAC26996081955F000C45B1E /* xmlprofile.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = xmlprofile.h; sourceTree = "<group>"; };
 		AAC5D9F1082C570000D4AEB4 /* stream_server.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stream_server.h; sourceTree = "<group>"; };
@@ -272,6 +271,7 @@
 		AADDE578083D03E100EE8BDF /* libvorbisfile.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvorbisfile.a; path = /sw/lib/libvorbisfile.a; sourceTree = "<absolute>"; };
 		AAE5AE8408069517006FA613 /* carbon_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = carbon_common.h; sourceTree = "<group>"; };
 		AAECECDC08021710004C1C3F /* muse-osx.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "muse-osx.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B3AC961D088BD81100B6C700 /* muse-icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "muse-icon.icns"; sourceTree = "<group>"; };
 		B3DDD65C088BBDEA0000B321 /* muse_icons.rsrc */ = {isa = PBXFileReference; lastKnownFileType = archive.rsrc; path = muse_icons.rsrc; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -344,8 +344,8 @@
 		20286C2CFDCF999611CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				B3AC961D088BD81100B6C700 /* muse-icon.icns */,
 				B3DDD65C088BBDEA0000B321 /* muse_icons.rsrc */,
-				AA9ACF7D08061D9D0028BFCC /* muse-icon.icns */,
 				8D0C4E960486CD37000505A6 /* Info.plist */,
 				0867D6AAFE840B52C02AAC07 /* InfoPlist.strings */,
 				02345980000FD03B11CA0E72 /* main.nib */,
@@ -587,9 +587,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA00BEEF083CFFA70084EC91 /* muse-icon.icns in Resources */,
 				8D0C4E8D0486CD37000505A6 /* InfoPlist.strings in Resources */,
 				8D0C4E8E0486CD37000505A6 /* main.nib in Resources */,
+				B3AC961E088BD81100B6C700 /* muse-icon.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
