@@ -326,6 +326,9 @@ dnl ==============
 AC_CHECK_HEADER(lame/lame.h, [
         have_lame=yes;
         echo "MP3 encoder found and succesfully linked"
+	AC_DEFINE(HAVE_LAME)
+	LAME_LIBS="-lmp3lame"
+	AC_SUBST(LAME_LIBS)
                              ], [
         have_lame=no;
         echo "LAME libraries not found, no MP3 support"
