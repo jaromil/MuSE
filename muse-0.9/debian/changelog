@@ -1,3 +1,10 @@
+muse-streamer (0.9.1-1) unstable; urgency=low
+
+  * new upstream release
+  * renewed debian/rules for use with cdbs plus minor fixes 
+
+ -- Filippo Giunchedi <filippo@debian.org>  Tue,  2 Aug 2005 15:08:11 +0200
+
 muse-streamer (0.9-1) unstable; urgency=low
 
   * New upstream version
