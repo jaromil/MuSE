@@ -1,6 +1,7 @@
 #!/usr/bin/make -f
 
-DEB_AUTO_UPDATE_DEBIAN_CONTROL := yes
+# NO! this is bad pratice
+#DEB_AUTO_UPDATE_DEBIAN_CONTROL := yes
 
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/autotools-vars.mk
@@ -21,4 +22,4 @@ install/muse-streamer::
 clean::
 	rm -f config.guess.cdbs-orig
 	rm -f config.sub.cdbs-orig
-	rm -f muse-streamer.1
+	-rm -f muse-streamer.1
