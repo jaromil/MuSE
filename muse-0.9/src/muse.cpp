@@ -883,17 +883,18 @@ int main(int argc, char **argv) {
   jsleep(0,50);
   delete rscheduler; rscheduler = NULL;
 #endif
+  
+  if(thegui!=CLI) {
+    act("quitting graphic interface");
+    delete gui;
+  }
+  
   if(mix) {
     act("stopping mixer...");  
   /* piglia o'tiemp e sputa in terra
      senza fa' troppo casino a segnala' ai canali */
     jsleep(0,50);
     delete mix;
-  }
-
-  if(thegui!=CLI) {
-    act("quitting graphic interface");
-    delete gui;
   }
   
   act("cya on http://muse.dyne.org");
