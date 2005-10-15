@@ -87,7 +87,6 @@
 		AADDE577083D03D100EE8BDF /* libvorbisenc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AADDE576083D03D100EE8BDF /* libvorbisenc.a */; };
 		AADDE579083D03E100EE8BDF /* libvorbisfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AADDE578083D03E100EE8BDF /* libvorbisfile.a */; };
 		AADDE589083D04AD00EE8BDF /* libsndfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AADDE56E083D037F00EE8BDF /* libsndfile.a */; };
-		AAFE7EF809005A5B003BA7FD /* Credits.html in Resources */ = {isa = PBXBuildFile; fileRef = AAFE7EF609005A5B003BA7FD /* Credits.html */; };
 		B3AC961E088BD81100B6C700 /* muse-icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = B3AC961D088BD81100B6C700 /* muse-icon.icns */; };
 		B3DDD65D088BBDEA0000B321 /* muse_icons.rsrc in Rez */ = {isa = PBXBuildFile; fileRef = B3DDD65C088BBDEA0000B321 /* muse_icons.rsrc */; };
 /* End PBXBuildFile section */
@@ -277,7 +276,6 @@
 		AADDE578083D03E100EE8BDF /* libvorbisfile.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvorbisfile.a; path = /sw/lib/libvorbisfile.a; sourceTree = "<absolute>"; };
 		AAE5AE8408069517006FA613 /* carbon_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = carbon_common.h; sourceTree = "<group>"; };
 		AAECECDC08021710004C1C3F /* muse-osx.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "muse-osx.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		AAFE7EF709005A5B003BA7FD /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; name = English; path = English.lproj/Credits.html; sourceTree = "<group>"; };
 		B3AC961D088BD81100B6C700 /* muse-icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "muse-icon.icns"; sourceTree = "<group>"; };
 		B3DDD65C088BBDEA0000B321 /* muse_icons.rsrc */ = {isa = PBXFileReference; lastKnownFileType = archive.rsrc; path = muse_icons.rsrc; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -317,7 +315,6 @@
 				20286C2CFDCF999611CA2CEA /* Resources */,
 				20286C32FDCF999611CA2CEA /* Frameworks and Libraries */,
 				195DF8CFFE9D517E11CA2CBB /* Products */,
-				AAFE7EF609005A5B003BA7FD /* Credits.html */,
 			);
 			name = "muse-osx";
 			sourceTree = "<group>";
@@ -601,7 +598,6 @@
 				8D0C4E8D0486CD37000505A6 /* InfoPlist.strings in Resources */,
 				8D0C4E8E0486CD37000505A6 /* main.nib in Resources */,
 				B3AC961E088BD81100B6C700 /* muse-icon.icns in Resources */,
-				AAFE7EF809005A5B003BA7FD /* Credits.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -712,14 +708,6 @@
 				0867D6ABFE840B52C02AAC07 /* English */,
 			);
 			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
-		AAFE7EF609005A5B003BA7FD /* Credits.html */ = {
-			isa = PBXVariantGroup;
-			children = (
-				AAFE7EF709005A5B003BA7FD /* English */,
-			);
-			name = Credits.html;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
