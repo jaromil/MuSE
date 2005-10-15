@@ -7,16 +7,16 @@
 	<key>IBEditorPositions</key>
 	<dict>
 		<key>274</key>
-		<string>180 413 135 87 0 0 1680 1028 </string>
+		<string>104 289 135 87 0 0 1024 746 </string>
 		<key>29</key>
-		<string>38 535 269 44 0 0 1680 1028 </string>
+		<string>20 382 269 44 0 0 1024 746 </string>
 		<key>297</key>
-		<string>197 260 119 144 0 0 1680 1028 </string>
+		<string>114 177 119 144 0 0 1024 746 </string>
 		<key>567</key>
-		<string>48 434 118 87 0 0 1680 1028 </string>
+		<string>28 304 118 87 0 0 1024 746 </string>
 	</dict>
 	<key>IBFramework Version</key>
-	<string>437.0</string>
+	<string>439.0</string>
 	<key>IBLockedObjects</key>
 	<array>
 		<integer>455</integer>
@@ -25,28 +25,28 @@
 	<integer>3</integer>
 	<key>IBOpenObjects</key>
 	<array>
-		<integer>784</integer>
-		<integer>315</integer>
-		<integer>467</integer>
-		<integer>454</integer>
-		<integer>583</integer>
-		<integer>208</integer>
-		<integer>668</integer>
-		<integer>29</integer>
-		<integer>655</integer>
-		<integer>259</integer>
-		<integer>274</integer>
 		<integer>247</integer>
-		<integer>310</integer>
 		<integer>615</integer>
 		<integer>251</integer>
-		<integer>166</integer>
+		<integer>274</integer>
+		<integer>782</integer>
+		<integer>208</integer>
+		<integer>315</integer>
+		<integer>467</integer>
 		<integer>567</integer>
-		<integer>574</integer>
+		<integer>310</integer>
+		<integer>583</integer>
+		<integer>668</integer>
+		<integer>166</integer>
+		<integer>454</integer>
+		<integer>259</integer>
+		<integer>29</integer>
 		<integer>297</integer>
+		<integer>574</integer>
+		<integer>655</integer>
 	</array>
 	<key>IBSystem Version</key>
-	<string>8B15</string>
+	<string>8C46</string>
 	<key>targetFramework</key>
 	<string>IBCarbonFramework</string>
 </dict>

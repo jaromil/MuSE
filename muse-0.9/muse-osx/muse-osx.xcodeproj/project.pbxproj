@@ -72,6 +72,8 @@
 		AA3FDA2507FCE1410061F816 /* vumeter.c in Sources */ = {isa = PBXBuildFile; fileRef = AA3FD77F07FCE13E0061F816 /* vumeter.c */; };
 		AA4C3A8007FEBC9B00E15170 /* carbon_channel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA4C3A7E07FEBC9B00E15170 /* carbon_channel.cpp */; };
 		AA761B590805AFB8003C6E4A /* carbon_message.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA761B570805AFB8003C6E4A /* carbon_message.cpp */; };
+		AA860D360901096700B020EF /* credits.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA860D350901096700B020EF /* credits.cpp */; };
+		AA860D92090123E200B020EF /* credits.rsrc in Rez */ = {isa = PBXBuildFile; fileRef = AA860D91090123E200B020EF /* credits.rsrc */; };
 		AA8D1B91080B57B900193C49 /* carbon_stream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA8D1B8F080B57B900193C49 /* carbon_stream.cpp */; };
 		AA95A42E0815CD1A001BF965 /* open_dialog.c in Sources */ = {isa = PBXBuildFile; fileRef = AA95A42C0815CD1A001BF965 /* open_dialog.c */; };
 		AAC26997081955F000C45B1E /* xmlprofile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAC26995081955F000C45B1E /* xmlprofile.cpp */; };
@@ -85,6 +87,7 @@
 		AADDE577083D03D100EE8BDF /* libvorbisenc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AADDE576083D03D100EE8BDF /* libvorbisenc.a */; };
 		AADDE579083D03E100EE8BDF /* libvorbisfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AADDE578083D03E100EE8BDF /* libvorbisfile.a */; };
 		AADDE589083D04AD00EE8BDF /* libsndfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AADDE56E083D037F00EE8BDF /* libsndfile.a */; };
+		AAFE7EF809005A5B003BA7FD /* Credits.html in Resources */ = {isa = PBXBuildFile; fileRef = AAFE7EF609005A5B003BA7FD /* Credits.html */; };
 		B3AC961E088BD81100B6C700 /* muse-icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = B3AC961D088BD81100B6C700 /* muse-icon.icns */; };
 		B3DDD65D088BBDEA0000B321 /* muse_icons.rsrc in Rez */ = {isa = PBXBuildFile; fileRef = B3DDD65C088BBDEA0000B321 /* muse_icons.rsrc */; };
 /* End PBXBuildFile section */
@@ -251,6 +254,9 @@
 		AA4C3A7E07FEBC9B00E15170 /* carbon_channel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = carbon_channel.cpp; sourceTree = "<group>"; };
 		AA761B560805AFB8003C6E4A /* carbon_message.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = carbon_message.h; sourceTree = "<group>"; };
 		AA761B570805AFB8003C6E4A /* carbon_message.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = carbon_message.cpp; sourceTree = "<group>"; };
+		AA860D340901096700B020EF /* credits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = credits.h; sourceTree = "<group>"; };
+		AA860D350901096700B020EF /* credits.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = credits.cpp; sourceTree = "<group>"; };
+		AA860D91090123E200B020EF /* credits.rsrc */ = {isa = PBXFileReference; lastKnownFileType = archive.rsrc; path = credits.rsrc; sourceTree = "<group>"; };
 		AA8D1B8E080B57B900193C49 /* carbon_stream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = carbon_stream.h; sourceTree = "<group>"; };
 		AA8D1B8F080B57B900193C49 /* carbon_stream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = carbon_stream.cpp; sourceTree = "<group>"; };
 		AA95A42B0815CD1A001BF965 /* open_dialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = open_dialog.h; sourceTree = SOURCE_ROOT; };
@@ -271,6 +277,7 @@
 		AADDE578083D03E100EE8BDF /* libvorbisfile.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvorbisfile.a; path = /sw/lib/libvorbisfile.a; sourceTree = "<absolute>"; };
 		AAE5AE8408069517006FA613 /* carbon_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = carbon_common.h; sourceTree = "<group>"; };
 		AAECECDC08021710004C1C3F /* muse-osx.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "muse-osx.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AAFE7EF709005A5B003BA7FD /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; name = English; path = English.lproj/Credits.html; sourceTree = "<group>"; };
 		B3AC961D088BD81100B6C700 /* muse-icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "muse-icon.icns"; sourceTree = "<group>"; };
 		B3DDD65C088BBDEA0000B321 /* muse_icons.rsrc */ = {isa = PBXFileReference; lastKnownFileType = archive.rsrc; path = muse_icons.rsrc; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -310,6 +317,7 @@
 				20286C2CFDCF999611CA2CEA /* Resources */,
 				20286C32FDCF999611CA2CEA /* Frameworks and Libraries */,
 				195DF8CFFE9D517E11CA2CBB /* Products */,
+				AAFE7EF609005A5B003BA7FD /* Credits.html */,
 			);
 			name = "muse-osx";
 			sourceTree = "<group>";
@@ -335,6 +343,8 @@
 				AA95A42B0815CD1A001BF965 /* open_dialog.h */,
 				AA15AF5D0839586700530BBD /* playlist_manager.h */,
 				AA15AF5E0839586700530BBD /* playlist_manager.cpp */,
+				AA860D340901096700B020EF /* credits.h */,
+				AA860D350901096700B020EF /* credits.cpp */,
 				AA3FD4C307FCE13C0061F816 /* src */,
 				32DBCF6D0370B57F00C91783 /* muse-osx_Prefix.pch */,
 			);
@@ -344,6 +354,7 @@
 		20286C2CFDCF999611CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				AA860D91090123E200B020EF /* credits.rsrc */,
 				B3AC961D088BD81100B6C700 /* muse-icon.icns */,
 				B3DDD65C088BBDEA0000B321 /* muse_icons.rsrc */,
 				8D0C4E960486CD37000505A6 /* Info.plist */,
@@ -590,6 +601,7 @@
 				8D0C4E8D0486CD37000505A6 /* InfoPlist.strings in Resources */,
 				8D0C4E8E0486CD37000505A6 /* main.nib in Resources */,
 				B3AC961E088BD81100B6C700 /* muse-icon.icns in Resources */,
+				AAFE7EF809005A5B003BA7FD /* Credits.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -601,6 +613,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B3DDD65D088BBDEA0000B321 /* muse_icons.rsrc in Rez */,
+				AA860D92090123E200B020EF /* credits.rsrc in Rez */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -678,6 +691,7 @@
 				AAC5D9F4082C570000D4AEB4 /* stream_server.cpp in Sources */,
 				AAC5D9FE082C589800D4AEB4 /* stream_encoder.cpp in Sources */,
 				AA15AF5F0839586700530BBD /* playlist_manager.cpp in Sources */,
+				AA860D360901096700B020EF /* credits.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -698,6 +712,14 @@
 				0867D6ABFE840B52C02AAC07 /* English */,
 			);
 			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		AAFE7EF609005A5B003BA7FD /* Credits.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				AAFE7EF709005A5B003BA7FD /* English */,
+			);
+			name = Credits.html;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -778,8 +800,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUILD_VARIANTS = normal;
+				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
+				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 			};
 			name = Development;
 		};
@@ -787,8 +811,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUILD_VARIANTS = normal;
+				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
+				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 			};
 			name = Deployment;
 		};
@@ -796,8 +822,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUILD_VARIANTS = normal;
+				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
+				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 			};
 			name = Default;
 		};

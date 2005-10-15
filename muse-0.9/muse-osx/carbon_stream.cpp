@@ -97,7 +97,8 @@ const int freq[CS_ALLOWED_FREQ_NUM] = { 11000,16000,22050,44100 };
 /* CarbonStream class */
 /****************************************************************************/
 
-CarbonStream::CarbonStream(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib) {
+CarbonStream::CarbonStream(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib) 
+{
 		parent=mainWin;
 		jmix=mix;
 		nibRef=nib;
@@ -109,13 +110,16 @@ CarbonStream::CarbonStream(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib) {
 		memset(enc,0,sizeof(enc));
 		memset(servers,0,sizeof(servers)); 
 		msg = new CarbonMessage(nibRef);
-		err = CreateWindowFromNib(nibRef,CFSTR("StreamWindow"),&window);
-		if(err != noErr) { 
-			msg->error("Can't create the stream configuration window (%d)!!",err);
-		}
 		
+		/* create the stream window using received nibref */
+		err = CreateWindowFromNib(nibRef,CFSTR("StreamWindow"),&window);
+		if(err != noErr)
+			msg->error("Can't create the stream configuration window (%d)!!",err);
+		
+		/* now create the menu to use as new menubar */
 		err=CreateMenuFromNib(nibRef,CFSTR("StreamMenu"),&streamMenu);
 		if(err!=noErr) msg->error("Can't create streamMenu (%d)!!",err);
+		
 		/* Create a window group and put the stream window inside it ...
 		 * this is done just to let Quartz handle window layering correctly */
 		err=CreateWindowGroup(kWindowGroupAttrMoveTogether|kWindowGroupAttrLayerTogether|
@@ -123,9 +127,9 @@ CarbonStream::CarbonStream(Stream_mixer *mix,WindowRef mainWin,IBNibRef nib) {
 		err=SetWindowGroup(window,streamGroup);
 		
 		err = InstallEventHandler(GetWindowEventTarget(window),StreamEventHandler,STREAM_EVENTS,windowEvents,this,NULL);
-		if(err != noErr) { 
+		if(err != noErr)
 			msg->error("Can't install event handler for Stream control (%d)!!",err);
-		}
+			
 		/* install the stream command handler */
 		err = InstallWindowEventHandler (window, 
             NewEventHandlerUPP (StreamCommandHandler), 
@@ -219,6 +223,7 @@ CarbonStream::run() {
 	}
 }
 */
+
 void CarbonStream::show() {
 	RepositionWindow(window,parent,kWindowCenterOnMainScreen);
 	ShowWindow(window);

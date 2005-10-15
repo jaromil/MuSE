@@ -75,7 +75,8 @@ const RGBColor lgrey = {0xCCCC,0xCCCC,0xCCCC};
 const RGBColor black = {0x0000,0x0000,0x0000 };
 
 CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix) 
- : GUI(argc,argv,mix) {
+ : GUI(argc,argv,mix) 
+{
   	jmix = mix;
 	memset(myLcd,0,sizeof(myLcd));
 	memset(myPos,0,sizeof(myPos));
@@ -85,6 +86,9 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 	memset(channel,0,sizeof(channel));
 	playlistManager=new PlaylistManager();
 	
+	/* init mutex used when accessing the statusbox buffer ...
+	 * this is needed because other threads can try to write status messages concurrently
+	 */
 	if(pthread_mutex_init(&_statusLock,NULL) == -1) {
 		error("error initializing POSIX thread mutex creating a new CarbonChannel");
 		QuitApplicationEventLoop();
@@ -102,18 +106,25 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 	}
 	else {
 		msg = new CarbonMessage(nibRef);
+		/* make the main window also the frontmost one */
 		BringToFront(window);
 		init_controls();
+		
+		/* now create the menu to use for the menubar ... it's stored in nib */
 		err=CreateMenuFromNib(nibRef,CFSTR("MenuBar"),&mainMenu);
 		if(err!=noErr) {
 			msg->error("Can't create main menu (%d)!!",err);
 		}
+		
 		// The window was created hidden so show it.
 		ShowWindow( window );
 		
 		/* install vumeter controls */
 		setupVumeters();
+		/* and the status box */
 		setupStatusWindow();
+		
+		/* now we have to group windows together so if all are visible they will also be layered together */
 		err=CreateWindowGroup(kWindowGroupAttrLayerTogether,&mainGroup);
 		err=SetWindowGroup(window,mainGroup);
 		err=SetWindowGroup(vumeterWindow,mainGroup);
@@ -146,20 +157,28 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 		streamHandler = new CarbonStream(jmix,window,nibRef);
 		/* by default we want at leat one active channel */
 		if(!cc) new_channel();
+	
+		aboutWindow = new AboutWindow(window,nibRef);
 	}
 }
 
-CARBON_GUI::~CARBON_GUI() { 
-	for (int i=0;i<MAX_CHANNELS;i++) {
+CARBON_GUI::~CARBON_GUI() 
+{ 
+	/* delete all input channels */
+	for (int i=0;i<MAX_CHANNELS;i++) 
 		if(channel[i]) delete channel[i];
-	}
-// We don't need the nib reference anymore.    
+    /* Destroy other used objects */
 	delete playlistManager;
+	delete streamHandler;
+	delete aboutWindow;
 	DisposeMenu(mainMenu);
+	// We don't need the nib reference anymore.
 	DisposeNibReference(nibRef);
 }
 
-void CARBON_GUI::setupStatusWindow() {
+/* initialize the status window (used to show log messages in the graphic environment */
+void CARBON_GUI::setupStatusWindow() 
+{
 	OSStatus err=CreateWindowFromNib(nibRef,CFSTR("StatusWindow"),&statusWindow);
 	if(err!=noErr) msg->error("Can't create status window (%d)!!",err);
 	//SetDrawerParent(statusWindow,window);
@@ -204,6 +223,7 @@ void CARBON_GUI::setupStatusWindow() {
 	//TXNSetBackground(statusText,&bg);
 }
 
+/* initialize controls for the vumeter window */
 void CARBON_GUI::setupVumeters() {
 	/* instance vumeters window that will be used later if user request it */
 	OSStatus err=CreateWindowFromNib(nibRef, CFSTR("VumeterWindow"),&vumeterWindow);
@@ -221,6 +241,8 @@ void CARBON_GUI::setupVumeters() {
 void CARBON_GUI::showStreamWindow() {
 	streamHandler->show();
 }
+
+/* main loop for the CarbonGui object */
 void CARBON_GUI::run() {
 	int i;
 	int o = 0;
@@ -515,6 +537,10 @@ void CARBON_GUI::activatedChannel(int idx) {
 	}	
 }
 
+void CARBON_GUI::credits() {
+	aboutWindow->show();
+}
+
 /* END OF CARBON_GUI */
 
 
@@ -580,7 +606,9 @@ static OSStatus MainWindowCommandHandler (
 		//	me->showStatus(val?true:false);
 			me->toggleStatus();
 			break;
-		case 'abou':
+		case ABOUT_CMD:
+			me->credits();
+			break;
         default:
             err = eventNotHandledErr;
             break;

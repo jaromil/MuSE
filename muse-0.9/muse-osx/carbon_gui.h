@@ -24,6 +24,7 @@
 #include <carbon_channel.h>
 #include <carbon_stream.h>
 #include <carbon_message.h>
+#include <credits.h>
 
 //OSStatus startCarbon(void *arg);
 class CarbonChannel;
@@ -58,6 +59,7 @@ class CARBON_GUI : public GUI {
   bool statusShown(); 
   void bringToFront();
   void activatedChannel(int idx);
+  void credits();
  // void start();
 
   WindowRef 	window;
@@ -92,6 +94,7 @@ private:
   CarbonChannel *selectedChannel;
   TXNObject statusText;
   CarbonStream *streamHandler;
+  AboutWindow *aboutWindow;
   pthread_mutex_t _statusLock;
 };
 

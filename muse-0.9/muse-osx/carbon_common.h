@@ -44,6 +44,7 @@
 #define ABOUT_BUT 6
 #define ABOUT_BUT_ID 106
 
+#define ABOUT_CMD 'abou'
 #define NEWC_CMD 'newc'
 #define SHOW_STREAMS_CMD 'stre'
 #define SHOW_STATUS_CMD 'shlo'
@@ -199,6 +200,12 @@
 #define SAVE_PRESET_TEXT_CONTROL 902
 
 /* MSG WINDOW */
+
+/* ABOUT WINDOW */
+#define ABOUT_DEVELS  367
+#define ABOUT_MESSAGE 366
+#define ABOUT_VERSION 365
+
 
 /* OPEN URL DIALOG */
 #define OPEN_URL_BUTTON_ID 911
