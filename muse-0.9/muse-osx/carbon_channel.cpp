@@ -55,14 +55,17 @@ const EventTypeSpec windowCommands[] = {
 	{ kEventClassCommand, kEventCommandProcess }
 };
 
+/* shortcut for playmodes - indexed in the same order of the menu in the channel window */
 uint8_t playmodes[4] = { PLAYMODE_PLAYLIST, PLAYMODE_CONT, PLAYMODE_PLAY, PLAYMODE_LOOP };
-/* Start of CarbonChannel */
 
+
+/* Start of CarbonChannel */
 CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsigned int chan) {
 	Rect bounds;
+	/* explicitly define minimal and maximal bounds for a channel window */
 	HISize minBounds = {CHANNEL_WINDOW_WIDTH_MIN,CHANNEL_WINDOW_HEIGHT_MIN};
 	HISize maxBounds = {CHANNEL_WINDOW_WIDTH_MAX,CHANNEL_WINDOW_HEIGHT_MAX};
-
+	/* init main properties */
 	parent = gui;
 	parentWin = parent->window;
 	jmix = mix;
@@ -79,20 +82,33 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 	savedStatus=-1;
 	_seek=0;
 	loadedPlaylistIndex=0;
-	playList = inChannel->playlist; //new Playlist();
+	/* re-use the same Playlist object referenced by the input channel */
+	playList = inChannel->playlist; 
 	msg = new CarbonMessage(nibRef);
 	plManager = parent->playlistManager;
 	
+	/* init the internal mutex used when locking */
 	if(pthread_mutex_init (&_mutex,NULL))
 		msg->error("%i:%s error initializing POSIX thread mutex",
 		__LINE__,__FILE__);
-	jmix->set_playmode(chIndex,PLAYMODE_PLAYLIST); 
+		
+	/* start in the default playmode */
+	jmix->set_playmode(chIndex,PLAYMODE_PLAYLIST);
+	
+	/* and now create che channel window through the nibRef */
 	err = CreateWindowFromNib(nibRef, CFSTR("Channel"), &window);
 	if(err!=noErr) {
 		msg->error("Can't create channel window (%d)!!",err);
 	}
+	/* set resize limits to min and max bounds defined at the start of this routine */
 	SetWindowResizeLimits(window,&minBounds,&maxBounds);
 	
+	/* set the title of the channel window */
+	CFStringRef format = CFStringCreateWithCString(NULL,"Channel %d",0);
+	CFStringRef wName = CFStringCreateWithFormat(NULL,NULL,format,chan);
+	SetWindowTitleWithCFString (window,wName);
+	CFRelease(format);
+	CFRelease(wName);
 	
 	/* create main contextual menu for the channel window */
 	err = CreateMenuFromNib (nibRef,CFSTR("PLMenu"),&plMenu);
@@ -106,6 +122,7 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 		msg->error("Can't create plEntryMenu ref (%d)!!",err);
 	}
 	
+	/* init references to various playlist related submenus (to load/save/delete playlists) */
 	MenuRef playlistSubMenu;
 	err = GetMenuItemHierarchicalMenu(plMenu,3,&playlistSubMenu);
 	if(err!=noErr) msg->error("Can't get playlist sumenu (%d)!!",err);
@@ -119,7 +136,7 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 	err=GetMenuItemHierarchicalMenu(playlistSubMenu,6,&saveMenu);
 	if(err!=noErr) msg->error("Can't get menuref for the savePlaylist menu (%d)!!",err);
 	
-	
+	/* install the main event handler */
 	err = InstallWindowEventHandler(window,ChannelEventHandler,CARBON_CHANNEL_EVENTS,
 		windowEvents,this,NULL);
 	if(err != noErr) { 
@@ -134,12 +151,6 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 
 	/* initialize the 'load playlist' control */
 	updatePlaylistControls();
-	
-	CFStringRef format = CFStringCreateWithCString(NULL,"Channel %d",0);
-	CFStringRef wName = CFStringCreateWithFormat(NULL,NULL,format,chan);
-	SetWindowTitleWithCFString (window,wName);
-	CFRelease(format);
-	CFRelease(wName);
 	
 	/* install fader window */
 	setupFaderWindow();
@@ -175,18 +186,26 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 	const ControlID volId = { CARBON_GUI_APP_SIGNATURE,VOLUME_CONTROL };
 	err = GetControlByID(window,&volId,&volControl);
 	SetControlValue(volControl,(int)(inChannel->volume*100));
+	
+	/* this "FAKE" eventloop timer is needed to let quartz update windows event if no user events are catched 
+	 * ... the problem is that if user stops moving mouse or hitting keys quartz doesn't update the GUI elements
+	 * if events happen in a thread different from the one calling the RunEventLoop().
+	 */
 	EventLoopTimerUPP timerUPP = NewEventLoopTimerUPP(ChannelLoop);
 	err = InstallEventLoopTimer( GetCurrentEventLoop(),0,1,timerUPP,this,&updater);
 	if(err!=noErr) msg->error("Can't install the idle eventloop handler(%d)!!",err);
 
-	
-	SelectWindow(window);
+	/* force the position of the new channel window */
 	err=GetWindowBounds(window,kWindowGlobalPortRgn,&bounds);
 	if(err==noErr) {
+		/* when a new channel is created, the position of its window will be at 
+		 * an offset from the center of the screen. This offset is proportional to the channel number */
 		MoveWindow(window,bounds.left+(chIndex*20),bounds.top+(chIndex*20),true);
 	}
 	/* and finally we can show the channelwindow */
 	ShowWindow(window);
+	/* make the new channel window active */
+	SelectWindow(window);
 }
 
 CarbonChannel::~CarbonChannel() {
@@ -196,9 +215,11 @@ CarbonChannel::~CarbonChannel() {
 		if(slave()) neigh.channel->stopFading();
 		else stopFading();
 	}
+	
 	if(pthread_mutex_destroy (&_mutex))
 		msg->error("%i:%s error destroying POSIX thread mutex",
 		__LINE__,__FILE__);
+	
 	RemoveEventLoopTimer(updater);
 	RemoveEventHandler(windowEventHandler);
 	RemoveEventHandler(playListEventHandler);
@@ -428,6 +449,7 @@ void CarbonChannel::setLCD(char *text) {
 	}
 }
 
+/* set a new position in the seek bar */
 void CarbonChannel::setPos(int pos) {
 	OSStatus err;
 	ControlRef seekControl;
@@ -495,6 +517,7 @@ void CarbonChannel::plMove(int from, int dest) {
 	plUpdate();
 }
 
+/* remove item at pos from playlist */
 void CarbonChannel::plRemove(int pos) {
 	if(playList->selected_pos()==pos) {
 		if(playList->len() > 1) {
@@ -519,6 +542,7 @@ void CarbonChannel::plRemove(int pos) {
 	plUpdate();
 }
 
+/* remove selected item from playlist */
 void CarbonChannel::plRemoveSelection() {
 	DataBrowserItemID first,last;
 	GetDataBrowserSelectionAnchor(playListControl,&first,&last);
@@ -529,11 +553,15 @@ void CarbonChannel::plRemoveSelection() {
 	}
 }
 
+/* this method checks if there is another channel window in the neighbourhood 
+ * we can attach to. This information is obtained through CARBON_GUI->attract_channels that tell
+ * us if another window is in a position usable for attach */ 
 bool CarbonChannel::checkNeighbours() {
 	if(!isAttached) return parent->attract_channels(chIndex,&neigh);
 	return false;
 }
 
+/* if there is a neighbour let's open our fader (drawer) notifying the possible attach */
 void CarbonChannel::attractNeighbour() {
 	if(neigh.channel) {
 		OpenDrawer(fader,neigh.position==ATTACH_RIGHT?kWindowEdgeRight:kWindowEdgeLeft,false);
@@ -541,6 +569,7 @@ void CarbonChannel::attractNeighbour() {
 	}
 }
 
+/* close the drawer ... we don't want to attach anymore */
 void CarbonChannel::stopAttracting() {
 	if(!isAttached) {
 		CloseDrawer(fader,false);
@@ -554,6 +583,10 @@ void CarbonChannel::stopAttracting() {
 	}
 }
 
+/* 
+ * if we are connected to another channel (fading) let's disconnect windows and close the 
+ * fader drawer 
+ */
 void CarbonChannel::stopFading() {
 	if(isAttached) {
 		if(isSlave) { /* slave channel */
@@ -579,6 +612,9 @@ void CarbonChannel::stopFading() {
 	}
 }
 
+/* attach has been confirmed (user released mouse button while attracting) 
+ * let's connect windows using the WindowGroup of the main one (the window requesting the attach
+*/
 void CarbonChannel::doAttach() {
 	const ControlID faderChan1ID = { CARBON_GUI_APP_SIGNATURE, FADER_CHAN1_ID};
 	const ControlID faderChan2ID = { CARBON_GUI_APP_SIGNATURE, FADER_CHAN2_ID};
@@ -633,6 +669,10 @@ void CarbonChannel::setVol(int vol) {
 	jmix->set_volume(chIndex,(float)vol/100);
 }
 
+/* reposition fading windows.
+ * when two channels are connected (fading) this routine reposition their windows to appear
+ * as a single panel. This is mainly used when the user resize the leftmost window and the other must be
+ * replaced to continue touching the resized one. */
 void CarbonChannel::redrawFader() {
 	OSStatus err;
 	Rect myBounds;
@@ -743,7 +783,8 @@ void CarbonChannel::cancelOpenUrl() {
 	HideSheetWindow(openUrlWindow);
 }
 
-void CarbonChannel::run() { /* channel main loop */
+/* CarbonChannel main loop, called periodically (every tick) by CARBON_GUI::run() */
+void CarbonChannel::run() {
 	OSStatus err;
 	lock();
 	/* update status - this can override the status setted by user controls
@@ -818,6 +859,7 @@ void CarbonChannel::play() {
 	}
 }
 
+/* stop playing */
 void CarbonChannel::stop() {
 	if(inChannel->stop()) {
 		func("Channel %d stopped",chIndex);
@@ -834,14 +876,17 @@ void CarbonChannel::stop() {
 	unlock();
 }
 
+/* skip to previous song in the playlist */
 void CarbonChannel::prev() {
 	inChannel->prev();
 }
 
+/* skip to next song in the playlist */
 void CarbonChannel::next() {
 	inChannel->next();
 }
 
+/* seek to a new position in the loaded song */
 void CarbonChannel::seek(int pos) {
 	if(inChannel->seekable && pos) {
 		inChannel->pos((float)pos/1000);
@@ -1055,9 +1100,9 @@ char *CarbonChannel::loadedPlaylist() {
 /****************************************************************************/
 
 void ChannelLoop(EventLoopTimerRef inTimer,void *inUserData) {
-	/* this loop time is needed to let qquartz update channel window even if no user event occurs.
-	 * without this timer, event if we programmatically change control values and state, quartz
-	 * doesn't update them until an user event arrives...so you have to move mouse to have seek update
+	/* this eventloop timer is needed to let quartz update channel window even if no user event occurs.
+	 * without this timer, if we programmatically change control values and state, quartz
+	 * doesn't update them until an user event arrives...so you have to move mouse to view seek updates
 	 * while playing tracks */
 	 
 	/* NOTE : this happens because lcd value is changed in a thread different from the one that 
@@ -1065,7 +1110,7 @@ void ChannelLoop(EventLoopTimerRef inTimer,void *inUserData) {
 	 * the RunEventLoop but the runloop is handled internally by the CARBON_GUI::run() method */
 	
 	/* EXTRA NOTE: it's possible that we can eliminate this timer routine calling something in the main channel
-	 * event loop CarbonChannel::run|() , called periodically (about every 2 ticks) by the main CARBON_GUI object 
+	 * event loop ( CarbonChannel::run() ), called periodically (each tick) by the main CARBON_GUI object 
 	 * it would be nice to investigate deeply to check if we can eliminate this stupid workaround */ 
 }
 
@@ -1148,6 +1193,9 @@ OSStatus HandlePlaylist (ControlRef browser,DataBrowserItemID itemID,
  	return status;
 }
 
+/* 
+ * callback function to handle a dropping of a drag inside a playlist box 
+ */
 Boolean HandleDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item) {
 	DragItemRef dragItem;
 	HFSFlavor draggedData;
@@ -1322,7 +1370,7 @@ void SelectPLMenu (ControlRef browser,MenuRef menu,UInt32 selectionType,SInt16 m
 void DrawPLItem (ControlRef browser,DataBrowserItemID item,DataBrowserPropertyID property,
    DataBrowserItemState itemState, const Rect *theRect,SInt16 gdDepth, Boolean colorDevice)
 {
-	printf("EKKOMI \n");
+	printf("XXX \n");
 }
 
 */
@@ -1351,6 +1399,13 @@ void SeekHandler (ControlRef theControl, ControlPartCode partCode) {
 /* EVENT HANDLERS */
 /****************************************************************************/
 
+/* 
+ * main channel event handler.
+ * here we handle window related events ...
+ * attraction when trying to connect to channel windows (for fading) 
+ * resizing when attached to a neghbour
+ * activation and layering (needed to be handled explicitly when working with windowgroups)
+ */
 static OSStatus ChannelEventHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData)
 {
@@ -1398,16 +1453,18 @@ static OSStatus ChannelEventHandler (
 				else me->stopAttracting();
 			}
 			break;
-		case kEventWindowBoundsChanged:
+//		case kEventWindowBoundsChanged:
+//			break;
 		case kEventWindowDragCompleted:
 			me->doAttach();
 			break;
 		case kEventWindowResizeStarted:
-			me->startResize();
+			me->startResize(); /* let's note that a resize has started */
 			break;
 		case kEventWindowResizeCompleted:
-			me->stopResize();
-			if(me->attached()) me->redrawFader();
+			me->stopResize(); /* resize done, let's notify it internally */
+			me->doAttach(); /* try to attach a new neighbour if present */
+			if(me->attached()) me->redrawFader(); /* if we are attached, update neighbour position */
 			break;
 		default:
             //activeChannel = me;
@@ -1440,6 +1497,13 @@ static OSStatus DataBrowserEventHandler (
 /* COMMAND HANDLER */
 /****************************************************************************/
 
+/* 
+ * main channel command handler, where player commands are handled.
+ * Here are also handled some playlist related commands , such as
+ * loading, saving and cleaning.
+ * Basically here are handled all commands related to carbon controls
+ * in the channel window (all buttons and menus) 
+ */ 
 static OSStatus ChannelCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData)
 {

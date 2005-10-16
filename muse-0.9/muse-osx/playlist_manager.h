@@ -48,10 +48,9 @@
 	public:
 		PlaylistManager::PlaylistManager();
 		PlaylistManager::~PlaylistManager();
-		/* support lockung , useful when we will have a scheduler , 
-		 * running in a separate thread that will manage inputchannels and their playlists */
-		void lock() { pthread_mutex_lock(&_mutex); };  
-		void unlock() { pthread_mutex_unlock(&_mutex); };
+		/* support locking , useful when we will have a scheduler running 
+		 * in a separate thread that will manage inputchannels and their playlists */
+		
 		Playlist *load(char *name);
 		Playlist *load(int index);
 		bool remove(char *name);
@@ -69,6 +68,8 @@
 		
 	private:
 		void PlaylistManager::initPlaylists();
+		void lock() { pthread_mutex_lock(&_mutex); };  
+		void unlock() { pthread_mutex_unlock(&_mutex); };
 		
 		XmlProfile *xml;
 		Linklist *playlists;

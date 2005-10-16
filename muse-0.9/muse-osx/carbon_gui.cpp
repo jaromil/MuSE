@@ -26,14 +26,18 @@
 
 
 /* HANDLED EVENTS */
+
+/* vumeter related events */
 const EventTypeSpec vumeterEvents[] = {
 	{ kEventClassWindow, kEventWindowClose }
 };
 
+/* status window related events */
 const EventTypeSpec statusEvents[] = {
 	{ kEventClassWindow, kEventWindowClose }
 };
 
+/* main events */
 const EventTypeSpec events[] = {
 	{ kEventClassWindow, kEventWindowClose },
 	{ CARBON_GUI_EVENT_CLASS, CG_RMCH_EVENT},
@@ -46,6 +50,7 @@ const EventTypeSpec commands[] = {
 	{ kEventClassCommand, kEventCommandProcess }
 };
 
+/* main window related commands*/
 const ControlID mainControlsID[MAIN_CONTROLS_NUM] = {
 	{ CARBON_GUI_APP_SIGNATURE, STREAM_BUT_ID },  
 	{ CARBON_GUI_APP_SIGNATURE, NEWCH_BUT_ID },
@@ -56,27 +61,40 @@ const ControlID mainControlsID[MAIN_CONTROLS_NUM] = {
 	{ CARBON_GUI_APP_SIGNATURE, ABOUT_BUT_ID }
 };
 
+/* array of ControlRefs for all the buttons in the main window */
 ControlRef mainControls[MAIN_CONTROLS_NUM];
 
-
+/* prototypes for event and command handlers */
 static OSStatus MainWindowCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
+
 static OSStatus MainWindowEventHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
+
 static OSStatus VumeterWindowEventHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
+
 static OSStatus StatusWindowCommandHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
+
 static OSStatus StatusWindowEventHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData);
 
+/* END of prototypes */
+
+/* costants that can be used to set text and background colors */
 const RGBColor white = {0xFFFF,0xFFFF,0xFFFF};
 const RGBColor lgrey = {0xCCCC,0xCCCC,0xCCCC};
 const RGBColor black = {0x0000,0x0000,0x0000 };
 
+
+/* START of CARBON_GUI */
+
+/* Constructor for CARBON_GUI class. */
 CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix) 
  : GUI(argc,argv,mix) 
 {
+	/* initialization stuff */
   	jmix = mix;
 	memset(myLcd,0,sizeof(myLcd));
 	memset(myPos,0,sizeof(myPos));
@@ -115,9 +133,6 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 		if(err!=noErr) {
 			msg->error("Can't create main menu (%d)!!",err);
 		}
-		
-		// The window was created hidden so show it.
-		ShowWindow( window );
 		
 		/* install vumeter controls */
 		setupVumeters();
@@ -159,9 +174,15 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 		if(!cc) new_channel();
 	
 		aboutWindow = new AboutWindow(window,nibRef);
+		
+		// The window was created hidden so show it.
+		ShowWindow( window );
 	}
 }
 
+/* destructor for the CARBON_GUI class 
+ * here we destroy all other used objects and 
+ */
 CARBON_GUI::~CARBON_GUI() 
 { 
     /* Destroy used objects */
@@ -171,12 +192,14 @@ CARBON_GUI::~CARBON_GUI()
 	/* delete all input channels */
 	for (int i=0;i<MAX_CHANNELS;i++) 
 		if(channel[i]) delete channel[i];
+	DisposeWindow(statusWindow);
+	DisposeWindow(vumeterWindow);
 	DisposeMenu(mainMenu);
 	// We don't need the nib reference anymore.
 	DisposeNibReference(nibRef);
 }
 
-/* initialize the status window (used to show log messages in the graphic environment */
+/* initialize the status window (used to show console messages in the graphic environment */
 void CARBON_GUI::setupStatusWindow() 
 {
 	OSStatus err=CreateWindowFromNib(nibRef,CFSTR("StatusWindow"),&statusWindow);
@@ -184,12 +207,19 @@ void CARBON_GUI::setupStatusWindow()
 	//SetDrawerParent(statusWindow,window);
 	//SetDrawerPreferredEdge(statusWindow,kWindowEdgeBottom);
 	//SetDrawerOffsets(statusWindow,20,20);
+	
+	/* install an eventHandler to intercept close requests */
 	err = InstallWindowEventHandler (statusWindow, 
 		NewEventHandlerUPP (StatusWindowEventHandler), 
 		GetEventTypeCount(statusEvents), statusEvents, this, NULL);
-	if(err != noErr) msg->error("Can't install vumeter eventHandler");
+	if(err != noErr) msg->error("Can't install status window eventHandler");
+	
+	/* and then install a command handler (to handle "clear" requests) */
 	err=InstallWindowEventHandler(statusWindow,NewEventHandlerUPP(StatusWindowCommandHandler),
 		GetEventTypeCount(commands),commands,this,NULL);
+		
+	/* obtain an HIViewRef for the status text box ... we have to use it 
+	 * to setup various properties and to obain a TXNObject needed to manage its content */
 	HIViewRef statusTextView;
 	const ControlID txtid={ CARBON_GUI_APP_SIGNATURE, STATUS_TEXT_ID };
 	err= HIViewFindByID(HIViewGetRoot(statusWindow), txtid, &statusTextView);
@@ -223,8 +253,11 @@ void CARBON_GUI::setupStatusWindow()
 	//TXNSetBackground(statusText,&bg);
 }
 
-/* initialize controls for the vumeter window */
-void CARBON_GUI::setupVumeters() {
+/* 
+ * initialize controls for the vumeter window 
+ */
+void CARBON_GUI::setupVumeters() 
+{
 	/* instance vumeters window that will be used later if user request it */
 	OSStatus err=CreateWindowFromNib(nibRef, CFSTR("VumeterWindow"),&vumeterWindow);
 //	SetDrawerParent(vumeterWindow,window);
@@ -238,20 +271,27 @@ void CARBON_GUI::setupVumeters() {
 	if(err != noErr) msg->error("Can't install vumeter eventHandler");
 }
 
-void CARBON_GUI::showStreamWindow() {
+/*
+ * just show the stream window 
+ */
+void CARBON_GUI::showStreamWindow() 
+{
 	streamHandler->show();
 }
 
-/* main loop for the CarbonGui object */
+/* 
+ * main loop for the CarbonGui object
+ */
 void CARBON_GUI::run() {
 	int i;
 	int o = 0;
-	UInt32 finalTicks;
+	//UInt32 finalTicks;
 	while(!quit) {
 		
 		lock(); /* lock before iterating on channel array ... if all is sane
 				 * nobody can modify the channel list while we are managing it */
 		wait(); /* wait the tick signal from jmixer */
+		/* now iterate an channels updating lcd and pos as necessary */
 		for(i=0;i<MAX_CHANNELS;i++) {
 			if(channel[i]) {
 				if(new_pos[i]) {
@@ -263,18 +303,23 @@ void CARBON_GUI::run() {
 					channel[i]->setLCD(ch_lcd[i]);
 					new_lcd[i] = false;
 				}
-				channel[i]->run();
+				channel[i]->run(); /* propagate tick on each channel */
 				//QDFlushPortBuffer(GetWindowPort(channel[i]->window),NULL);
 			}
 		}
-		if(playlistManager->isTouched()) playlistManager->untouch(); /* reset playlistManager update flag */
+		if(playlistManager->isTouched()) 
+			playlistManager->untouch(); /* reset playlistManager update flag */
 		unlock();
 		if(meterShown()) updateVumeters();
 	//	Delay(2,&finalTicks); /* DISABLED BEACAUSE NOW TICK IS SIGNALED BY JMIXER */
 	}
  }
 
-void CARBON_GUI::updateVumeters() {
+/*
+ * update vumeterWindow to reflect actual volume and bandwith information
+ */
+void CARBON_GUI::updateVumeters() 
+{
 	ControlID cid= { CARBON_GUI_APP_SIGNATURE , 0 };
 	ControlRef control;
 	SInt32 val;
@@ -284,7 +329,8 @@ void CARBON_GUI::updateVumeters() {
 	err=GetControlByID(vumeterWindow,&cid,&control);
 	if(err!=noErr) msg->error("Can't get vbar control (%d)!!",err);
 	val=GetControl32BitValue(control);
-	if(val!=vumeter) {
+	if(val!=vumeter) 
+	{
 		char vdescr[256];
 		SetControl32BitValue(control,vumeter);
 		cid.id=VUMETER_VOL_DESCR;
@@ -299,26 +345,26 @@ void CARBON_GUI::updateVumeters() {
 	err=GetControlByID(vumeterWindow,&cid,&control);
 	if(err!=noErr) msg->error("Can't get vbar control (%d)!!",err);
 	val=GetControl32BitValue(control);
-	if(val!=vuband) {
+	if(val!=vuband) 
+	{
 		char bpsdescr[256];
 		SetControl32BitValue(control,vuband);
 		cid.id=VUMETER_BITRATE_DESCR;
 		err=GetControlByID(vumeterWindow,&cid,&control);
 		if(err!=noErr) msg->error("Can't get bps descr control (%d)!!",err);
-		if(vuband<1000) {
+		if(vuband<1000) 
 			sprintf(bpsdescr,"%d B/s",vuband);
-		}
-		else if(vuband>1000 && vuband <1000000) {
+		else if(vuband>1000 && vuband <1000000) 
 			sprintf(bpsdescr,"%d KB/s",vuband/1000);
-		}
-		else {
+		else 
 			sprintf(bpsdescr,"%d MB/s",vuband/1000000);
-		}
+
 		err=SetControlData(control,0,kControlStaticTextTextTag,strlen(bpsdescr),bpsdescr);
 	}
 }
 
-bool CARBON_GUI::new_channel() {
+bool CARBON_GUI::new_channel() 
+{
 	int i;
 	lock();
 	for (i=0;i<MAX_CHANNELS;i++) {
@@ -440,6 +486,12 @@ bool CARBON_GUI::init_controls() {
 	if(err != noErr) msg->error("Can't install main commandHandler");
 }
 
+/* 
+ * given an index and a pointer to an AttractedChannel structure, this routine
+ * checks if there is another channel window in the neighbourhood and if it's there,
+ * true is returned and neigh is filled with a reference to the neighbour channel and a flag
+ * that specifies if its window is on the left or on the right
+ */
 bool CARBON_GUI::attract_channels(int chIndex,AttractedChannel *neigh) {
 	Rect bounds;
 	if(!channel[chIndex]) return false;
@@ -467,6 +519,9 @@ bool CARBON_GUI::attract_channels(int chIndex,AttractedChannel *neigh) {
 	return false;
 }
 
+/*
+ * show or hide vumeter window as specified trough "flag" argument
+ */
 void CARBON_GUI::showVumeters(bool flag) {
 	OSStatus err;
 	if(flag) {
@@ -482,6 +537,9 @@ void CARBON_GUI::showVumeters(bool flag) {
 	}
 }
 
+/*
+ * show or hide status window as specified trough "flag" argument
+ */
 void CARBON_GUI::showStatus(bool flag) {
 	OSStatus err;
 	if(flag) { 
@@ -498,22 +556,36 @@ void CARBON_GUI::showStatus(bool flag) {
 	}
 }
 
+/* 
+ * toggle visibility of status window
+ */
 void CARBON_GUI::toggleStatus() {
 	//ToggleDrawer(statusWindow);
 	if(IsWindowVisible(statusWindow)) showStatus(false);
 	else showStatus(true);
 }
 
+/* 
+ * toggle visibility of vumeters window 
+ */
 void CARBON_GUI::toggleVumeters() {
 //	ToggleDrawer(vumeterWindow);
 	if(IsWindowVisible(vumeterWindow)) showVumeters(false);
 	else showVumeters(true);
 }
 
+/*
+ * clears the status window
+ */
 void CARBON_GUI::clearStatus() {
 	TXNSetData(statusText,kTXNTextData,"",4,kTXNStartOffset,kTXNEndOffset);
 }
 
+/*
+ * Bring all windows in main windowgroup to frontmost layer
+ * we have to handle this explicitly because of Quartz behaviour 
+ * when layering windowgroups
+ */
 void CARBON_GUI::bringToFront() {
 	bool anyChannel=false;
 	for ( int i = 0;i < MAX_CHANNELS;i++) {
@@ -528,6 +600,10 @@ void CARBON_GUI::bringToFront() {
 	if(err != noErr) msg->error("Can't set MenuBar!!");
 }
 
+/*
+ * Handle layering when a channel window is ativated (by clicking on it).
+ * This stuff is needed because of Quartz behaviour when layering windowgroups
+ */
 void CARBON_GUI::activatedChannel(int idx) {
 	if(channel[idx]) {
 		if(selectedChannel && selectedChannel!=channel[idx]) {
@@ -537,6 +613,9 @@ void CARBON_GUI::activatedChannel(int idx) {
 	}	
 }
 
+/* 
+ * show AboutWindow
+ */
 void CARBON_GUI::credits() {
 	aboutWindow->show();
 }
@@ -668,7 +747,7 @@ static OSStatus MainWindowEventHandler (
 		case kEventWindowActivated:
 			me->bringToFront();
 			break;
-		case CG_RMCH_EVENT:
+		case CG_RMCH_EVENT: /* a channel window has been closed */
 			int idx;
 			GetEventParameter(event,CG_RMCH_EVENT_PARAM,typeCFIndex,NULL,sizeof(int),NULL,&idx);
 			me->remove_channel(idx);

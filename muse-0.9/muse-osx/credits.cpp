@@ -1,10 +1,19 @@
-/*
- *  credits.cpp
- *  muse-osx
+/* MuSE - Multiple Streaming Engine
+ * Copyright (C) 2005 xant <xant@dyne.org>
  *
- *  Created by xant on 10/15/05.
- *  Copyright 2005 __MyCompanyName__. All rights reserved.
+ * This source code is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Public License as published 
+ * by the Free Software Foundation; either version 2 of the License,
+ * or (at your option) any later version.
  *
+ * This source code is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * Please refer to the GNU Public License for more details.
+ *
+ * You should have received a copy of the GNU Public License along with
+ * this source code; if not, write to:
+ * Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
 #include "credits.h"
@@ -83,7 +92,7 @@ part of the included code is copyright by the\n\
 respective authors, please refer to the supplied\n\
 sourcecode for further informations.\n\
 \n---------------------------------------------------\n\n\
-LICENCE: \n\
+LICENCE: \n\n\
 This source code is free software; you can redistribute \n\
 it and/or modify it under the terms of the GNU Public \n\
 License as published by the Free Software Foundation; \n\
@@ -191,6 +200,10 @@ void AboutWindow::hide() {
  * EVENT HANDLER 
  ************************************************************/
  
+ /* when the user closes the AboutWindow, we will catch the event and
+  * prevent window destruction so we can reuse it later if needed ...
+  * CarbonGui will request window destruction whene application is quitting
+  */ 
  static OSStatus AboutEventHandler (
     EventHandlerCallRef nextHandler, EventRef event, void *userData)
 {

@@ -359,6 +359,7 @@ void CarbonStream::setTabValue(SInt32 controlID,int tabIndex,int val) {
 	if(err!=noErr) msg->warning("%d",err);
 }
 
+/* Add a new stream encoder and update tabs */
 int CarbonStream::addStream() {
 	SInt32 sNum=GetControl32BitMaximum(streamTabControl);
 	if(!IsControlVisible(streamTabControl)) { /* First stream */ 
@@ -499,12 +500,13 @@ CarbonStreamServer *CarbonStream::getServer(int strIdx,int srvIdx) {
 
 bool CarbonStream::updateStreamTab() {
 	SInt32 val = GetControl32BitValue(streamTabControl);
-	int idx = getTabValue(STREAM_TAB_CONTROL,_selectedStream)-1;
-	if(enc[idx]) saveStreamInfo(enc[idx]);
 	if(_selectedStream==val) return false; /* no changes ... */
+	_selectedStream=val;
+	int idx = getTabValue(STREAM_TAB_CONTROL,_selectedStream)-1;
+	if(idx < 0) return false;
+	if(enc[idx]) saveStreamInfo(enc[idx]);
 	if(IsControlVisible(streamTabControl)) {
 		changeServerTab();
-		_selectedStream=val;
 		updateStreamInfo(selectedStream());
 	}
 	return true;
@@ -526,7 +528,8 @@ bool CarbonStream::updateServerTab() {
 	}
 	_selectedServer=val;
 	int newServerIndex=getTabValue(SERVER_TAB_CONTROL,_selectedServer)-1;
-	updateServerInfo(servers[streamIndex][newServerIndex]);
+	if(streamIndex >= 0 && newServerIndex >= 0 && servers[streamIndex][newServerIndex])
+		updateServerInfo(servers[streamIndex][newServerIndex]);
 	return true;
 }
 
@@ -538,8 +541,9 @@ bool CarbonStream::changeServerTab() {
 	_selectedServer=1;
 	if(_selectedStream && IsControlVisible(serverTabControl)) {
 		int oldStreamIndex=getTabValue(STREAM_TAB_CONTROL,_selectedStream)-1;
-		if(servers[oldStreamIndex][oldServerIndex])
-			saveServerInfo(servers[oldStreamIndex][oldServerIndex]);
+		if(oldStreamIndex >= 0 && oldServerIndex >= 0)
+			if(servers[oldStreamIndex][oldServerIndex])
+				saveServerInfo(servers[oldStreamIndex][oldServerIndex]);
 	}
 	SetControl32BitMaximum(serverTabControl,1);
 	HideControl(serverTabControl);
@@ -580,13 +584,6 @@ void CarbonStream::saveStreamInfo(CarbonStreamEncoder *encoder) {
 	free(outFilename);
 }
 
-
-void CarbonStream::initServerControls() {
-	ControlID cid = {CARBON_GUI_APP_SIGNATURE,0};
-	textFilterRoutine=NewControlKeyFilterUPP(&ServerTextFilterProc);
-	textValidationRoutine=NewControlEditTextValidationUPP(ServerTextValidator); 
-	CarbonStream *self=this;
-	OSStatus err;
 #define GET_SERVER_CONTROL(__win,__cid,__id,__c) \
 	__cid.id=__id;\
 	if(GetControlByID(__win,&__cid,&__c)!=noErr) \
@@ -602,6 +599,13 @@ void CarbonStream::initServerControls() {
 	if(InstallControlEventHandler (__c,NewEventHandlerUPP(ServerTextEventHandler), \
 		GetEventTypeCount(serverTextEvents),serverTextEvents,this, NULL)!=noErr)\
 		msg->error("Can't install eventHandler for a serverText control!!");
+
+void CarbonStream::initServerControls() {
+	ControlID cid = {CARBON_GUI_APP_SIGNATURE,0};
+	textFilterRoutine=NewControlKeyFilterUPP(&ServerTextFilterProc);
+	textValidationRoutine=NewControlEditTextValidationUPP(ServerTextValidator); 
+	CarbonStream *self=this;
+	OSStatus err;
 
 	/* Here we also initialize internal ControlRefs for all those controls */
 	INIT_SERVER_TEXT_CONTROL(window,cid,HOST_CONTROL,serverHost,textFilterRoutine,textValidationRoutine);
@@ -628,20 +632,24 @@ void CarbonStream::initServerControls() {
 		err=GetControlData(__c,0,kControlEditTextTextTag,SERVER_STRING_BUFFER_LEN-1,buffer,NULL);\
 		if(err!=noErr) msg->error("Can't get %s from text control (%d)!!","__name",err);\
 	}
+	
 #define SAVE_SERVER_TEXT_INFO(__c,__func) \
 	{\
 		SAVE_SERVER_INFO(__c)\
 		server->__func(buffer);\
 		memset(buffer,0,sizeof(buffer));\
 	}
+	
 #define SAVE_SERVER_INT_INFO(__c,__func) \
 	{\
 		SAVE_SERVER_INFO(__c)\
 		intBuffer=0;\
-		sscanf(buffer,"%d",&intBuffer);\
-		server->__func(intBuffer);\
-		intBuffer=0;\
-		memset(buffer,0,sizeof(buffer));\
+		if(sscanf(buffer,"%d",&intBuffer) == 1) \
+		{\
+			server->__func(intBuffer);\
+			intBuffer=0;\
+			memset(buffer,0,sizeof(buffer));\
+		}\
 	}
 	
 void CarbonStream::saveServerInfo(CarbonStreamServer *server) {
@@ -735,6 +743,10 @@ void CarbonStream::updateServerInfo(CarbonStreamServer *server) {
 	}
 }
 
+/*
+ * isConnected?disconnect:connect 
+ * - do the right action when the user presses the connect/disconnect button 
+ */
 bool CarbonStream::doConnect() {
 	CarbonStreamServer *server=selectedServer();
 	saveServerInfo(server);
@@ -749,6 +761,7 @@ bool CarbonStream::disconnectServer(CarbonStreamServer *server) {
 	if(server) return server->disconnect();
 }
 
+/* try connection to the shoutcast server */
 bool CarbonStream::connectServer(CarbonStreamServer *server) {
 	if(server) return server->connect();
 }

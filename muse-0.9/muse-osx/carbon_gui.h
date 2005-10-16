@@ -29,13 +29,19 @@
 //OSStatus startCarbon(void *arg);
 class CarbonChannel;
 
+/* 
+ * Main class for the Carbon Interface.
+ * This class extends the base one GUI and both implements the interface 
+ * used by jmixer and handles other carbon related objects 
+ * (channel and stream windows, vumeters, etc )
+ */
 class CARBON_GUI : public GUI {
 
  public:
   CARBON_GUI(int argc, char **argv, Stream_mixer *mix);
   ~CARBON_GUI();
 
-  void run();
+  void run(); /* the mainLoop of the carbon gui */
   void set_pos(unsigned int chan, float pos) {new_pos[chan] = true;};
   void set_lcd(unsigned int chan, char *lcd) {new_lcd[chan] = true;};
   void set_title(char *txt);
@@ -62,12 +68,12 @@ class CARBON_GUI : public GUI {
   void credits();
  // void start();
 
-  WindowRef 	window;
-  WindowGroupRef mainGroup;
-  IBNibRef 		nibRef;
-  Stream_mixer *jmix;
-  CarbonMessage *msg;
-  PlaylistManager *playlistManager;
+  WindowRef 	window; /* the main window */
+  WindowGroupRef mainGroup; /* the main window group */
+  IBNibRef 		nibRef; /* nibRef with resources for all windows,controls and menu */
+  Stream_mixer *jmix; /* the Stream_mixer object AKA the MuSE core */
+  CarbonMessage *msg; /* a simple message object to let us notify errors to user trough the gui */
+  PlaylistManager *playlistManager; /* an object to handle load&save of playlists */
 
 private:
   bool init_controls();
