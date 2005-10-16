@@ -205,9 +205,13 @@ CarbonStream::~CarbonStream() {
 	for(i=0;i<MAX_STREAM_ENCODERS;i++) {
 		if(enc[i]) {
 			for(n=0;n<MAX_STREAM_SERVERS;n++) {
-				if(servers[i][n]) delete servers[i][n];
+				if(servers[i][n]) {
+					delete servers[i][n];
+					servers[i][n] = NULL;
+				}
 			}
 			delete enc[i];
+			enc[i] = NULL;
 		}
 	}
 	if(presets) delete presets;
@@ -701,7 +705,9 @@ void CarbonStream::updateServerInfo(CarbonStreamServer *server) {
 	int intBuf=0;
 	char intBufStr[256];
 	cid.signature=CARBON_GUI_APP_SIGNATURE;
-
+	
+	if(!server) return;
+	
 	/* host */
 	UPDATE_SERVER_TEXT_INFO(serverHost,host);
 	/* mnt */
@@ -951,6 +957,7 @@ void CarbonStream::updateStreamInfo(CarbonStreamEncoder *encoder) {
 	OSStatus err;
 	ControlRef control;
 	ControlID cid={CARBON_GUI_APP_SIGNATURE,0};
+	
 	if(!encoder) return;
 	
 	/* encoder type */

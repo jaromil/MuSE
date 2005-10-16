@@ -164,13 +164,13 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 
 CARBON_GUI::~CARBON_GUI() 
 { 
+    /* Destroy used objects */
+	delete streamHandler;
+	delete playlistManager;
+	delete aboutWindow;
 	/* delete all input channels */
 	for (int i=0;i<MAX_CHANNELS;i++) 
 		if(channel[i]) delete channel[i];
-    /* Destroy other used objects */
-	delete playlistManager;
-	delete streamHandler;
-	delete aboutWindow;
 	DisposeMenu(mainMenu);
 	// We don't need the nib reference anymore.
 	DisposeNibReference(nibRef);
