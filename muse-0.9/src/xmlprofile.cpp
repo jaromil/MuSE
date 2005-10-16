@@ -260,12 +260,12 @@ XmlErr XmlProfile::XmlParseBuffer(char *buffer) {
 							else {
 								free(tmpAttr);
 							}
-						}
+						} /* if(*p == '"' || *p == '\'') */
 						else {
 							free(tmpAttr);
 						}
-					}
-				}
+					} /* if(*p=='=') */
+				} /* while(*p!='>' && *p!=0) */
 				err = XmlStartHandler(start,attrs,values);
 				if(err!=XML_NOERR) {
 					XML_FREE_ATTRIBUTES
@@ -280,8 +280,8 @@ XmlErr XmlProfile::XmlParseBuffer(char *buffer) {
 				}
 				XML_FREE_ATTRIBUTES
 				p++;
-			}
-		} //if(*p=='<')
+			} /* end of start tag */
+		} /* if(*p=='<') */
 		else if(state == XML_ELEMENT_START) {
 			state=XML_ELEMENT_VALUE;
 			mark=p;
@@ -329,8 +329,9 @@ XmlTag *XmlProfile::getBranch(int index) {
 	return NULL;
 }
 
-/* XXX - the real proble here is when you have multiple tags with the same name ...
- * this method will return always the first one !!! */
+/* XXX - the real problem here is when you have multiple tags with the same name ...
+ * this method will return always the first one !!! 
+ * TODO - should return a list of XmlTag * in case of multiple entries */
 XmlTag *XmlProfile::getElement(char *path) {
 	char *tagName,*tkContext;
 	XmlTag *tag = NULL;
@@ -357,6 +358,7 @@ XmlTag *XmlProfile::getElement(char *path) {
 	return tag;
 }
 
+/* renders the entire xml tree represented in memory in a string buffer and returns it */
 char *XmlProfile::dumpXml() {
 	char *dump = (char *)malloc(1);
 	*dump=0;
@@ -375,6 +377,8 @@ char *XmlProfile::dumpXml() {
 	return(dump);
 }
 
+/* dumps an entire branch (recursively) starting from a specific XmlTag * node 
+ * depth is used to calculate \t (tab spaces) to use when dumping node. */
 char *XmlProfile::dumpBranch(XmlTag *rTag,unsigned int depth) {
 	int i,n;
 	char *out = NULL;
@@ -418,7 +422,7 @@ char *XmlProfile::dumpBranch(XmlTag *rTag,unsigned int depth) {
 			for(i=1;i<=rTag->numChildren();i++) {
 				XmlTag *child = rTag->getChild(i);
 				if(child) {
-					char *childBuff = dumpBranch(child,depth+1);
+					char *childBuff = dumpBranch(child,depth+1); /* let's recurse */
 					if(childBuff) {
 						childDump = (char *)realloc(childDump,strlen(childDump)+strlen(childBuff)+2);
 						strcat(childDump,childBuff);
@@ -705,7 +709,10 @@ XmlTag *XmlTag::parent() {
 bool XmlTag::value(char *val) {
 	unsigned int valLen=0;
 	if(!val) return false;
-	if(_value) _value=(char *)realloc(_value,strlen(val)+1);
+	if(_value) {
+		_value=(char *)realloc(_value,strlen(val)+1);
+		strcpy(_value,val);
+	}
 	else _value=strdup(val);
 	return true;
 }

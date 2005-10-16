@@ -39,7 +39,8 @@
 
 
 /**
-	XmlTag objects can be directly created and attached to an XmlProfile. 
+	XmlTag objects represents xml nodes and can be directly created and 
+	attached to an XmlProfile. 
 	They will also be instantiated as necessary during a parsing process 
 	(loading a file or parsing a string buffer)	
 
@@ -68,7 +69,7 @@ class XmlTag {
 	/**
 		@defgroup XmlTag
 		The following methods and properties are
-		available to handle an XML element that represents a 
+		available to handle an XML node that represents a 
 		configuration entry
 	
 		@{
