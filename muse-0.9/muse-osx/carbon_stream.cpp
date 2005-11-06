@@ -327,8 +327,14 @@ void CarbonStream::delTab(SInt32 controlID,int idx) {
 	}
 	else {
 		HideControl(*control);
-		if(controlID==STREAM_TAB_CONTROL) _selectedStream=0;
-		else _selectedServer=0;
+		if(controlID==STREAM_TAB_CONTROL) {
+			_selectedStream=0;
+			SetControl32BitValue(streamTabControl,0);
+		}
+		else {
+			_selectedServer=0;
+			SetControl32BitValue(serverTabControl,0);
+		}
 	}
 }
 
@@ -501,11 +507,10 @@ CarbonStreamServer *CarbonStream::getServer(int strIdx,int srvIdx) {
 bool CarbonStream::updateStreamTab() {
 	SInt32 val = GetControl32BitValue(streamTabControl);
 	if(_selectedStream==val) return false; /* no changes ... */
-	_selectedStream=val;
 	int idx = getTabValue(STREAM_TAB_CONTROL,_selectedStream)-1;
-	if(idx < 0) return false;
-	if(enc[idx]) saveStreamInfo(enc[idx]);
+	if(idx >= 0 && enc[idx]) saveStreamInfo(enc[idx]);
 	if(IsControlVisible(streamTabControl)) {
+		_selectedStream=val;
 		changeServerTab();
 		updateStreamInfo(selectedStream());
 	}
@@ -1593,7 +1598,6 @@ void  ServerTextValidator(ControlRef theControl)
 	ControlID cid;
 	OSStatus err=GetControlID(theControl,&cid);
 	char *outText=NULL;
-	printf("CIAO \n");
 	// ................................. Get the text to be examined from the control
 
 	GetControlData(theControl,kControlNoPart,kControlEditTextTextTag,

@@ -35,6 +35,8 @@ CarbonStreamEncoder::CarbonStreamEncoder(Stream_mixer *mix,CarbonMessage *cmsg) 
 	_channels=DEFAULT_MODE; /* defaults to mono */
 	type(DEFAULT_ENCODER);
 	_filterMode=0;
+	_lowpass=0;
+	_highpass=0;
 	update();
 }
 
@@ -52,7 +54,12 @@ bool CarbonStreamEncoder::update() {
 			else {
 				jmix->delete_enc(encoderID);
 				encoderID=jmix->create_enc(_type);
-				enc=jmix->get_enc(encoderID);
+				if(encoderID >= 0) 
+					enc=jmix->get_enc(encoderID);
+				else {
+					msg->warning(" Cant' create new encoder !!");
+					return false;
+				}
 			}
 		}
 	}
