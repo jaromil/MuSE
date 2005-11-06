@@ -95,7 +95,7 @@ Stream_mixer::Stream_mixer() {
   fileout = false;
   quit = false;
 
-  set_tick(1000000/60); // a tick is 1/60 of a second
+  set_tick(1000000000/60); // a tick is 1/60 of a second
 
   for(i=0;i<8;i++) peak[i] = 0;
   cpeak = 0;
@@ -197,8 +197,7 @@ void Stream_mixer::cafudda()
       if(chan[i]->on) {	
 
 	// this read from pipe is set to mix int32 down to the process_buffer
-	cc = chan[i]->erbapipa->read(MIX_CHUNK*2,process_buffer);
-
+	cc = chan[i]->erbapipa->read(MIX_CHUNK*4,process_buffer);
 	// signal to the channel that audio has been read
 	chan[i]->signal();
 
@@ -259,18 +258,13 @@ void Stream_mixer::cafudda()
 
     out = (OutChannel*) outchans.begin();
     while(out) {
-
-      if(out->encoding
-	 && out->initialized
-	 && out->running) {
-
-	out->erbapipa->write(MIX_CHUNK*4,audio_buffer);
-	total_bitrate += out->get_bitrate();
-
+      if(out->encoding && out->initialized && out->running) 
+	  {
+        out->erbapipa->write(MIX_CHUNK*4,audio_buffer);
+        //out->signal();
+        total_bitrate += out->get_bitrate();
       }
-
       out = (OutChannel*) out->next;
-
     }
 
     /* WRITE 2 DSP */
@@ -328,7 +322,7 @@ void Stream_mixer::cafudda()
      
      here we give fifos a bit of air and avoid tight loops
      making the mixing engine wait 20 nanosecs */
-  tick_time();
+  tick_time(&lst_time,interval);
 }
 
 bool Stream_mixer::create_channel(int ch) {
@@ -1035,30 +1029,3 @@ void Stream_mixer::clip_audio(int samples) {
 void Stream_mixer::set_tick(uint32_t val) {
   interval = (long)val;
 }
-
-void Stream_mixer::tick_time() {
-  struct timespec tmp_rem,*rem;
-  rem=&tmp_rem;
-  /* 1frame : elapsed = X frames : 1000000 */
-  gettimeofday( &cur_time, NULL);
-  elapsed = cur_time.tv_usec - lst_time.tv_usec;
-  if(cur_time.tv_sec>lst_time.tv_sec) elapsed+=1000000; // never more than a sec
-
-  if(elapsed<=interval) {
-    slp_time.tv_sec = 0;
-	slp_time.tv_nsec = (interval - elapsed)*1000;
-    // handle signals (see man 2 nanosleep)
-    while(nanosleep(&slp_time,rem)==-1 && (errno==EINTR));
-
-    lst_time.tv_usec += interval;
-    if( lst_time.tv_usec > 999999) {
-      lst_time.tv_usec -= 1000000;
-      lst_time.tv_sec++;
-    }
-  } else {
-    lst_time.tv_usec = cur_time.tv_usec;
-    lst_time.tv_sec = cur_time.tv_sec;
-  }
-
-}
-

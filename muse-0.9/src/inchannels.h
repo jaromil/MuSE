@@ -86,7 +86,7 @@ class Channel {
 
   /* total seconds */
   int secs;
-
+  struct timeval lst_time; ///< time struct
  public:
   Channel();
   virtual ~Channel();
@@ -179,6 +179,8 @@ class Channel {
   void wait() { pthread_cond_wait(&_cond,&_mutex); };
   void signal() { pthread_cond_signal(&_cond); };
   /* ------------- */
+  
+  unsigned long tick_interval;
 
  protected:
   static void* kickoff(void *arg) { ((Channel *) arg)->run(); return NULL; };

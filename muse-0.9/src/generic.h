@@ -33,12 +33,11 @@
 #define IN_DATATYPE int16_t
 #define MIX_CHUNK 1152 //2048
 #define IN_CHUNK MIX_CHUNK
-#define IN_PIPESIZE 36864/2 // IN_CHUNK*32 (could be smaller *16)
+#define IN_PIPESIZE IN_CHUNK*256
 #define IN_BUFFER 35712 // IN_PIPESIZE-IN_CHUNK
-#define OUT_CHUNK 4096 // was MIX_CHUNK, i'm not sure it can safely be something different ...
-#define OUT_PIPESIZE OUT_CHUNK*32 // OUT_CHUNK*32
-#define OUT_BUFFER OUT_CHUNK*2
-#define ENC_BUFFER 1024*1000 // was 128000
+#define OUT_CHUNK MIX_CHUNK // was MIX_CHUNK, i'm not sure it can safely be something different ...
+#define OUT_PIPESIZE OUT_CHUNK*256
+#define ENC_BUFFER 1024*1000 
 #define PROCBUF_SIZE MIX_CHUNK*5 // mixer process buffers size
 
 /* soundcard tweaks */

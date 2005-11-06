@@ -45,7 +45,6 @@ OutLame::OutLame()
 
   tipo = MP3;
   enc_flags = NULL;
-
 }
 
 /* note: num is number of samples in the L (or R) channel
@@ -56,7 +55,8 @@ int OutLame::encode() {
   /* num is number of bytes read from pipe
      sound in pipe is always 16bit stereo ... */
   num = erbapipa->read(OUT_CHUNK<<2,pcm);
-  if(num<0) return num;
+  //jsleep(0,2000);
+  if(num<OUT_CHUNK<<2) return num;
   /* ... therefore samples are num/4 */
   smp = num>>2;
 
@@ -87,6 +87,10 @@ int OutLame::encode() {
       error("lame encoder: internal error");
       break;
     }
+  
+  /* manipulate tick !!! */
+  if(streaming) tick_interval = 1000000000/60;
+  else tick_interval = 1000000000/25;
   
   return encoded;
 }

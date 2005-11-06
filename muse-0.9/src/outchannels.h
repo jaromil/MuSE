@@ -271,7 +271,7 @@ class OutChannel: public Entry {
   void push(void *data, int len);  
   Pipe *erbapipa; ///< Pipe instance to feed the encoder // INTERNAL USE by run()
   bool encoding; ///< flag checked by run, (streaming||fd) ? true : false // INTERNAL USE by run()
-
+  bool streaming; ///< flag used to notify if we are streaming on network // INITIALIZED by run(), can be used in encode() 
   /* pthread methods */
   void start(); ///< start OutChannel thread
   void run(); ///< running loop called by start()
@@ -287,7 +287,7 @@ class OutChannel: public Entry {
   /* ------------- */  
 
   int16_t buffer[ENC_BUFFER]; ///< buffer holding the encoded audio
-
+  unsigned long tick_interval;
  private:
 
 
@@ -304,7 +304,9 @@ class OutChannel: public Entry {
   /* ------------- */
 
   int idseed; ///< unique ID pseudo-random seed
-
+  
+  struct timeval lst_time; ///< time struct
+  
  protected:
 
   static void* kickoff(void *arg) { ((OutChannel *) arg)->run(); return NULL; };

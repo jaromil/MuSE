@@ -192,8 +192,10 @@ int Pipe::read(int length, void *data) {
        (non blocking) returns what's available */
     if(read_blocking) {
       unlock();
-      if(!ttl) return -1;
-      jsleep(0,100); ttl -= 10;
+      if(!ttl) {
+		return -1;
+      }
+	  jsleep(0,10); ttl -= 10;
       lock();
       _SIZE(buffered_bytes);
       buffered = buffered_bytes 
@@ -201,10 +203,10 @@ int Pipe::read(int length, void *data) {
     } else {
       // nothing in the pipe
       if(!buffered) {
-	unlock();
-	return 0;
+	    unlock();
+        return 0;
       } else
-	truelen = buffered;
+         truelen = buffered;
       break;
     }
   }
@@ -274,8 +276,10 @@ int Pipe::write(int length, void *data) {
     // timeout block mechanism
     if(write_blocking) {
       unlock();
-      if(!ttl) return -1; // block timeout
-      jsleep(0,100); ttl -= 10;
+      if(!ttl) {
+		return -1; // block timeout
+      }
+	  jsleep(0,10); ttl -= 10;
       lock();
       // recalculate actual sizes
       _SPACE(space_bytes);

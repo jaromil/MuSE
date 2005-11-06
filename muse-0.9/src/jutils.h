@@ -88,6 +88,7 @@ float func() { return var; };
   int set_rtpriority(int max);
   void chomp(char *str);
   int resolve(char *host, char *ip);
+  void tick_time(struct timeval *ref_time,unsigned long interval); ///< makes a tick: waits if the elapsed is <= to the tick in nanoseconds
 
 #ifdef __cplusplus
 }

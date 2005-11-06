@@ -347,14 +347,9 @@ class Stream_mixer {
 
   void updchan(int ch); ///< updates the gui display strings
 
-
-  void tick_time(); ///< makes a tick: waits if the elapsed is <= to the tick in nanoseconds
   unsigned long interval; ///< nanoseconds for every tick to last
-  unsigned long elapsed; ///< elapsed nanoseconds in the current tick
-  struct timeval cur_time; ///< time struct
   struct timeval lst_time; ///< time struct
-  struct timespec slp_time; ///< time struct
-
+  
   /** This routine clips audio and calculates volume peak
       this saves cpu cycles by doing it all in the same iteration   
       featuring an adaptive coefficient for volume and clipping,

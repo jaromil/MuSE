@@ -76,7 +76,7 @@ OutChannel::OutChannel(char *myname)
 
   erbapipa = new Pipe(OUT_PIPESIZE);
   erbapipa->set_block(true,true);
- // erbapipa->set_block_timeout(500,500);
+  erbapipa->set_block_timeout(80000,20000);
 
   /* setup defaults */
   quality(4.0);
@@ -85,7 +85,7 @@ OutChannel::OutChannel(char *myname)
   channels(1);
   lowpass(0);
   highpass(0);
-    
+  tick_interval = 1000000000/60;
   //  profile_changed = true;
 
 }
@@ -145,13 +145,15 @@ void OutChannel::run() {
 
     /* check if we must encode */
     encoding = false;
-    if(fd) encoding = true;
+	streaming = false;
     Shouter *ice = (Shouter*)icelist.begin();
     while(ice) {
-      if(ice->running) encoding = true;
+      if(ice->running) streaming = true;
       ice = (Shouter*)ice->next;
     }
-    if(!initialized) encoding = false;
+	if(fd || streaming) encoding = true;
+    
+	if(!initialized) encoding = false;
     
     if(!encoding) {
       jsleep(0,50);
@@ -168,7 +170,7 @@ void OutChannel::run() {
     encoded = 0;
 
     lock();
-    encode();
+	encode();
     unlock();
 
     if(encoded<1) continue;
@@ -182,8 +184,9 @@ void OutChannel::run() {
     res = dump();
 
     /* TODO: flush when erbapipa->read != OUT_CHUNK */
-    
-  }
+    tick_time(&lst_time,tick_interval);
+ 
+   }
 
   running = false;
 }

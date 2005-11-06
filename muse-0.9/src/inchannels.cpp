@@ -90,6 +90,7 @@ Channel::Channel() {
   dec = NULL;
   fill_prev_smp = true;
   lcd[0] = '\0';
+  tick_interval = 1000000000/60;
 }
 
 Channel::~Channel() {
@@ -147,8 +148,8 @@ void Channel::run() {
 	buff = resample(buff);
 
 	/* at last pushes it up into the pipe
-	   bytes are samples*2 being the audio 16bit stereo */
-	erbapipa->write(frames*2,buff);
+	   bytes are samples*4 being the audio 16bit stereo */
+	erbapipa->write(frames*4,buff);
 
 	/* then calculates the position and time */
 	if(dec->seekable) state = upd_time();
@@ -170,7 +171,7 @@ void Channel::run() {
       jsleep(0,100); /* don't waste cpu time */
     }
 
-
+    tick_time(&lst_time,tick_interval);
   } // while(!quit)
   stop();
   func("Channel :: run :: end thread %d",pthread_self());
@@ -544,10 +545,11 @@ void Channel::sel(int newpos) {
       pos(0.0);
       break;
     case PLAYMODE_PLAYLIST:
-      if(newpos==1 && playlist->selected_pos()==playlist->len()) {
-		if(on) stop(); /* let's stop if this is last track in PLAYMODE_PLAYLIST */
-		break;
-	  }
+    if(newpos==1 && playlist->selected_pos()==playlist->len() && playlist->len() > 2)
+    {
+      if(on) stop(); /* let's stop if this is last track in PLAYMODE_PLAYLIST */
+      break;
+    }
     case PLAYMODE_CONT:
       Url *n;
       stop();
