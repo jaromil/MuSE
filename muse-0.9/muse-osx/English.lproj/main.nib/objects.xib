@@ -631,7 +631,7 @@
     <reference idRef="257"/>
     <reference idRef="258"/>
     <object class="IBCarbonWindow" id="259">
-      <string name="windowRect">693 463 827 878 </string>
+      <string name="windowRect">622 480 756 895 </string>
       <string name="title">Info</string>
       <reference name="rootControl" idRef="256"/>
       <boolean name="receiveUpdates">FALSE</boolean>
@@ -934,7 +934,7 @@
     <reference idRef="298"/>
     <reference idRef="300"/>
     <object class="IBCarbonWindow" id="310">
-      <string name="windowRect">55 984 142 1543 </string>
+      <string name="windowRect">682 469 769 1028 </string>
       <string name="title">Add URL</string>
       <object name="rootControl" class="IBCarbonRootControl" id="311">
         <string name="bounds">0 0 87 559 </string>
@@ -1708,7 +1708,7 @@
       </array>
     </object>
     <object class="IBCarbonWindow" id="315">
-      <string name="windowRect">348 984 1005 1511 </string>
+      <string name="windowRect">78 164 735 691 </string>
       <string name="title">Streams</string>
       <reference name="rootControl" idRef="314"/>
       <boolean name="receiveUpdates">FALSE</boolean>
@@ -1717,7 +1717,6 @@
       <boolean name="metal">TRUE</boolean>
       <boolean name="compositing">TRUE</boolean>
       <int name="windowPosition">1</int>
-      <boolean name="isConstrained">FALSE</boolean>
     </object>
     <reference idRef="317"/>
     <reference idRef="318"/>
@@ -1826,7 +1825,7 @@
       </array>
     </object>
     <object class="IBCarbonWindow" id="454">
-      <string name="windowRect">256 913 562 1048 </string>
+      <string name="windowRect">299 878 605 1013 </string>
       <string name="title"></string>
       <reference name="rootControl" idRef="453"/>
       <boolean name="receiveUpdates">FALSE</boolean>
@@ -2225,7 +2224,7 @@
     <reference idRef="568"/>
     <reference idRef="572"/>
     <object class="IBCarbonWindow" id="574">
-      <string name="windowRect">121 474 201 891 </string>
+      <string name="windowRect">120 474 200 891 </string>
       <string name="title">Vumeters</string>
       <object name="rootControl" class="IBCarbonRootControl" id="575">
         <string name="bounds">0 0 80 417 </string>
@@ -2288,7 +2287,6 @@
       <boolean name="compositing">TRUE</boolean>
       <int name="carbonWindowClass">8</int>
       <int name="themeBrush">15</int>
-      <boolean name="isConstrained">FALSE</boolean>
       <boolean name="hideOnFullScreen">TRUE</boolean>
       <boolean name="doesNotCycle">TRUE</boolean>
       <boolean name="inWindowMenu">FALSE</boolean>
@@ -2355,7 +2353,6 @@
       <boolean name="compositing">TRUE</boolean>
       <int name="carbonWindowClass">8</int>
       <int name="themeBrush">15</int>
-      <boolean name="isConstrained">FALSE</boolean>
       <boolean name="hideOnFullScreen">TRUE</boolean>
       <boolean name="doesNotCycle">TRUE</boolean>
       <boolean name="inWindowMenu">FALSE</boolean>
@@ -2364,7 +2361,7 @@
     <reference idRef="588"/>
     <reference idRef="591"/>
     <object class="IBCarbonWindow" id="615">
-      <string name="windowRect">182 984 269 1543 </string>
+      <string name="windowRect">669 474 756 1033 </string>
       <string name="title">Save Playlist</string>
       <object name="rootControl" class="IBCarbonRootControl" id="616">
         <string name="bounds">0 0 87 559 </string>
@@ -2551,7 +2548,7 @@
     <reference idRef="662"/>
     <reference idRef="663"/>
     <object class="IBCarbonWindow" id="668">
-      <string name="windowRect">312 984 399 1543 </string>
+      <string name="windowRect">656 474 743 1033 </string>
       <string name="title">Save Stream Preset</string>
       <object name="rootControl" class="IBCarbonRootControl" id="669">
         <string name="bounds">0 0 87 559 </string>
