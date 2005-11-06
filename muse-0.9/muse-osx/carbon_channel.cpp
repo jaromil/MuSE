@@ -1170,13 +1170,19 @@ OSStatus HandlePlaylist (ControlRef browser,DataBrowserItemID itemID,
         case 'SONG':
 			entry = (Url *)me->playList->pick(itemID);
 			if(entry) {
+				char *p;
+				if(strncasecmp(entry->path,"http://",7) != 0) {
 				/* XXX - lazy coding */
-				char *p = entry->path+strlen(entry->path);
+				p = entry->path+strlen(entry->path);
 				while(*p!='/') {
 					if(p==entry->path) break;
 					p--;
 				}
 				if(*p=='/') p++;
+				}
+				else {
+					p = entry->path;
+				}
 				status = SetDataBrowserItemDataText(itemData,
 					CFStringCreateWithCString(kCFAllocatorDefault,
 					p,kCFStringEncodingMacRoman));

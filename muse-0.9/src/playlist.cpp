@@ -28,6 +28,15 @@
 
 Url::Url(const char *file) : Entry() {
   path = strdup(file);
+  /* if this is an http stream .. check if url is complete 
+   * (trailing / is needed if no filename is eplicitly specified */
+  if(strncasecmp(file,"http://",7) == 0) {
+    if(!strchr(file+7,'/')) {
+	  path=(char *)realloc(path,strlen(path)+1);
+	  strcat(path,"/");
+    }
+  }
+
 #ifdef HAVE_SCHEDULER
   mn=NULL;   hr=NULL;
   day=NULL;  mon=NULL;
