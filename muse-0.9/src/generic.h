@@ -34,7 +34,6 @@
 #define MIX_CHUNK 1152 //2048
 #define IN_CHUNK MIX_CHUNK
 #define IN_PIPESIZE IN_CHUNK*256
-#define IN_BUFFER 35712 // IN_PIPESIZE-IN_CHUNK
 #define OUT_CHUNK MIX_CHUNK // was MIX_CHUNK, i'm not sure it can safely be something different ...
 #define OUT_PIPESIZE OUT_CHUNK*256
 #define ENC_BUFFER 1024*1000 
