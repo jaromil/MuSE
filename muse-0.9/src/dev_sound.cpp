@@ -125,16 +125,16 @@ long len = framesPerBuffer * (PA_SAMPLES_PER_FRAME*sizeof(PA_SAMPLE_TYPE));
 	if(dev->output->info) {
 	  if(dev->output->info->maxOutputChannels>1) {
 	     readBytes = dev->output->pipe->read(len,outputBuffer);
-	   }
-	   else {
+	  }
+      else {
 	     rBuf = malloc(len);
+		 readBytes = dev->output->pipe->read(len,rBuf);
 		 n=0;
          for(i=0;i<(len/sizeof(PA_SAMPLE_TYPE))/2;i++) {
-           ((float *)rBuf)[n]=((float *)outputBuffer)[i];
-           ((float *)rBuf)[n+1]=((float *)outputBuffer)[i];
+           ((float *)outputBuffer)[n]=((float *)rBuf)[i];
+           ((float *)outputBuffer)[n+1]=((float *)rBuf)[i];
 		   n+=2;
          }
-         readBytes = dev->output->pipe->write(len,rBuf);
 		 free(rBuf);
 	  }
 	  if(readBytes <= 0) memset(outputBuffer,0,len);
