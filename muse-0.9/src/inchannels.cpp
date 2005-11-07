@@ -90,7 +90,7 @@ Channel::Channel() {
   dec = NULL;
   fill_prev_smp = true;
   lcd[0] = '\0';
-  tick_interval = 1000000000/60;
+  tick_interval = 1000000000/60; // defaults to 1/60 of a second
 }
 
 Channel::~Channel() {

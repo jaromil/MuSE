@@ -206,7 +206,7 @@ void tick_time(struct timeval *ref_time,unsigned long interval) {
   }
   if(elapsed<=interval) {
 	slp_time.tv_nsec = (interval - elapsed);
-    // handle signals (see man 2 nanosleep)
+	// handle signals (see man 2 nanosleep)
     while(nanosleep(&slp_time,rem)==-1 && (errno==EINTR));
   } 
 upd_tick:

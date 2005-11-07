@@ -88,10 +88,6 @@ int OutLame::encode() {
       break;
     }
   
-  /* manipulate tick !!! */
-  if(streaming) tick_interval = 1000000000/60;
-  else tick_interval = 1000000000/25;
-  
   return encoded;
 }
 

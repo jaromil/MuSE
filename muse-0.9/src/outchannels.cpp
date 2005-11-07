@@ -76,7 +76,6 @@ OutChannel::OutChannel(char *myname)
 
   erbapipa = new Pipe(OUT_PIPESIZE);
   erbapipa->set_block(true,true);
-  erbapipa->set_block_timeout(80000,20000);
 
   /* setup defaults */
   quality(4.0);
@@ -85,7 +84,7 @@ OutChannel::OutChannel(char *myname)
   channels(1);
   lowpass(0);
   highpass(0);
-  tick_interval = 1000000000/60;
+  tick_interval = 1000000000/60; // defaults to 1/60 of a second
   //  profile_changed = true;
 
 }

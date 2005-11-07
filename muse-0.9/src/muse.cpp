@@ -233,7 +233,7 @@ bool got_sigpipe;
 bool take_args(int argc, char **argv) {
   int res;
   
-  MuseSetDebug(1);
+  MuseSetDebug(debug);
   
   do {
     res = getopt_long(argc, argv, short_options, long_options, NULL);

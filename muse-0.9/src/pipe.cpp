@@ -40,6 +40,8 @@ Boston, MA 02111-1307, USA.
 #define _SIZE(val) \
   if ((char*)end > (char*)start) \
     val = (char*)end-(char*)start; \
+  else if((char *)end == (char *)start && (char *)start == (char *)buffer) \
+    val = 0; \
   else  \
     val = ((char*)bufferEnd-(char*)start)+((char*)end-(char*)buffer);
 
@@ -142,7 +144,6 @@ Pipe::Pipe(int size) {
   read_blocking_time = 20000;
   write_blocking = false;
   write_blocking_time = 20000;
-
   _thread_init();
   //unlock();
   
@@ -229,7 +230,7 @@ int Pipe::read(int length, void *data) {
       (data, start,
        blk / read_copy_cb->src_samplesize);
     /* blank just copied bytes */
-    memset(start,0,blk / read_copy_cb->src_samplesize);
+    //memset(start,0,blk / read_copy_cb->src_samplesize);
     
     start = &((char*)start)[blk]; // (char*)start += blk;
     len -= blk;
@@ -244,8 +245,8 @@ int Pipe::read(int length, void *data) {
 	(data, start,
 	 len / read_copy_cb->src_samplesize);
       
-      /* blank just copied bytes */
-      memset(start,0,len / read_copy_cb->src_samplesize);
+    //  /* blank just copied bytes */
+    //  memset(start,0,len / read_copy_cb->src_samplesize);
       data = &((char*)data)[len]; // (char*)data += len;
       start = &((char*)start)[len]; // (char*)start += len;
       worklen -= len;
@@ -253,6 +254,8 @@ int Pipe::read(int length, void *data) {
 	start = buffer;
     }
   }
+  if (start == end) 
+	start = end = buffer;
   
   unlock();
   return ( (origlen-worklen)/read_copy_cb->src_samplesize );
@@ -369,6 +372,7 @@ void Pipe::flush() {
   lock();
   bufferEnd=(char*)buffer+pipesize;
   end=start=buffer;
+  memset(buffer,0,pipesize);
   unlock();
 }
 

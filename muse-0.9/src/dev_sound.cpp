@@ -32,7 +32,7 @@
 #define PA_SAMPLES_PER_FRAME 2
 #define PA_NUM_SECONDS 5
 #define FRAMES_PER_BUFFER   (64)
-#define PA_PIPE_SIZE MIX_CHUNK*512
+#define PA_PIPE_SIZE MIX_CHUNK*sizeof(PA_SAMPLE_TYPE)*64
 
 #define INPUT_DEVICE  Pa_GetDefaultInputDeviceID()
 #define OUTPUT_DEVICE Pa_GetDefaultOutputDeviceID()
@@ -118,9 +118,10 @@ long len = framesPerBuffer * (PA_SAMPLES_PER_FRAME*sizeof(PA_SAMPLE_TYPE));
         readBytes = dev->input->pipe->write(len,rBuf);
         free(rBuf);
       }
+	  if(readBytes <= 0) memset(inputBuffer,0,len);
 	}
   }
-  if(outputBuffer != NULL) { /* handle output from soundcard */
+  if(outputBuffer != NULL) { /* handle output to soundcard */
 	if(dev->output->info) {
 	  if(dev->output->info->maxOutputChannels>1) {
 	     readBytes = dev->output->pipe->read(len,outputBuffer);
@@ -136,6 +137,7 @@ long len = framesPerBuffer * (PA_SAMPLES_PER_FRAME*sizeof(PA_SAMPLE_TYPE));
          readBytes = dev->output->pipe->write(len,rBuf);
 		 free(rBuf);
 	  }
+	  if(readBytes <= 0) memset(outputBuffer,0,len);
     }
   }
   return 0;

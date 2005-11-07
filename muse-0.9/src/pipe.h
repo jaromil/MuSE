@@ -241,7 +241,6 @@ public:
   
   void *buffer;
   void *bufferEnd;
-  
   void *start;
   void *end;
 
