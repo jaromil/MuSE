@@ -42,6 +42,7 @@
 #include <decoder.h>
 #include <playlist.h>
 #include <pipe.h>
+#include <sys/time.h>
 
 struct timecode {
   int h;
