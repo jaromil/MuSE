@@ -95,7 +95,7 @@ Stream_mixer::Stream_mixer() {
   fileout = false;
   quit = false;
 
-  set_tick(1000000000/60); // a tick is 1/60 of a second
+  set_tick(1000000/60); // a tick is 1/60 of a second
 
   for(i=0;i<8;i++) peak[i] = 0;
   cpeak = 0;
@@ -178,6 +178,7 @@ void Stream_mixer::cafudda()
 {
   int i, c=0, cc;
   int total_bitrate=0;
+  long slept;  // just for debugging purposes
   /* here memset takes byte num
      max *4 (32bit) *2 (stereo) */
   memset(process_buffer,0,MIX_CHUNK*8);
@@ -190,8 +191,9 @@ void Stream_mixer::cafudda()
     return;
   }
 
-  //  lock();
-
+  slept=tick_time(&lst_time,interval);
+  if(slept) func("cafudda ticking %lu ms!! \n",slept);
+  
   for(i=0;i<MAX_CHANNELS;i++) {
     if(chan[i] != NULL) {
       if(chan[i]->on) {	
@@ -322,7 +324,6 @@ void Stream_mixer::cafudda()
      
      here we give fifos a bit of air and avoid tight loops
      making the mixing engine wait 20 nanosecs */
-  tick_time(&lst_time,interval);
 }
 
 bool Stream_mixer::create_channel(int ch) {
@@ -362,7 +363,7 @@ bool Stream_mixer::delete_channel(int ch) {
   // be sure it quitted
   while(chan[ch]->running) {
     chan[ch]->quit = true;
-    jsleep(0,10);
+    //jsleep(0,10);
   }
 
   /* clean internal allocated buffers */
@@ -902,7 +903,7 @@ void Stream_mixer::delete_enc(int id) {
 
   if(outch->running) {
     outch->quit = true;
-    jsleep(0,50);
+    //jsleep(0,50);
     outch->lock(); outch->unlock();
     outch->flush(); /* QUA we waste some buffer in the pipe 
 		       CHECK THIS */

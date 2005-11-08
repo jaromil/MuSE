@@ -36,7 +36,7 @@
 #define IN_CHUNK MIX_CHUNK
 #define IN_PIPESIZE IN_CHUNK*(sizeof(IN_DATATYPE))*64
 #define OUT_CHUNK MIX_CHUNK // was MIX_CHUNK, i'm not sure it can safely be something different ...
-#define OUT_PIPESIZE OUT_CHUNK*(sizeof(OUT_DATATYPE))*64
+#define OUT_PIPESIZE OUT_CHUNK*(sizeof(OUT_DATATYPE))*128
 #define ENC_BUFFER 1024*1000 
 #define PROCBUF_SIZE MIX_CHUNK*5 // mixer process buffers size
 

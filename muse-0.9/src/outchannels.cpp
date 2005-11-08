@@ -84,7 +84,7 @@ OutChannel::OutChannel(char *myname)
   channels(1);
   lowpass(0);
   highpass(0);
-  tick_interval = 1000000000/60; // defaults to 1/60 of a second
+  tick_interval = 1000000/60; // defaults to 1/60 of a second
   //  profile_changed = true;
 
 }
@@ -94,11 +94,11 @@ OutChannel::~OutChannel() {
 
   
   quit = true;
-  unlock();// signal();  
+//  lock();unlock();// signal();  //  
 
   initialized = false;
 
-  jsleep(0,50);
+  while(running) jsleep(0,500);
 
   Shouter *ice = (Shouter*)icelist.begin();
   lock_ice();
@@ -132,6 +132,7 @@ void OutChannel::start() {
 
 void OutChannel::run() {
   int res;
+  long slept;
   /*
   if(!initialized) {
     warning("OutChannel::run() : output channel uninitialized, thread won't start");
@@ -141,7 +142,10 @@ void OutChannel::run() {
 
   running = true;
   while(!quit) {
-
+    //lock();
+	slept=tick_time(&lst_time,tick_interval);
+	//unlock();
+	if(slept) func("outchannel ticking %lu ms!! \n",slept);
     /* check if we must encode */
     encoding = false;
 	streaming = false;
@@ -155,12 +159,12 @@ void OutChannel::run() {
 	if(!initialized) encoding = false;
     
     if(!encoding) {
-      jsleep(0,50);
+    //  jsleep(0,100000); /* sleep 100 microseconds (aka 100000 nanosecs)
       shout(); /* in case there are waiting retries */
       if(quit) break;
       continue;
-    } else jsleep(0,5); /* avoid a tight loop */
-
+    } 
+	
     /* erbapipa sucking is now done in instantiated classes
        inside the encode() method
        (see vorbis and lame classes)
@@ -183,8 +187,6 @@ void OutChannel::run() {
     res = dump();
 
     /* TODO: flush when erbapipa->read != OUT_CHUNK */
-    tick_time(&lst_time,tick_interval);
- 
    }
 
   running = false;

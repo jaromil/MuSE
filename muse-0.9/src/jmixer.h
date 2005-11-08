@@ -347,7 +347,7 @@ class Stream_mixer {
 
   void updchan(int ch); ///< updates the gui display strings
 
-  unsigned long interval; ///< nanoseconds for every tick to last
+  long interval; ///< nanoseconds for every tick to last
   struct timeval lst_time; ///< time struct
   
   /** This routine clips audio and calculates volume peak

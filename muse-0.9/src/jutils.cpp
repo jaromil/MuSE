@@ -149,15 +149,15 @@ void MuseCloseLog() {
 
 
 void jsleep(int sec, long nsec) {
-#ifdef HAVE_DARWIN
-  usleep(nsec*10);
-#else
+//#ifdef HAVE_DARWIN
+//  usleep(nsec);
+//#else
   int ret;
   struct timespec timelap;
   timelap.tv_sec = sec;
   timelap.tv_nsec = nsec;
   do {ret = nanosleep(&timelap,NULL);} while (ret==-1 && errno==EINTR);
-#endif
+//#endif
 }
 
 double dtime() {
@@ -187,34 +187,37 @@ void chomp(char *str) {
   strncpy(str, tmp, MAX_PATH_SIZE);
 }
 
-void tick_time(struct timeval *ref_time,unsigned long interval) {
-  struct timespec tmp_rem,*rem;
+long tick_time(struct timeval *ref_time,long interval) {
   struct timeval cur_time; ///< time struct
   struct timespec slp_time; ///< time struct
-  unsigned long elapsed; ///< elapsed nanoseconds in the current tick
+  long elapsed,delta;
+  
+  memset(&slp_time,0,sizeof(slp_time));
 
-  slp_time.tv_sec = 0;
-  slp_time.tv_nsec = 0;
-  rem=&tmp_rem;
   /* 1frame : elapsed = X frames : 1000000 */
   gettimeofday( &cur_time, NULL);
+  if(ref_time->tv_sec == 0 && ref_time->tv_usec == 0) /* first tick just initializes ref_time */
+	goto upd_tick; 
   if(cur_time.tv_sec>ref_time->tv_sec) {
-    elapsed = cur_time.tv_usec+((cur_time.tv_sec-ref_time->tv_sec)*1000000000)-ref_time->tv_usec;
+    elapsed = cur_time.tv_usec+((cur_time.tv_sec-ref_time->tv_sec)*1000000)-ref_time->tv_usec;
   }
   else {
     elapsed = cur_time.tv_usec - ref_time->tv_usec;
   }
   if(elapsed<=interval) {
-	slp_time.tv_nsec = (interval - elapsed);
+	slp_time.tv_nsec = (interval - elapsed)*1000;
 	// handle signals (see man 2 nanosleep)
-    while(nanosleep(&slp_time,rem)==-1 && (errno==EINTR));
-  } 
-upd_tick:
+	if(slp_time.tv_nsec >0) // extra paranoia check (superfluous)
+		nanosleep(&slp_time,NULL);
+  }
+  upd_tick:
   ref_time->tv_sec = cur_time.tv_sec;
-  ref_time->tv_usec = cur_time.tv_usec+slp_time.tv_nsec;
-  if(ref_time->tv_usec > 999999999) {
-	  ref_time->tv_usec -= 1000000000;
+  ref_time->tv_usec = cur_time.tv_usec+(slp_time.tv_nsec/1000);
+  if(ref_time->tv_usec > 999999) {
+	  delta = 1000000-ref_time->tv_usec;
+	  ref_time->tv_usec = delta;
 	  ref_time->tv_sec++;
   }
+  return slp_time.tv_nsec/1000;
 }
 

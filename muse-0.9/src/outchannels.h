@@ -287,7 +287,8 @@ class OutChannel: public Entry {
   /* ------------- */  
 
   int16_t buffer[ENC_BUFFER]; ///< buffer holding the encoded audio
-  unsigned long tick_interval;
+  long tick_interval;
+  struct timeval lst_time; ///< time struct
  private:
 
 
@@ -305,7 +306,6 @@ class OutChannel: public Entry {
 
   int idseed; ///< unique ID pseudo-random seed
   
-  struct timeval lst_time; ///< time struct
   
  protected:
 

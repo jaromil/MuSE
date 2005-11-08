@@ -90,7 +90,7 @@ Channel::Channel() {
   dec = NULL;
   fill_prev_smp = true;
   lcd[0] = '\0';
-  tick_interval = 1000000000/60; // defaults to 1/60 of a second
+  tick_interval = 1000000/60; // defaults to 1/60 of a second
 }
 
 Channel::~Channel() {
@@ -100,8 +100,8 @@ Channel::~Channel() {
   //stop();
   //  clean();
   quit = true;
-  
-  while(running) jsleep(0,20);
+ // lock();unlock(); // this is paranoia
+  while(running) jsleep(0,500);
 
   /* clean up specific channel implementation */
 
@@ -113,7 +113,7 @@ Channel::~Channel() {
 }
 
 void Channel::run() {
-
+  long slept;  // for debugging purpose
   IN_DATATYPE *buff; // pointer to buffers to pass them around
   lock();
   func("InChanThread! here i am");
@@ -123,7 +123,8 @@ void Channel::run() {
   signal();
 
   while(!quit) {
-    
+	slept=tick_time(&lst_time,tick_interval);
+	if(slept) func("inchannel ticking %lu ms!! \n",slept);
     if(on) {
       idle = false;
       PARADEC
@@ -161,17 +162,15 @@ void Channel::run() {
 	else { // nothing comes out but we hang on
 	  //	  error("unknown state on %s channel",dec->name);
 	  //	  report(); state = 0.0;
-	  jsleep(0,1);
+	  //jsleep(0,1);
 	}
 
     } else { // if(on)
 
       // just hang on
       idle = true;
-      jsleep(0,100); /* don't waste cpu time */
+      //jsleep(0,100); /* don't waste cpu time */
     }
-
-    tick_time(&lst_time,tick_interval);
   } // while(!quit)
   stop();
   func("Channel :: run :: end thread %d",pthread_self());
