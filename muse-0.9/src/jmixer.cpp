@@ -95,7 +95,7 @@ Stream_mixer::Stream_mixer() {
   fileout = false;
   quit = false;
 
-  set_tick(1000000/60); // a tick is 1/60 of a second
+  set_tick(1000000/90); // a tick is 1/90 of a second
 
   for(i=0;i<8;i++) peak[i] = 0;
   cpeak = 0;
@@ -354,18 +354,9 @@ bool Stream_mixer::create_channel(int ch) {
 bool Stream_mixer::delete_channel(int ch) { 
   /* paranoia */
   PARACHAN
-
-    //  lock();
-
-  if(chan[ch]->on) chan[ch]->stop();
-  // quit the thread
-
-  // be sure it quitted
-  while(chan[ch]->running) {
-    chan[ch]->quit = true;
-    //jsleep(0,10);
-  }
-
+  /* just an accessor to delete input channels 
+   * and disconnect them from mixer */
+  // lock()  // no more locking here ... i hope :P (xant)
   /* clean internal allocated buffers */
   delete chan[ch];
   chan[ch] = NULL;

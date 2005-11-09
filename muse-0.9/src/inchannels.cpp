@@ -90,17 +90,16 @@ Channel::Channel() {
   dec = NULL;
   fill_prev_smp = true;
   lcd[0] = '\0';
-  tick_interval = 1000000/60; // defaults to 1/60 of a second
+  tick_interval = 1000000/90; // defaults to 1/90 of a second
 }
 
 Channel::~Channel() {
   func("Channel::~Channel()");
 
   /* paranoia */
-  //stop();
-  //  clean();
+  stop();
+  clean();
   quit = true;
- // lock();unlock(); // this is paranoia
   while(running) jsleep(0,500);
 
   /* clean up specific channel implementation */

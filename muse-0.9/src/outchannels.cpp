@@ -84,7 +84,7 @@ OutChannel::OutChannel(char *myname)
   channels(1);
   lowpass(0);
   highpass(0);
-  tick_interval = 1000000/60; // defaults to 1/60 of a second
+  tick_interval = 1000000/90; // defaults to 1/90 of a second
   //  profile_changed = true;
 
 }
