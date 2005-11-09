@@ -33,10 +33,6 @@ extern "C" {
 
 #define MAX_DEBUG 2
 
-#define FUNC 2 /* se il debug level e' questo
-		  ci sono le funzioni chiamate */
-#define WARN 1 /* ... blkbblbl */
-
 // for native language support
 #define _(x)	x
 //gettext(x)
@@ -48,24 +44,24 @@ extern "C" {
 #define CHAR_SET(func,var) \
 char var[MAX_VALUE_SIZE]; \
 void func(char *in) { \
-if(strncmp(var,in,MAX_VALUE_SIZE)==0) return; \
-else strncpy(var,in,MAX_VALUE_SIZE); \
+	if(strncmp(var,in,MAX_VALUE_SIZE)==0) return; \
+	else strncpy(var,in,MAX_VALUE_SIZE); \
 } \
 char *func() { return var; };
 
 #define INT_SET(func,var) \
 int var; \
 void func(int in) { \
-if(var==in) return; \
-else var=in; \
+	if(var==in) return; \
+	else var=in; \
 } \
 int func() { return var; };
 
 #define FLOAT_SET(func,var) \
 float var; \
 void func(float in) { \
-if(var==in) return; \
-else var=in; \
+	if(var==in) return; \
+	else var=in; \
 } \
 float func() { return var; };
 

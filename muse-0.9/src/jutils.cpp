@@ -193,24 +193,23 @@ long tick_time(struct timeval *ref_time,long interval) {
   long elapsed,delta;
   
   memset(&slp_time,0,sizeof(slp_time));
-
-  /* 1frame : elapsed = X frames : 1000000 */
   gettimeofday( &cur_time, NULL);
-  if(ref_time->tv_sec == 0 && ref_time->tv_usec == 0) /* first tick just initializes ref_time */
+  /* first tick just initializes ref_time */
+  if(ref_time->tv_sec == 0 && ref_time->tv_usec == 0) 
 	goto upd_tick; 
-  if(cur_time.tv_sec>ref_time->tv_sec) {
+  if(cur_time.tv_sec>ref_time->tv_sec)
     elapsed = cur_time.tv_usec+((cur_time.tv_sec-ref_time->tv_sec)*1000000)-ref_time->tv_usec;
-  }
-  else {
+  else 
     elapsed = cur_time.tv_usec - ref_time->tv_usec;
-  }
+
   if(elapsed<=interval) {
 	slp_time.tv_nsec = (interval - elapsed)*1000;
 	// handle signals (see man 2 nanosleep)
 	if(slp_time.tv_nsec >0) // extra paranoia check (superfluous)
 		nanosleep(&slp_time,NULL);
   }
-  upd_tick:
+
+upd_tick:
   ref_time->tv_sec = cur_time.tv_sec;
   ref_time->tv_usec = cur_time.tv_usec+(slp_time.tv_nsec/1000);
   if(ref_time->tv_usec > 999999) {
@@ -218,6 +217,7 @@ long tick_time(struct timeval *ref_time,long interval) {
 	  ref_time->tv_usec = delta;
 	  ref_time->tv_sec++;
   }
+
   return slp_time.tv_nsec/1000;
 }
 
