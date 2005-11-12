@@ -476,7 +476,7 @@ bool take_args(int argc, char **argv) {
 #endif
 #ifdef GUI_CARBON
       if(strcasecmp(optarg,"carbon")==0) {
-	  thegui=CARBON;
+		thegui=CARBON;
 	  }
 #endif
       if(strcasecmp(optarg,"cli")==0) thegui=CLI;
@@ -492,6 +492,9 @@ bool take_args(int argc, char **argv) {
 #endif
 #ifdef GUI_RUBIK
       act("[ncurses] - 0ld sch00l l33t console display");
+#endif
+#ifdef GUI_CARBON
+      act("[carbon] - OSX (Carbon) graphical interface");
 #endif
       act("[cli] - command line interface, not interactive");
       exit(0);
@@ -795,7 +798,7 @@ int main(int argc, char **argv) {
   case CARBON:
 #ifdef GUI_CARBON
     notice("spawning the CARBON user interface");
-	act("by Andrea \"xant\" Guzzo <xant@xant.net>");
+	act("by Andrea \"xant\" Guzzo <xant@dyne.org>");
 	gui = new CARBON_GUI(argc,argv,mix);
 #else
 	error("the carbon interface is not compiled in");

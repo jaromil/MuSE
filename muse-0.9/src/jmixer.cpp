@@ -160,7 +160,10 @@ void Stream_mixer::register_gui(GUI *reg_gui) {
   char temp[256];  
   gui = reg_gui; 
   have_gui = true;
-  sprintf(temp,"%s %s codename \"%s\"",PACKAGE, VERSION, CODENAME);
+  if(strlen(CODENAME) > 0)
+	sprintf(temp,"%s %s codename \"%s\"",PACKAGE, VERSION, CODENAME);
+  else
+    sprintf(temp,"%s %s",PACKAGE,VERSION);
   gui->set_title(temp);
 }
 

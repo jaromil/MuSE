@@ -1,7 +1,6 @@
 /* MuSE - Multiple Streaming Engine
  * SoundDevice class interfacing Portaudio PABLIO library
  * Copyright (C) 2004-2005 Denis Roio aka jaromil <jaromil@dyne.org>
- *               2005 Xant <xant@xant.net>
  *
  * This source code is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Public License as published 
@@ -32,7 +31,7 @@
 #define PA_SAMPLES_PER_FRAME 2
 #define PA_NUM_SECONDS 5
 #define FRAMES_PER_BUFFER   (64)
-#define PA_PIPE_SIZE MIX_CHUNK*sizeof(PA_SAMPLE_TYPE)*64
+#define PA_PIPE_SIZE MIX_CHUNK*sizeof(PA_SAMPLE_TYPE)*64 
 
 #define INPUT_DEVICE  Pa_GetDefaultInputDeviceID()
 #define OUTPUT_DEVICE Pa_GetDefaultOutputDeviceID()
