@@ -54,8 +54,9 @@
 #include <out_lame.h>
 #endif
 
+#ifndef CODENAME
 #define CODENAME "STREAMTIME"
-
+#endif
 
 
 /* process_buffer BUF_SIZE is:
@@ -192,14 +193,14 @@ void Stream_mixer::cafudda()
   }
 
   slept=tick_time(&lst_time,interval);
-  if(slept) func("cafudda ticking %lu ms!! \n",slept);
+  if(slept) func("cafudda ticking %lu microsecs!! \n",slept);
   
   for(i=0;i<MAX_CHANNELS;i++) {
     if(chan[i] != NULL) {
       if(chan[i]->on) {	
 
 	// this read from pipe is set to mix int32 down to the process_buffer
-	cc = chan[i]->erbapipa->read(MIX_CHUNK*4,process_buffer);
+	cc = chan[i]->erbapipa->read(MIX_CHUNK*2,process_buffer);
 	// signal to the channel that audio has been read
 	chan[i]->signal();
 

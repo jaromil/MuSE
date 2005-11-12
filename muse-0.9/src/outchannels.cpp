@@ -76,7 +76,9 @@ OutChannel::OutChannel(char *myname)
 
   erbapipa = new Pipe(OUT_PIPESIZE);
   erbapipa->set_block(true,true);
-
+  // blocking input and output, default timeout is 100 ms
+  erbapipa->set_block_timeout(10000,10000);
+  
   /* setup defaults */
   quality(4.0);
   bps(24);
@@ -145,7 +147,7 @@ void OutChannel::run() {
     //lock();
 	slept=tick_time(&lst_time,tick_interval);
 	//unlock();
-	if(slept) func("outchannel ticking %lu ms!! \n",slept);
+	if(slept) func("outchannel ticking %lu microsecs!! \n",slept);
     /* check if we must encode */
     encoding = false;
 	streaming = false;

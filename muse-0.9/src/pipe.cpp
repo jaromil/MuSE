@@ -256,8 +256,8 @@ int Pipe::read(int length, void *data) {
 	start = buffer;
     }
   }
-  if (start == end) 
-	start = end = buffer;
+  if (start == end)  /* if this read emptied buffer */
+	start = end = buffer; /* reset pointers to le _SIZE behave correctly */
   
   unlock();
   return ( (origlen-worklen)/read_copy_cb->src_samplesize );

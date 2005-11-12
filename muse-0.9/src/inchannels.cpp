@@ -82,15 +82,15 @@ Channel::Channel() {
   // setup the pipe
   erbapipa = new Pipe(IN_PIPESIZE);
   erbapipa->set_output_type("mix_int16_to_int32");
-  // blocking input and output, default timeout is 200 ms
+  // blocking input and output, default timeout is 100 ms
   erbapipa->set_block(true,true);
-  //erbapipa->set_block_timeout(8000,4000);
+  erbapipa->set_block_timeout(10000,10000);
 
   playlist = new Playlist();
   dec = NULL;
   fill_prev_smp = true;
   lcd[0] = '\0';
-  tick_interval = 1000000/90; // defaults to 1/90 of a second
+  tick_interval = 1000000/120; // defaults to 1/120 of a second
 }
 
 Channel::~Channel() {
@@ -123,7 +123,7 @@ void Channel::run() {
 
   while(!quit) {
 	slept=tick_time(&lst_time,tick_interval);
-	if(slept) func("inchannel ticking %lu ms!! \n",slept);
+	if(slept) func("inchannel ticking %lu microsecs!! \n",slept);
     if(on) {
       idle = false;
       PARADEC
@@ -149,7 +149,7 @@ void Channel::run() {
 
 	/* at last pushes it up into the pipe
 	   bytes are samples*4 being the audio 16bit stereo */
-	erbapipa->write(frames*4,buff);
+	erbapipa->write(frames*2,buff);
 
 	/* then calculates the position and time */
 	if(dec->seekable) state = upd_time();
@@ -543,7 +543,7 @@ void Channel::sel(int newpos) {
       pos(0.0);
       break;
     case PLAYMODE_PLAYLIST:
-    if(newpos==1 && playlist->selected_pos()==playlist->len() && playlist->len() > 2)
+    if(newpos==1 && playlist->selected_pos()==playlist->len())
     {
       if(on) stop(); /* let's stop if this is last track in PLAYMODE_PLAYLIST */
       break;
