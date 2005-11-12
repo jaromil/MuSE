@@ -63,11 +63,14 @@ Mag-One, radio Ondarossa, bomboclat, newmark\n\
 c1cc10, vanguardist, janki, kysucix, Adam\n\
 and all the others i'm forgetting here!\n\
 \n\
-\nMuSE redistributes statically, the following libraries:\n\
+\nMuSE-OSX redistributes statically, the following libraries:\n\
 = libmpeg by Woo-jae Jung and Mikael Hedin\n\
 = libshout by Jack Moffit and others\n\
 = libcdk by Mike Glover\n\
-= the secret rabbit code by Eric de Castro Lopo\n\
+= libportaudio by Ross Bencina and Phil Burk \n\
+= libvorbis  by Jack Moffitt \n\
+= libmp3lame by The LAME Project \n\
+= libsndfile by Erik de Castro Lopo \n\
 \n\n\
 MuSE sourcecode also got inspirations and code\n\
 snippets from the stream mixer sourcecode by\n\
@@ -75,6 +78,9 @@ Scott Manley, the buffered FIFO pipe source\n\
 by Charles Samuels, icons by Jakub Steiner\n\n\
 MuSE Streamer is copyleft (c)\n\
 2000-2004 by Denis \"jaromil\" Rojo\n\
+\n\
+MuSE-OSX (Carbon GUI) is copyleft (c)\n\
+2005 by Andrea \"xant\" Guzzo\n\
 \n\
 MuSE's GTK+ GUI is copyleft (c)\n\
 2001-2004 by Antonino \"nightolo\" Radici\n\

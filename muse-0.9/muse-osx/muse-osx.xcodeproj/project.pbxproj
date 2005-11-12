@@ -397,8 +397,8 @@
 				AA3FD4EA07FCE13D0061F816 /* dec_snd.h */,
 				AA3FD4EC07FCE13D0061F816 /* decoder.cpp */,
 				AA3FD4ED07FCE13D0061F816 /* decoder.h */,
-				AA3FD4EF07FCE13D0061F816 /* dev_sound.cpp */,
 				AA3FD4F007FCE13D0061F816 /* dev_sound.h */,
+				AA3FD4EF07FCE13D0061F816 /* dev_sound.cpp */,
 				AA3FD4F207FCE13D0061F816 /* generic.h */,
 				AA3FD5D207FCE13D0061F816 /* gui.cpp */,
 				AA3FD5D307FCE13D0061F816 /* gui.h */,
@@ -788,10 +788,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUILD_VARIANTS = normal;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
-				OTHER_CFLAGS = "";
+				OTHER_CFLAGS = "-falign-loops=16";
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
+				SYMROOT = build;
 			};
 			name = Development;
 		};
@@ -799,8 +801,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUILD_VARIANTS = normal;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
-				OTHER_CFLAGS = "";
+				OTHER_CFLAGS = "-falign-loops=16";
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 			};

@@ -93,7 +93,7 @@ CarbonChannel::CarbonChannel(Stream_mixer *mix,CARBON_GUI *gui,IBNibRef nib,unsi
 		__LINE__,__FILE__);
 		
 	/* start in the default playmode */
-	jmix->set_playmode(chIndex,PLAYMODE_PLAYLIST);
+	jmix->set_playmode(chIndex,PLAYMODE_CONT);
 	
 	/* and now create che channel window through the nibRef */
 	err = CreateWindowFromNib(nibRef, CFSTR("Channel"), &window);
@@ -347,7 +347,7 @@ void CarbonChannel::plSetup() {
 	dbCallbacks.u.v1.receiveDragCallback=NewDataBrowserReceiveDragUPP(&HandleDrag);
 	/* Notification Handler */
 	dbCallbacks.u.v1.itemNotificationCallback=
-		NewDataBrowserItemNotificationUPP(&HandleNotification);
+		NewDataBrowserItemNotificationUPP(&HandlePlaylistEvents);
 	/* context menu handler */
 	dbCallbacks.u.v1.getContextualMenuCallback=
 		NewDataBrowserGetContextualMenuUPP(&GetPLMenu);
@@ -449,27 +449,23 @@ void CarbonChannel::setLCD(char *text) {
 	}
 }
 
-/* set a new position in the seek bar */
+/* set a new position in the seek bar - XXX - this method should die */
 void CarbonChannel::setPos(int pos) {
 	OSStatus err;
-	ControlRef seekControl;
-	const ControlID seekId = { CARBON_GUI_APP_SIGNATURE, SEEK_CONTROL };
-	if(pos!=_seek) {
-		err = GetControlByID(window,&seekId,&seekControl);
-		if(err != noErr) msg->warning("Can't update seek control (%d)!!",err);
-		SetControl32BitValue(seekControl,pos);
+	if(pos!=_seek) 
 		_seek = pos;
-	}
 }
 
 void CarbonChannel::plSelect(int row) {
 	lock();
 	OSStatus err;
 	if(row) {
-		if(playList->selected_pos()!=row) {
+		//if(playList->selected_pos()!=row)
 			inChannel->sel(row);
-		}
 	}
+	else 
+		inChannel->clean();
+	seek(0);
 	unlock();
 }
 
@@ -535,6 +531,7 @@ void CarbonChannel::plRemove(int pos) {
 			inChannel->stop();
 			plSelect(0);
 		}
+		seek(0);
 	}
 	lock();
 	playList->rem(pos);
@@ -828,7 +825,7 @@ void CarbonChannel::run() {
 		}
 		savedStatus=status;
 	}
-
+	SetControl32BitValue(seekControl,_seek);
 	unlock();
 	if(plDisplay!=playList->selected_pos()) { /* should mantain lock until comparison has done? */
 		updateSelectedSong(playList->selected_pos());
@@ -870,7 +867,7 @@ void CarbonChannel::stop() {
 		msg->warning("Can't stop channel %d!!",chIndex);
 		func("Error trying to stop channel %d!!",chIndex);
 	}
-	SetControl32BitValue(seekControl,0); /* reset seek control to 0 */
+	seek(0);; /* reset seek control to 0 */
 	lock();
 	status=CC_STOP;
 	unlock();
@@ -888,8 +885,13 @@ void CarbonChannel::next() {
 
 /* seek to a new position in the loaded song */
 void CarbonChannel::seek(int pos) {
-	if(inChannel->seekable && pos) {
+	if(!inChannel->seekable || !pos) {
+		setPos(0);
+		SetControl32BitValue(seekControl,0); /* redundant ... run() should do this at next tick */
+	}
+	else {
 		inChannel->pos((float)pos/1000);
+		setPos(pos);
 		//jmix->updchan(chIndex);
 	}
 }
@@ -1016,26 +1018,8 @@ bool CarbonChannel::plSave(int mode) {
 		if( plManager->save(name,playList)) {
 		//	msg->notify("Playlist \"%s\" saved successfully",name);
 			plManager->touch();
-		//	if(!plLoad(plManager->len())) {
-		//		msg->warning("Can't load the just created playlist!!");
-		//	}
-			//lock();
-			//loadedPlaylistIndex=plManager->len();
-			//unlock();
 			return true;
 		}
-		//else {
-		//	msg->warning("Can't save playlist \"%s\"",name);
-		//	return false;
-		//}
-		
-		/*	TODO - little bug... when in saveAs mode, save button remains hilited ... 
-		ControlID buttonID = { CARBON_GUI_APP_SIGNATURE, SAVE_PLAYLIST_BUT };
-		ControlRef button;
-		err=GetControlByID(window,&buttonID,&button);
-		if(err!=noErr) msg->error("Can't get 'save button' control (%d)!!",err);
-		SetControlValue(button,0);
-		*/
 	}
 }
 
@@ -1046,15 +1030,6 @@ void CarbonChannel::plSaveDialog() {
 	else {
 		BringToFront(savePlaylistWindow);
 	}
-
-	/*
-	const ControlID savePlaylistTextID = { CARBON_GUI_APP_SIGNATURE,SAVE_PLAYLIST_TEXT_CONTROL };
-	ControlRef saveName;
-	OSStatus err=GetControlByID(savePlaylistWindow,&savePlaylistTextID,&saveName);
-	if(err!=noErr) msg->warning("Can't get text control from the savePlaylist dialog (%d)!!",err);
-	if(loadedPlaylist) SetControlData(saveName,0,kControlEditTextTextTag,strlen(loadedPlaylist),loadedPlaylist);
-	SelectWindow(openUrl);
-	*/
 	
 	if(!HIViewSubtreeContainsFocus(HIViewGetRoot(savePlaylistWindow)))
 		HIViewAdvanceFocus(HIViewGetRoot(savePlaylistWindow),0); /* set focus to the url input text box */
@@ -1079,7 +1054,7 @@ void CarbonChannel::updatePlaymode() {
 }
 
 
-void CarbonChannel::activate() { /* this method is needed ti handle window layering correctly */
+void CarbonChannel::activate() { /* this method is needed it handle window layering correctly */
 	activateMenuBar();
 	if(!attached()||!slave()) /* don't notify activation if we are a slave window in a magnetic-fade */ 
 		parent->activatedChannel(chIndex);
@@ -1330,7 +1305,7 @@ Boolean CheckDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item) {
 	return false;
 }
 
-void HandleNotification (ControlRef browser,DataBrowserItemID itemID,
+void HandlePlaylistEvents (ControlRef browser,DataBrowserItemID itemID,
    DataBrowserItemNotification message) 
 {		
 	DataBrowserItemState state;
@@ -1344,14 +1319,14 @@ void HandleNotification (ControlRef browser,DataBrowserItemID itemID,
 			entry = (Url *)me->playList->pick(itemID);
 			GetDataBrowserItemState(browser,itemID,&state);
 			if(state == kDataBrowserItemIsSelected) {
-				if(me->playList->selected_pos() != itemID) {
+				//if(me->playList->selected_pos() != itemID) {
 					ControlRef textControl;
 					err = GetControlByID(me->window,&selectedSongId,&textControl);
 					if(err != noErr) {
 						me->msg->error("Can't get selectedSong control ref (%d)!!",err);
 					}
 					me->plSelect(itemID);
-				}
+				//}
 			}
 			break;	
 	}
@@ -1591,6 +1566,8 @@ static OSStatus ChannelCommandHandler (
 		case PLAYMODE_CMD:
 			me->updatePlaymode();
 			break;
+		case ABOUT_CMD:
+			me->parent->credits();
 		default:
             err = eventNotHandledErr;
             break;

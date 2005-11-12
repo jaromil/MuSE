@@ -223,7 +223,7 @@ Boolean HandleDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item);
 Boolean CheckDrag (ControlRef browser,DragRef theDrag,DataBrowserItemID item);
 
 /* callback function to handle user selction of items in the playlist box */
-void HandleNotification (ControlRef browser,DataBrowserItemID item,
+void HandlePlaylistEvents (ControlRef browser,DataBrowserItemID item,
    DataBrowserItemNotification message);
 
 /* callback function to handle user requests of a contextual menus on an item in the playlist box */

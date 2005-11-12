@@ -233,7 +233,7 @@ void CarbonStream::show() {
 	ShowWindow(window);
 	BringToFront(window);
 	ActivateWindow(window,true);
-	if(!IsControlVisible(streamTabControl)) addStream();
+	//if(!IsControlVisible(streamTabControl)) addStream();
 }
 
 void CarbonStream::hide() {
@@ -1518,6 +1518,8 @@ static OSStatus StreamCommandHandler (
 		case RECORD_STREAM_CMD:
 			me->recordStream();
 			break;
+		case ABOUT_CMD:
+			SendEventToEventTarget(event,GetWindowEventTarget(me->parent));
 		default:
 			err = eventNotHandledErr;
 			break;

@@ -140,7 +140,8 @@
 
 
 /* Version number of package */
-#define VERSION "0.9-cvs"
+#define VERSION "0.9.2-svn (build 7)"
+#define CODENAME ""
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */

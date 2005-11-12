@@ -44,7 +44,7 @@
 #define ABOUT_BUT 6
 #define ABOUT_BUT_ID 106
 
-#define ABOUT_CMD 'abou'
+#define ABOUT_CMD 'cred'
 #define NEWC_CMD 'newc'
 #define SHOW_STREAMS_CMD 'stre'
 #define SHOW_STATUS_CMD 'shlo'

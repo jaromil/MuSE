@@ -16,7 +16,7 @@
               <object class="IBCarbonMenuItem" id="441">
                 <string name="title">About MuSE</string>
                 <int name="keyEquivalentModifier">0</int>
-                <ostype name="command">abou</ostype>
+                <ostype name="command">cred</ostype>
               </object>
               <object class="IBCarbonMenuItem" id="836">
                 <boolean name="separator">TRUE</boolean>
@@ -216,7 +216,7 @@
             <string name="viewFrame">332 20 44 42 </string>
             <ostype name="controlSignature">MuSE</ostype>
             <int name="controlID">106</int>
-            <ostype name="command">abou</ostype>
+            <ostype name="command">cred</ostype>
             <string name="helpTagText">About</string>
             <unsigned_int name="behavior">32768</unsigned_int>
             <int name="contentType">1</int>
@@ -451,17 +451,18 @@
               <int name="bindingRightKind">2</int>
             </object>
             <int name="titleJustification">-2</int>
+            <int name="selectedItem">2</int>
             <object name="menu" class="IBCarbonMenu" id="630">
               <string name="title">Popup</string>
               <array count="4" name="items">
                 <object class="IBCarbonMenuItem" id="633">
-                  <boolean name="checked">TRUE</boolean>
                   <boolean name="updateSingleItem">TRUE</boolean>
                   <string name="title">single playlist</string>
                 </object>
                 <object class="IBCarbonMenuItem" id="631">
+                  <boolean name="checked">TRUE</boolean>
                   <boolean name="updateSingleItem">TRUE</boolean>
-                  <string name="title">repeat playlist</string>
+                  <string name="title">continuous</string>
                 </object>
                 <object class="IBCarbonMenuItem" id="632">
                   <boolean name="updateSingleItem">TRUE</boolean>
@@ -772,7 +773,7 @@
                 <boolean name="updateSingleItem">TRUE</boolean>
                 <string name="title">About MuSE</string>
                 <int name="keyEquivalentModifier">0</int>
-                <ostype name="command">abou</ostype>
+                <ostype name="command">cred</ostype>
               </object>
               <object class="IBCarbonMenuItem" id="841">
                 <boolean name="separator">TRUE</boolean>
@@ -2203,7 +2204,7 @@
                 <boolean name="updateSingleItem">TRUE</boolean>
                 <string name="title">About MuSE</string>
                 <int name="keyEquivalentModifier">0</int>
-                <ostype name="command">abou</ostype>
+                <ostype name="command">cred</ostype>
               </object>
               <object class="IBCarbonMenuItem" id="846">
                 <boolean name="separator">TRUE</boolean>
@@ -2236,7 +2237,7 @@
             <ostype name="controlSignature">MuSE</ostype>
             <int name="controlID">779</int>
             <boolean name="indeterminate">FALSE</boolean>
-            <int name="maximumValue">256000</int>
+            <int name="maximumValue">128000</int>
           </object>
           <object class="IBCarbonStaticText" id="577">
             <string name="bounds">21 20 34 68 </string>
@@ -2258,7 +2259,7 @@
             <ostype name="controlSignature">MuSE</ostype>
             <int name="controlID">777</int>
             <boolean name="indeterminate">FALSE</boolean>
-            <int name="maximumValue">100000</int>
+            <int name="maximumValue">50000</int>
           </object>
           <object class="IBCarbonStaticText" id="580">
             <string name="bounds">21 347 34 397 </string>
@@ -2524,7 +2525,7 @@
             <string name="viewFrame">290 20 37 34 </string>
             <ostype name="controlSignature">MuSE</ostype>
             <int name="controlID">106</int>
-            <ostype name="command">abou</ostype>
+            <ostype name="command">cred</ostype>
             <string name="helpTagText">About</string>
             <unsigned_int name="behavior">32768</unsigned_int>
             <int name="contentType">1</int>
