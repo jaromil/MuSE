@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: muse cvs-version\n"
 "POT-Creation-Date: 2003-07-13 19:52+0200\n"
-"PO-Revision-Date: 2004-04-15 15:22+0200\n"
-"Last-Translator: Antonino Radici <night@dyne.org>\n"
+"PO-Revision-Date: 2005-12-24 18:12+0200\n"
+"Last-Translator: Filippo Giunchedi <filippo@esaurito.net>\n"
 "Language-Team: Italian <it@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=iso-8859-1\n"
@@ -232,11 +232,11 @@ msgstr "Canale[%u]"
 
 #: ../src/gtkgui2/docking.cpp:58
 msgid "Dock Channel"
-msgstr ""
+msgstr "Attacca canale"
 
 #: ../src/gtkgui2/docking.cpp:85 ../src/gtkgui2/gchan.cpp:251
 msgid "Undock Channel"
-msgstr ""
+msgstr "Stacca canale"
 
 #: ../src/gtkgui2/encoder.cpp:58
 msgid "Configure Lame Encoder"
@@ -283,16 +283,15 @@ msgstr ""
 #: ../src/gtkgui2/encoder.cpp:403 ../src/gtkgui2/encoder.cpp:406
 #: ../src/gtkgui2/encoder.cpp:407
 msgid "none"
-msgstr ""
+msgstr "nessuno"
 
 #: ../src/gtkgui2/encoder.cpp:152 ../src/gtkgui2/encoder.cpp:337
 msgid "manual"
-msgstr ""
+msgstr "manuale"
 
 #: ../src/gtkgui2/encoder.cpp:164
-#, fuzzy
 msgid "frequency"
-msgstr "filtro di frequenza"
+msgstr "frequenza"
 
 #: ../src/gtkgui2/encoder.cpp:179
 msgid "lowpass Hz"
@@ -301,7 +300,7 @@ msgstr ""
 #: ../src/gtkgui2/encoder.cpp:183 ../src/gtkgui2/encoder.cpp:191
 #: ../src/gtkgui2/encoder.cpp:399 ../src/gtkgui2/encoder.cpp:400
 msgid "guessed"
-msgstr ""
+msgstr "automatico"
 
 #: ../src/gtkgui2/encoder.cpp:187
 msgid "highpass Hz"
@@ -313,9 +312,8 @@ msgstr "Avanzato..."
 
 #. Add profile root menu
 #: ../src/gtkgui2/encoder.cpp:208 ../src/gtkgui2/ice.cpp:312
-#, fuzzy
 msgid "Profile..."
-msgstr "Salva il profilo"
+msgstr "Profilo..."
 
 #. profile menu end
 #: ../src/gtkgui2/encoder.cpp:221
@@ -324,18 +322,17 @@ msgstr "Applica"
 
 #: ../src/gtkgui2/encoder.cpp:247 ../src/gtkgui2/encoder.cpp:255
 #: ../src/gtkgui2/ice.cpp:347
-#, fuzzy
 msgid "Save..."
-msgstr "Salva il profilo MP3"
+msgstr "Salva il profilo"
 
 #: ../src/gtkgui2/encoder.cpp:250 ../src/gtkgui2/encoder.cpp:258
 #: ../src/gtkgui2/ice.cpp:353
 msgid "Remove..."
-msgstr ""
+msgstr "Rimuovi..."
 
 #: ../src/gtkgui2/encoder.cpp:271 ../src/gtkgui2/ice.cpp:359
 msgid "Load"
-msgstr ""
+msgstr "Carica"
 
 #: ../src/gtkgui2/encoder.cpp:386
 msgid "enc_get finished"
@@ -343,7 +340,7 @@ msgstr "enc_get finito!"
 
 #: ../src/gtkgui2/encoder.cpp:451 ../src/gtkgui2/ice.cpp:496
 msgid "You should insert a name for this profile"
-msgstr ""
+msgstr "Inserire un nome per questo profilo"
 
 #: ../src/gtkgui2/filedump.cpp:50
 msgid "Record Lame Stream"
@@ -526,7 +523,7 @@ msgstr ""
 
 #: ../src/gtkgui2/gchan_events.cpp:80
 msgid "Add File..."
-msgstr "Aggiungi un File"
+msgstr "Aggiungi un File..."
 
 #: ../src/gtkgui2/gchan_events.cpp:85
 msgid "Add Url..."
@@ -624,7 +621,7 @@ msgstr "Password"
 
 #: ../src/gtkgui2/ice.cpp:300
 msgid "Connect"
-msgstr ""
+msgstr "Connetti"
 
 #: ../src/gtkgui2/ice.cpp:334
 #, c-format
