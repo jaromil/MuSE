@@ -44,7 +44,10 @@ class Linklist {
   bool movedown(int pos);
   bool moveto(int num, int pos);
   Entry *pick(int pos);  
-  Entry *Linklist::selected();
+  Entry *selected();
+  
+  void shuffle();
+  ///< shuffle songs in the playlist
 
   Entry *operator[](int pos) { return pick(pos); };
 
@@ -73,7 +76,7 @@ class Entry {
   
   Entry *next;
   Entry *prev;
-
+  
   Linklist *list;
 
   bool up();

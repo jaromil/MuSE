@@ -95,7 +95,6 @@ class Playlist : public Linklist {
   char *song(int pos);
   ///< return the url at a certain position of the playlist queue
 
-
   char *selection();
   ///< return the currently selected url in the playlist queue
   

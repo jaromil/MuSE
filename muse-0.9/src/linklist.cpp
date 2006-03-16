@@ -230,6 +230,66 @@ Entry *Linklist::selected() {
   return NULL;
 }
 
+/* shuffle entries in the linked list */
+void Linklist::shuffle() {
+  int i,n,num;
+  Entry *ptr1,*ptr2,*buf;;
+  lock();
+  for(i=0;i<length;i++) {
+    ptr1=ptr2=first;
+	/* get entry at index i */
+	for(n=0;n<i;n++) ptr1=ptr1->next;
+	num = random()%length;
+	/* get a new random index in the array */
+	if(num == i) num=(num+1)%length;
+	/* get entry at the random index num */
+	for(n=0;n<num;n++) ptr2=ptr2->next;
+	
+	//ptr1->sel(false);
+	
+	/* update surroundings of ptr1 beware of array limits 
+	 * and avoiding circular references */
+	if(ptr1!=last && ptr1->next!=ptr2)
+		ptr1->next->prev=ptr2;
+	if(ptr1!=first && ptr1->prev!=ptr2)
+		ptr1->prev->next=ptr2;
+	/* do the same as above for surroundings of ptr2 */
+	if(ptr2!=last && ptr2->next!=ptr1)
+		ptr2->next->prev=ptr1;
+	if(ptr2!=first && ptr2->prev!=ptr1)
+		ptr2->prev->next=ptr1;
+	
+	/* swap ptr1 and ptr2 next pointers */
+	buf=ptr1->next;
+	if(ptr2->next!=ptr1)
+		ptr1->next=ptr2->next;
+	else
+		ptr1->next=ptr2;
+	if(buf!=ptr2)
+		ptr2->next=buf;
+	else
+		ptr2->next=ptr1;
+	/* and do the same for prev pointers */
+	buf=ptr2->prev;
+	if(ptr1->prev!=ptr2)
+		ptr2->prev=ptr1->prev;
+	else 
+		ptr2->prev=ptr1;
+	if(buf != ptr1)
+		ptr1->prev=buf;
+	else
+		ptr1->prev=ptr2;
+	
+	/* update list head and tail pointers if we moved such border entries */
+	if(i==0) first = ptr2;
+	if(i==length-1) last = ptr2;
+	
+	if(num==0) first = ptr1;
+	if(num==length-1) last = ptr1;
+  }
+  unlock();
+}
+
 Entry::Entry() {
   next = NULL;
   prev = NULL;
@@ -393,3 +453,4 @@ int Linklist::selected_pos() {
   }
   return 0;
 }
+
