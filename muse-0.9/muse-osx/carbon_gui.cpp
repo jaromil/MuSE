@@ -24,6 +24,7 @@
 #include <config.h>
 #include <unistd.h>
 
+#define CGUI_STATUS_MAX_LINES 255
 
 /* HANDLED EVENTS */
 
@@ -139,11 +140,14 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 		/* and the status box */
 		setupStatusWindow();
 		
+		bufferInspector = new BufferInspector(window,nibRef,jmix);
+		
 		/* now we have to group windows together so if all are visible they will also be layered together */
 		err=CreateWindowGroup(kWindowGroupAttrLayerTogether,&mainGroup);
 		err=SetWindowGroup(window,mainGroup);
 		err=SetWindowGroup(vumeterWindow,mainGroup);
 		err=SetWindowGroup(statusWindow,mainGroup);
+		err=SetWindowGroup(bufferInspector->window,mainGroup);
 		SetWindowGroupOwner(mainGroup,window);
 		/* let's create a channel window for each active input channel */
 		unsigned int i;
@@ -248,7 +252,8 @@ void CARBON_GUI::setupStatusWindow()
 	TXNControlData vals[] = { kTXNReadOnly };
 	err=TXNSetTXNObjectControls(statusText,false,1,tags,vals);
 	if(err!=noErr) msg->error("Can't set statusText properties (%d)!!",err);
-	
+	// TXNSetScrollbarState(statusText,kScrollBarsAlwaysActive);
+		
 	//struct TXNBackground bg = {  kTXNBackgroundTypeRGB, black };
 	//TXNSetBackground(statusText,&bg);
 }
@@ -430,14 +435,46 @@ void CARBON_GUI::set_title(char *txt) {
 }
  
 void CARBON_GUI::set_status(char *txt) {
-	if(txt) {
+	ItemCount nLines=0;
+	//SInt32 nCols=0;
+	Handle oldText;
+	TXNOffset start,end;
+	char *p;
+	int off=0;
+	OSStatus err = noErr;
+	if(txt && statusText && !quit) {
+		/*	
 		statusLock();
+		if(statusText && !quit) {
+			err=TXNSetTypeAttributes(statusText,3,attributes,kTXNUseCurrentSelection,kTXNUseCurrentSelection);
+			if(err!=noErr) msg->warning("Can't set status text attributes (%d)!!",err);
+		}
+		statusUnlock(); 
+		*/ 
+		TXNGetLineCount(statusText,&nLines);
+		if(nLines > CGUI_STATUS_MAX_LINES) {
+			TXNSelectAll(statusText);
+			TXNGetSelection(statusText,&start,&end);
+			//TXNSetSelection(statusText,kTXNEndOffset,kTXNEndOffset);
+			
+			if(TXNGetDataEncoded(statusText,start,end,&oldText,kTXNTextData) != noErr)
+				msg->error("Can't get status text buffer!! (%d)\n");
+			
+			p = *oldText;
+			while(*p != '\n' && off < end-start) {
+				p++;
+				off++;
+			}
+			p++;
+			off++;
+			TXNSetData(statusText,kTXNTextData,p,(end-start)-off,kTXNStartOffset,kTXNEndOffset);
+			DisposeHandle(oldText);
+			//err = TXNScroll(statusText,kTXNScrollUnitsInLines,kTXNScrollUnitsInLines,&nLines,&nCols);
+		}
 		TXNSetData(statusText,kTXNTextData,"[*] ",4,kTXNEndOffset,kTXNEndOffset);
 		TXNSetData(statusText,kTXNTextData,txt,strlen(txt),kTXNEndOffset,kTXNEndOffset);
 		TXNSetData(statusText,kTXNTextData,"\n",1,kTXNEndOffset,kTXNEndOffset);
-	//	err=TXNSetTypeAttributes(statusText,3,attributes,kTXNUseCurrentSelection,kTXNUseCurrentSelection);
-	//	if(err!=noErr) msg->warning("Can't set status text attributes (%d)!!",err);
-		statusUnlock(); 
+
 	}
 }
 
@@ -519,6 +556,16 @@ bool CARBON_GUI::attract_channels(int chIndex,AttractedChannel *neigh) {
 	return false;
 }
 
+void CARBON_GUI::toggleBufferInspector() {
+	if(IsWindowVisible(bufferInspector->window)) showBufferInspector(false);
+	else showBufferInspector(true);
+}
+
+void CARBON_GUI::showBufferInspector(bool flag) {
+	if (flag) bufferInspector->show();
+	else bufferInspector->hide();
+}
+
 /*
  * show or hide vumeter window as specified trough "flag" argument
  */
@@ -542,13 +589,18 @@ void CARBON_GUI::showVumeters(bool flag) {
  */
 void CARBON_GUI::showStatus(bool flag) {
 	OSStatus err;
+	SInt32 nLines=0;
+	SInt32 nCols=0;
 	if(flag) { 
 		Rect bounds;
 		GetWindowBounds(window,kWindowGlobalPortRgn,&bounds);
 		MoveWindow(statusWindow,bounds.left,bounds.bottom+30,false);
 		ShowWindow(statusWindow);
+		TXNGetLineCount(statusText,(ItemCount *)&nLines);
+		//TXNSetData(statusText,kTXNTextData,"",0,kTXNEndOffset,kTXNEndOffset);
+		TXNScroll(statusText,kTXNScrollUnitsInLines,kTXNScrollUnitsInLines,&nLines,&nCols);
+		TXNForceUpdate(statusText);
 		//OpenDrawer(statusWindow,kWindowEdgeBottom,false);
-
 	}
 	else {
 		HideWindow(statusWindow);
@@ -578,7 +630,7 @@ void CARBON_GUI::toggleVumeters() {
  * clears the status window
  */
 void CARBON_GUI::clearStatus() {
-	TXNSetData(statusText,kTXNTextData,"",4,kTXNStartOffset,kTXNEndOffset);
+	TXNSetData(statusText,kTXNTextData,"",0,kTXNStartOffset,kTXNEndOffset);
 }
 
 /*
@@ -673,21 +725,19 @@ static OSStatus MainWindowCommandHandler (
 			me->new_channel();
 			break;
 		case SHOW_STREAMS_CMD:
-				me->showStreamWindow();
+			me->showStreamWindow();
 			break;
 		case SHOW_VUMETERS_CMD:
-		//	val = GetControlValue(mainControls[VOL_BUT]);
-		//	me->showVumeters(val?true:false);
 			me->toggleVumeters();
 			break;
 		case SHOW_STATUS_CMD:
-		//	val = GetControlValue(mainControls[STATUS_BUT]);
-		//	me->showStatus(val?true:false);
 			me->toggleStatus();
 			break;
 		case ABOUT_CMD:
 			me->credits();
 			break;
+		case BI_SHOW:
+			me->toggleBufferInspector();
         default:
             err = eventNotHandledErr;
             break;

@@ -25,6 +25,7 @@
 #include <carbon_stream.h>
 #include <carbon_message.h>
 #include <credits.h>
+#include <buffer_inspector.h>
 
 //OSStatus startCarbon(void *arg);
 class CarbonChannel;
@@ -58,8 +59,10 @@ class CARBON_GUI : public GUI {
   bool attract_channels(int chIndex,AttractedChannel *neigh);
   void showVumeters(bool flag);
   void showStatus(bool flag);
+  void showBufferInspector(bool flag);
   void toggleStatus();
   void toggleVumeters();
+  void toggleBufferInspector();
   void clearStatus();
   bool meterShown();
   bool statusShown(); 
@@ -74,6 +77,7 @@ class CARBON_GUI : public GUI {
   Stream_mixer *jmix; /* the Stream_mixer object AKA the MuSE core */
   CarbonMessage *msg; /* a simple message object to let us notify errors to user trough the gui */
   PlaylistManager *playlistManager; /* an object to handle load&save of playlists */
+  BufferInspector *bufferInspector;
 
 private:
   bool init_controls();

@@ -44,6 +44,7 @@ class CarbonStream {
 		void deleteStream(int idx); /* delete stream at index idx */
 		int addServer(); /* just an accessor to addServer(int strIdx) that uses selectedServer as strIdx */
 		int addServer(int strIdx);
+		int countEncoders();
 		CarbonStreamEncoder *selectedStream();
 		CarbonStreamEncoder *getStream(int idx);
 		bool updateStreamTab();

@@ -1066,6 +1066,11 @@ char *CarbonChannel::loadedPlaylist() {
 	}
 	return NULL;
 }
+
+void CarbonChannel::plShuffle() {
+	playList->shuffle();
+	plUpdate();
+}
 /* End of CarbonChannel */
 
 // --------------------------------------------------------------------------------------------------------------
@@ -1548,6 +1553,9 @@ static OSStatus ChannelCommandHandler (
 		case SHOW_VUMETERS_CMD:
 			me->parent->toggleVumeters();
 			break;
+		case BI_SHOW:
+			me->parent->toggleBufferInspector();
+			break;
 		case SAVE_PLAYLIST_CMD:
 			if(command.menu.menuItemIndex==1) // save a new playlist
 				me->plSaveDialog();
@@ -1563,6 +1571,8 @@ static OSStatus ChannelCommandHandler (
 		case RESET_PLAYLIST_CMD:
 			me->plLoad(0);
 			break;
+		case SHUFFLE_PLAYLIST_CMD:
+			me->plShuffle();
 		case PLAYMODE_CMD:
 			me->updatePlaymode();
 			break;

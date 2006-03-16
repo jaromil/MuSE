@@ -176,7 +176,7 @@ AboutWindow::AboutWindow(WindowRef mainWin,IBNibRef nib)
 
 	err = InstallEventHandler(GetWindowEventTarget(window),AboutEventHandler,1,windowEvents,this,NULL);
 	if(err != noErr)
-		msg->error("Can't install event handler for Stream control (%d)!!",err);
+		msg->error("Can't install event handler for AboutWindow (%d)!!",err);
 	
 }
 

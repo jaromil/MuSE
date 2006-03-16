@@ -135,6 +135,7 @@
 #define DELETE_PLAYLIST_BUT 317
 #define DELETE_PLAYLIST_CMD 'depl'
 #define RESET_PLAYLIST_CMD 'repl'
+#define SHUFFLE_PLAYLIST_CMD 'shuf'
 
 /* STREAM WINDOW */
 
@@ -198,6 +199,20 @@
 #define SAVE_STREAM_PRESET_CMD 'sapr'
 #define SAVE_PRESET_CONFIRM_CMD 'cspr'
 #define SAVE_PRESET_TEXT_CONTROL 902
+
+/* BUFFER INSPECTOR */
+#define BI_INPUT_SELECTOR  610
+#define BI_INPUT_BAR 611
+#define BI_INPUT_STATUS 612
+#define BI_OUTPUT_SELECTOR 620
+#define BI_OUTPUT_BAR 621
+#define BI_OUTPUT_STATUS 622
+
+#define BI_SET_INPUT 'sibu'
+#define BI_SET_OUTPUT 'sobu'
+#define BI_SELECT_INPUT 'seli'
+#define BI_SELECT_OUTPUT 'selo'
+#define BI_SHOW 'bufi'
 
 /* MSG WINDOW */
 

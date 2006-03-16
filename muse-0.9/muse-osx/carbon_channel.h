@@ -64,6 +64,7 @@ class CarbonChannel {
 		void plSaveDialog(); /* show the save dialog for a playlist */
 		void plCancelSave(); /* abort saving of a playlist (while showing the dialog) */
 		char *loadedPlaylist(); //< returns the name of the loadedPlaylist
+		void plShuffle();
 		MenuRef plGetMenu(); /* get contextual menu for the selected item in the playlist */
 		
 		void openUrlDialog(); /* show the openUrl dialog to load an item in the playlist */

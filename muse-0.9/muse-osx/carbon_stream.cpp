@@ -510,9 +510,11 @@ bool CarbonStream::updateStreamTab() {
 	int idx = getTabValue(STREAM_TAB_CONTROL,_selectedStream)-1;
 	if(idx >= 0 && enc[idx]) saveStreamInfo(enc[idx]);
 	if(IsControlVisible(streamTabControl)) {
-		_selectedStream=val;
 		changeServerTab();
+		_selectedStream=val;
 		updateStreamInfo(selectedStream());
+		//changeServerTab();
+		//updateServerTab();
 	}
 	return true;
 }
@@ -539,14 +541,24 @@ bool CarbonStream::updateServerTab() {
 }
 
 bool CarbonStream::changeServerTab() {
-	SInt32 val = GetControl32BitValue(streamTabControl);
-	int newStreamIndex=getTabValue(STREAM_TAB_CONTROL,val)-1;
-	int oldServerIndex=getTabValue(SERVER_TAB_CONTROL,_selectedServer)-1;
+	SInt32 val;
+	SInt32 max;
+	int newStreamIndex;
+	int oldServerIndex;
 	int sNum=0;
+	
+	val = GetControl32BitValue(streamTabControl);
+	max = GetControl32BitMaximum(serverTabControl);
+	newStreamIndex = getTabValue(STREAM_TAB_CONTROL,val)-1;
+	if(max >= _selectedServer)
+		oldServerIndex = getTabValue(SERVER_TAB_CONTROL,_selectedServer)-1;
+	else
+		oldServerIndex = -1;
+		
 	_selectedServer=1;
 	if(_selectedStream && IsControlVisible(serverTabControl)) {
 		int oldStreamIndex=getTabValue(STREAM_TAB_CONTROL,_selectedStream)-1;
-		if(oldStreamIndex >= 0 && oldServerIndex >= 0)
+		if(oldStreamIndex >= 0 && oldServerIndex >= 0) 
 			if(servers[oldStreamIndex][oldServerIndex])
 				saveServerInfo(servers[oldStreamIndex][oldServerIndex]);
 	}
@@ -653,8 +665,8 @@ void CarbonStream::initServerControls() {
 		{\
 			server->__func(intBuffer);\
 			intBuffer=0;\
-			memset(buffer,0,sizeof(buffer));\
 		}\
+		memset(buffer,0,sizeof(buffer));\
 	}
 	
 void CarbonStream::saveServerInfo(CarbonStreamServer *server) {
@@ -663,9 +675,7 @@ void CarbonStream::saveServerInfo(CarbonStreamServer *server) {
 	int intBuffer =0;
 	if(!server) return;
 	char buffer[SERVER_STRING_BUFFER_LEN];
-	ControlID cid;
-	cid.signature=CARBON_GUI_APP_SIGNATURE;
-	// memset(buffer,0,sizeof(buffer)); // should be useless
+	memset(buffer,0,sizeof(buffer));
 	
 	/* port */
 	SAVE_SERVER_INT_INFO(serverPort,port);
@@ -1331,6 +1341,13 @@ void CarbonStream::cancelSavePreset() {
 	if(err!=noErr) msg->warning("Can't get text control from the savePreset dialog (%d)!!",err);
 	SetControlData(saveText,0,kControlEditTextTextTag,0,NULL);
 	HideSheetWindow(savePresetWindow);
+}
+
+int CarbonStream::countServers(int strIdx) {
+}
+
+int CarbonStream::countEncoders() {
+	
 }
 
 /****************************************************************************/
