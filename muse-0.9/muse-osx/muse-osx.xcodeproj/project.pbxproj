@@ -71,7 +71,9 @@
 		AA3FDA2207FCE1410061F816 /* shouter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA3FD77C07FCE13E0061F816 /* shouter.cpp */; };
 		AA3FDA2507FCE1410061F816 /* vumeter.c in Sources */ = {isa = PBXBuildFile; fileRef = AA3FD77F07FCE13E0061F816 /* vumeter.c */; };
 		AA4C3A8007FEBC9B00E15170 /* carbon_channel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA4C3A7E07FEBC9B00E15170 /* carbon_channel.cpp */; };
+		AA50A14509C4DC59000E1CBE /* libSystemStubs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AA50A14409C4DC59000E1CBE /* libSystemStubs.a */; };
 		AA761B590805AFB8003C6E4A /* carbon_message.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA761B570805AFB8003C6E4A /* carbon_message.cpp */; };
+		AA852D9309BF0AF000CAAAA6 /* buffer_inspector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA852D9209BF0AF000CAAAA6 /* buffer_inspector.cpp */; };
 		AA860D360901096700B020EF /* credits.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA860D350901096700B020EF /* credits.cpp */; };
 		AA860D92090123E200B020EF /* credits.rsrc in Rez */ = {isa = PBXBuildFile; fileRef = AA860D91090123E200B020EF /* credits.rsrc */; };
 		AA8D1B91080B57B900193C49 /* carbon_stream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA8D1B8F080B57B900193C49 /* carbon_stream.cpp */; };
@@ -130,7 +132,6 @@
 		0867D6ABFE840B52C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		1870340FFE93FCAF11CA0CD7 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/main.nib; sourceTree = "<group>"; };
 		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
-		32DBCF6D0370B57F00C91783 /* muse-osx_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "muse-osx_Prefix.pch"; sourceTree = "<group>"; };
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -251,8 +252,11 @@
 		AA3FDA5607FD59300061F816 /* config.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = SOURCE_ROOT; };
 		AA4C3A7D07FEBC9B00E15170 /* carbon_channel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = carbon_channel.h; sourceTree = "<group>"; };
 		AA4C3A7E07FEBC9B00E15170 /* carbon_channel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = carbon_channel.cpp; sourceTree = "<group>"; };
+		AA50A14409C4DC59000E1CBE /* libSystemStubs.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSystemStubs.a; path = /usr/lib/libSystemStubs.a; sourceTree = "<absolute>"; };
 		AA761B560805AFB8003C6E4A /* carbon_message.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = carbon_message.h; sourceTree = "<group>"; };
 		AA761B570805AFB8003C6E4A /* carbon_message.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = carbon_message.cpp; sourceTree = "<group>"; };
+		AA852D9109BF0AF000CAAAA6 /* buffer_inspector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = buffer_inspector.h; sourceTree = "<group>"; };
+		AA852D9209BF0AF000CAAAA6 /* buffer_inspector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = buffer_inspector.cpp; sourceTree = "<group>"; };
 		AA860D340901096700B020EF /* credits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = credits.h; sourceTree = "<group>"; };
 		AA860D350901096700B020EF /* credits.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = credits.cpp; sourceTree = "<group>"; };
 		AA860D91090123E200B020EF /* credits.rsrc */ = {isa = PBXFileReference; lastKnownFileType = archive.rsrc; path = credits.rsrc; sourceTree = "<group>"; };
@@ -294,6 +298,7 @@
 				AADDE575083D03C100EE8BDF /* libvorbis.a in Frameworks */,
 				AADDE577083D03D100EE8BDF /* libvorbisenc.a in Frameworks */,
 				AADDE579083D03E100EE8BDF /* libvorbisfile.a in Frameworks */,
+				AA50A14509C4DC59000E1CBE /* libSystemStubs.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -342,8 +347,9 @@
 				AA15AF5E0839586700530BBD /* playlist_manager.cpp */,
 				AA860D340901096700B020EF /* credits.h */,
 				AA860D350901096700B020EF /* credits.cpp */,
+				AA852D9109BF0AF000CAAAA6 /* buffer_inspector.h */,
+				AA852D9209BF0AF000CAAAA6 /* buffer_inspector.cpp */,
 				AA3FD4C307FCE13C0061F816 /* src */,
-				32DBCF6D0370B57F00C91783 /* muse-osx_Prefix.pch */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -375,6 +381,7 @@
 				AADDE572083D03AF00EE8BDF /* libogg.a */,
 				AADDE570083D039D00EE8BDF /* libmp3lame.a */,
 				AADDE56E083D037F00EE8BDF /* libsndfile.a */,
+				AA50A14409C4DC59000E1CBE /* libSystemStubs.a */,
 			);
 			name = "Frameworks and Libraries";
 			path = ../src;
@@ -688,6 +695,7 @@
 				AAC5D9FE082C589800D4AEB4 /* stream_encoder.cpp in Sources */,
 				AA15AF5F0839586700530BBD /* playlist_manager.cpp in Sources */,
 				AA860D360901096700B020EF /* credits.cpp in Sources */,
+				AA852D9309BF0AF000CAAAA6 /* buffer_inspector.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -788,9 +796,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUILD_VARIANTS = normal;
+				GCC_MODEL_TUNING = G4;
 				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_UNROLL_LOOPS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
-				OTHER_CFLAGS = "-falign-loops=16";
+				OTHER_CFLAGS = (
+					"-fastf",
+					"-mcpu=G4",
+					"-mtune=G4",
+				);
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				SYMROOT = build;
@@ -801,9 +815,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUILD_VARIANTS = normal;
+				GCC_MODEL_TUNING = G4;
 				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_UNROLL_LOOPS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
-				OTHER_CFLAGS = "-falign-loops=16";
+				OTHER_CFLAGS = (
+					"-fastf",
+					"-mcpu=G4",
+					"-mtune=G4",
+				);
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 			};
@@ -813,8 +833,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUILD_VARIANTS = normal;
+				GCC_MODEL_TUNING = G4;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_UNROLL_LOOPS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
-				OTHER_CFLAGS = "";
+				OTHER_CFLAGS = (
+					"-fastf",
+					"-mcpu=G4",
+					"-mtune=G4",
+				);
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 			};
