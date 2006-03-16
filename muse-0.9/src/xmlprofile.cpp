@@ -60,6 +60,25 @@ XmlProfile::~XmlProfile() {
 	delete rootElements;
 }
 
+XmlErr XmlProfile::XmlCommentHandler(char *element) {
+	XmlTag *newTag = new XmlTag(element,cTag);
+	newTag->comment = true;
+	func("comment found!\n");
+	if(cTag) {
+		if(!cTag->addChild(newTag))
+			error("Can't attach new comment to element %s \n",cTag->name());
+		else
+			func("Attached new comment to element %s \n",cTag->name());
+	}
+	else {
+		if(!addRootElement(newTag)) 
+			error("Cant' attach new comment as root element \n");
+		else
+			func("Attached new comment as root element \n");
+	}
+	return XML_NOERR;
+}
+
 XmlErr XmlProfile::XmlStartHandler(char *element,
         char **attr_names, char **attr_values) 
 {
@@ -67,25 +86,25 @@ XmlErr XmlProfile::XmlStartHandler(char *element,
 	func("new tag found %s\n",element);
 	if(cTag) {
 		if(!cTag->addChild(newTag))
-			error("Can't add new child %s for element %s ",newTag->name(),cTag->name());
+			error("Can't add new child %s for element %s\n",newTag->name(),cTag->name());
 		else
-			func("Added new child %s for element %s ",newTag->name(),cTag->name());
+			func("Added new child %s for element %s\n",newTag->name(),cTag->name());
 	}
 	else {
 		if(!addRootElement(newTag))
-			error("Can't add new root element %s",newTag->name());
+			error("Can't add new root element\n%s",newTag->name());
 		else
-			func("Added new root element %s",newTag->name());
+			func("Added new root element %s\n",newTag->name());
 	}
 	cTag = newTag;
 	unsigned int offset = 0;
 	if(attr_names && attr_values) {
 		while(attr_names[offset]!=NULL) {
 			if(!newTag->addAttribute(attr_names[offset],attr_values[offset])) {
-				func("Added new attr %s => %s for element %s",
+				func("Added new attr %s => %s for element %s\n",
 					attr_names[offset],attr_values[offset],newTag->name());
 			} else {
-				error("Can't add new attr %s => %s for element %s",
+				error("Can't add new attr %s => %s for element %s\n",
 					attr_names[offset],attr_values[offset],newTag->name());
 			}
 			offset++;
@@ -106,19 +125,18 @@ XmlErr XmlProfile::XmlEndHandler(char *element)
 
 XmlErr XmlProfile::XmlValueHandler(char *text) 
 {
-	char *val = (char *)text;
-	if(val) {
-		while((*val == ' ' || *val == '\t' ||
-			*val == '\r' || *val == '\n') && *val != 0) val++;
-		char *p = val+strlen(val)-1;
+	if(text) {
+		while((*text == ' ' || *text == '\t' ||
+			*text == '\r' || *text == '\n') && *text != 0) text++;
+		char *p = text+strlen(text)-1;
 		while((*p == ' ' || *p == '\t' ||
-			*p == '\r' || *p == '\n') && p != val) 
+			*p == '\r' || *p == '\n') && p != text) 
 		{
 			*p=0;
 			p--;
 		}
-		if(strlen(val)>0) {
-			if(cTag) cTag->value((char *)val);
+		if(strlen(text)>0) {
+			if(cTag) cTag->value((char *)text);
 			else error("cTag == NULL while handling a value!!");
 		}
 		return XML_NOERR;
@@ -209,6 +227,33 @@ XmlErr XmlProfile::XmlParseBuffer(char *buffer) {
 					if(err!=XML_NOERR) return(err);
 				}
 			}
+			else if(strncmp(p,"!--",3) == 0) { /* comment */
+				p += 3; /* skip !-- */ 
+				mark = p;
+				p = strstr(mark,"-->");
+				if(!p) 
+				{
+					/* XXX - TODO - This error condition must be handled asap */
+				}
+				char *comment = (char *)calloc(1,p-mark+1);
+				if(!comment)
+				{
+					return XML_MEMORY_ERR;
+				}
+				strncpy(comment,mark,p-mark);
+				err = XmlCommentHandler(comment);
+				free(comment);
+				p+=3;
+			}
+			//else if(*p =='?') { /* head */
+			//	p++;
+			//	mark = p;
+			//	p = strstr(mark,"?>");
+			//	if(xml->head) free(xml->head); /* XXX - should notify this behaviour? */
+			//	xml->head = calloc(1,p-mark+1);
+			//	strncpy(xml->head,mark,p-mark);
+			//	p+=2;
+			//}
 			else { /* start tag */
 				char *start = NULL;
 				char **attrs = NULL;
@@ -248,10 +293,10 @@ XmlErr XmlProfile::XmlParseBuffer(char *buffer) {
 								tmpVal[p-mark]=0;
 								/* add new attribute */
 								nAttrs++;
-								attrs=(char **)realloc(attrs,sizeof(char *)*nAttrs+1);
+								attrs=(char **)realloc(attrs,sizeof(char *)*(nAttrs+1));
 								attrs[nAttrs-1]=tmpAttr;
 								attrs[nAttrs]=NULL;
-								values=(char **)realloc(values,sizeof(char *)*nAttrs+1);
+								values=(char **)realloc(values,sizeof(char *)*(nAttrs+1));
 								values[nAttrs-1]=tmpVal;
 								values[nAttrs]=NULL;
 								p++;
@@ -265,6 +310,10 @@ XmlErr XmlProfile::XmlParseBuffer(char *buffer) {
 							free(tmpAttr);
 						}
 					} /* if(*p=='=') */
+					if(*p == '/' && *(p+1) == '>') {
+						p++;
+						state=XML_ELEMENT_UNIQUE;
+					}
 				} /* while(*p!='>' && *p!=0) */
 				err = XmlStartHandler(start,attrs,values);
 				if(err!=XML_NOERR) {
@@ -287,7 +336,7 @@ XmlErr XmlProfile::XmlParseBuffer(char *buffer) {
 			mark=p;
 			while(*p != '<' && *p != 0) p++;
 			if(*p == '<') {
-				char *value = (char *)malloc(p-mark);
+				char *value = (char *)malloc(p-mark+1);
 				strncpy(value,mark,p-mark);
 				value[p-mark]=0;
 				err=XmlValueHandler(value);
@@ -384,14 +433,13 @@ char *XmlProfile::dumpBranch(XmlTag *rTag,unsigned int depth) {
 	char *out = NULL;
 	char *startTag;
 	char *endTag;	
-	char *childDump = (char *)malloc(1);
-	*childDump=0;
 	char *value = rTag->value();
 	char *name = rTag->name();
 	int nameLen;
 	if(name) nameLen=strlen(name);
 	else return NULL;
-
+	char *childDump = (char *)calloc(1,1);
+	
 	startTag=(char *)malloc(depth+nameLen+7);
 	memset(startTag,0,depth+nameLen+7);
 	endTag=(char *)malloc(depth+nameLen+7);
@@ -472,8 +520,8 @@ bool XmlProfile::update() {
 	if(fileStat.st_size>0) { /* backup old profiles */
 		saveFile=fopen(xmlFile,"r");
 		if(!saveFile) {
-			error("Can't open %s for reading !!",xmlFile);
-			return false;
+			warning("Can't open %s for reading, skipping backup ...",xmlFile);
+			goto xml_dump;
 		}
 		if(!fileLock(saveFile)) {
 			error("Can't lock %s for reading ",xmlFile);
@@ -507,6 +555,7 @@ bool XmlProfile::update() {
 		free(backupPath);
 		free(backup);
 	} /* end of backup */
+xml_dump:
 	char *dump = dumpXml();
  	if(dump) {
 		saveFile=fopen(xmlFile,"w+");
@@ -595,7 +644,7 @@ bool XmlProfile::fileUnlock(FILE *file) {
 	return false;
 }
 
-bool XmlProfile::swapBranch(int index, XmlTag *newBranch) {
+bool XmlProfile::substBranch(int index, XmlTag *newBranch) {
 	Entry *entry = rootElements->pick(index);
 	if(entry) {
 		XmlTag *element = (XmlTag *)entry->get_value();

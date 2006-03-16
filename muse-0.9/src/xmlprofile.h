@@ -1,4 +1,4 @@
-/* MuSE - Multiple Streaming Engine
+ /* MuSE - Multiple Streaming Engine
  * Copyright (C) 2005 xant <xant@dyne.org>
  *
  * This source code is free software; you can redistribute it and/or
@@ -31,11 +31,13 @@
 
 #define XmlErr int
 #define XML_NOERR 0
-#define XML_GENERIc_ERR -1
+#define XML_GENERIC_ERR -1
 #define XML_BADARGS -2
 #define XML_UPDATE_ERR -2
 #define XML_OPEN_FILE_ERR -3
 #define XML_PARSER_GENERIC_ERR -4
+#define XML_MEMORY_ERR -5
+#define XML_LINKLIST_ERR -6
 
 
 /**
@@ -201,6 +203,8 @@ class XmlTag {
 		Linklist *children; ///< linked list containing element's children 
 		Linklist *attributes; ///< linked list containing element's attributes
 	
+		bool comment; ///< comment flag ... nodes with this flag == TRUE are simply comments
+		
 		// end of the XmlTag public interface
 		/// @}
 
@@ -258,26 +262,29 @@ class XmlProfile {
 		/**
 			
 		*/
-		int numBranches();
 		/***
 			@brief get the number of root nodes 
 			@return the number of root nodes
 		*/
-		bool removeBranch(int index);
+		int numBranches();
+		
 		/***
 			@brief remove an entire branch starting from a root node
 			@arg the index of the root node to remove
 			@return true if success, false otherwise
 		*/
-		bool removeBranch(char *name);
+		bool removeBranch(int index);
+		
 		/***
 			@brief remove an entire branch starting from a root node
 			@arg the name of the root node to remove
 			@return true if success, false otherwise
 		*/
+		bool removeBranch(char *name);
+		
 		bool removeElement(char *path); ///<  XXX - UNIMPLEMENTED
 	
-		bool swapBranch(int index, XmlTag *newBranch);
+		bool substBranch(int index, XmlTag *newBranch);
 		
 		/***
 			@brief parse a string buffer containing an xml profile and fills internal structures appropriately
@@ -322,6 +329,8 @@ class XmlProfile {
 		XmlErr XmlStartHandler( char *element,char **attr_names, char **attr_values);
 		XmlErr XmlEndHandler(char *element);
 		XmlErr XmlValueHandler(char *text);
+		XmlErr XmlCommentHandler(char *element);
+		
 		bool fileLock(FILE *file);  /* handle locking on xml files to prevent race conditions */
 		bool fileUnlock(FILE *file);
 		
