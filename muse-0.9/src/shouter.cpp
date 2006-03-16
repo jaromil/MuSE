@@ -144,13 +144,13 @@ bool Shouter::apply_profile() {
 
   // use a .ogg termination on ogg streams
   // this fixes stream codec recognization in xmms et al.
-  if(format == SHOUT_FORMAT_VORBIS)
+ /* if(format == SHOUT_FORMAT_VORBIS)
     if(!strstr(mount(),".ogg")) {
       char tmp[MAX_VALUE_SIZE];
       sprintf(tmp,"%s.ogg",mount());
       mount(tmp);
     }
-  
+  */
 
   if( shout_set_mount(ice,mount()) )
     error("shout_set_mount: %s",shout_get_error(ice));
