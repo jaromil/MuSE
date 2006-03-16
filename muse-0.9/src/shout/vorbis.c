@@ -120,7 +120,8 @@ static int send_vorbis(shout_t *self, const unsigned char *data, size_t len)
 
 		samples = 0;
 
-		ogg_stream_pagein(&vorbis_data->os, &og);
+		if(ogg_stream_pagein(&vorbis_data->os, &og) != 0)
+			return self->error = SHOUTERR_INSANE;
 		while(ogg_stream_packetout(&vorbis_data->os, &op) == 1) {
 			int size;
 
@@ -135,7 +136,10 @@ static int send_vorbis(shout_t *self, const unsigned char *data, size_t len)
 			}
 
 			vorbis_data->headers = 0;
-			size = blocksize(vorbis_data, &op);
+			if(!vorbis_data->samplerate)
+				size = 0;
+			else
+				size = blocksize(vorbis_data, &op);
 			samples += size;
 		}
 
