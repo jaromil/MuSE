@@ -182,7 +182,7 @@ void Stream_mixer::cafudda()
 {
   int i, c=0, cc;
   int total_bitrate=0;
-  long slept;  // just for debugging purposes
+  //long slept;  // just for debugging purposes
   /* here memset takes byte num
      max *4 (32bit) *2 (stereo) */
   memset(process_buffer,0,MIX_CHUNK*8);
@@ -195,8 +195,8 @@ void Stream_mixer::cafudda()
     return;
   }
 
-  slept=tick_time(&lst_time,interval);
-  if(slept) func("cafudda ticking %lu microsecs!! \n",slept);
+  /*slept=*/tick_time(&lst_time,interval);
+  //if(slept) func("cafudda ticking %lu microsecs!! \n",slept);
   
   for(i=0;i<MAX_CHANNELS;i++) {
     if(chan[i] != NULL) {
@@ -221,7 +221,7 @@ void Stream_mixer::cafudda()
     } /* if(chan[i] != NULL) */
   } /* for(i=0;i<MAX_CHANNELS;i++) */
 
-
+  //lock();
   if(linein) {
 #ifndef PORTAUDIO
     // ires = livein.mix(process_buffer);
@@ -238,10 +238,8 @@ void Stream_mixer::cafudda()
     c += linein_samples;
 #endif
   }
+ // unlock();
 
-
-
-  
 #ifdef HAVE_SCHEDULER
   if (rsched && rsched->channel->opened) {
     c += rsched->channel->erbapipa->read(MIX_CHUNK,process_buffer);
@@ -558,17 +556,17 @@ bool Stream_mixer::set_live(bool stat) {
   if(!( (dspout)
 	&&(!fullduplex)
 	&&(stat)) ) {
-    //    lock();
+  //  lock();
     livein.on = linein = stat;
-    //    unlock();
+  //  unlock();
   }
   
   return(livein.on);
 #else
-  //  lock();
+ // lock();
   if( snddev->input(stat) )
     linein = stat;
-  //  unlock();
+ // unlock();
   return linein;
 #endif
 }

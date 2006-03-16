@@ -78,7 +78,7 @@ SoundDevice::SoundDevice() {
   pa_dev.input = &input_device;
   pa_dev.output = &output_device;
   input_device.pipe = new Pipe(PA_PIPE_SIZE);
-  input_device.pipe->set_block(false,true);
+  input_device.pipe->set_block(false,false);
   output_device.pipe = new Pipe(PA_PIPE_SIZE);
   output_device.pipe->set_block(true,false);
   input_device.pipe->set_output_type("copy_float_to_int16");
@@ -362,6 +362,7 @@ int SoundDevice::write(void *buf, int len) {
 
   } else if(output_device.stream) { // portaudio
 	res = output_device.pipe->write(len,buf);
+	//func("dspout available pipe space: %d \n",output_device.pipe->space());
   }
   return res;
 }

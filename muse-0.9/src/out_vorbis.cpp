@@ -113,8 +113,8 @@ int OutVorbis::encode() {
   }
 
   samples = rsmp_data.output_frames_gen;
-  func("%i frames resampled in %i with ratio %.4f (num:%u OUT_CHUNK:%u)",
-       rsmp_data.input_frames_used, samples, rsmp_data.src_ratio, num, OUT_CHUNK);
+  //func("%i frames resampled in %i with ratio %.4f (num:%u OUT_CHUNK:%u)",
+    //   rsmp_data.input_frames_used, samples, rsmp_data.src_ratio, num, OUT_CHUNK);
 
   /* initialize the vorbis encoder to work on the resampled size */
   _intbuf = vorbis_analysis_buffer(&vd,samples);

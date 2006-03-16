@@ -84,7 +84,7 @@ Channel::Channel() {
   erbapipa->set_output_type("mix_int16_to_int32");
   // blocking input and output, default timeout is 100 ms
   erbapipa->set_block(true,true);
-  erbapipa->set_block_timeout(10000,10000);
+  erbapipa->set_block_timeout(150000,150000);
 
   playlist = new Playlist();
   dec = NULL;
@@ -112,7 +112,7 @@ Channel::~Channel() {
 }
 
 void Channel::run() {
-  long slept;  // for debugging purpose
+  //long slept;  // for debugging purpose
   IN_DATATYPE *buff; // pointer to buffers to pass them around
   lock();
   func("InChanThread! here i am");
@@ -122,8 +122,8 @@ void Channel::run() {
   signal();
 
   while(!quit) {
-	slept=tick_time(&lst_time,tick_interval);
-	if(slept) func("inchannel ticking %lu microsecs!! \n",slept);
+	/*slept=*/tick_time(&lst_time,tick_interval);
+	//if(slept) func("inchannel ticking %lu microsecs!! \n",slept);
     if(on) {
       idle = false;
       PARADEC
@@ -435,7 +435,7 @@ bool Channel::pos(float pos) {
   func("%u:%s:%s",__LINE__,__FILE__,__FUNCTION__);
   PARADEC
 
-  if(!dec->seekable) return false;
+  if(!dec || !dec->seekable) return false;
 
   func("requesto to seek position %f",pos);
   pos = (pos<0.0) ? 0.0 : (pos>1.0) ? 1.1 : pos;

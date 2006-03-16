@@ -128,29 +128,22 @@ src_process (SRC_STATE *state, SRC_DATA *data)
 	/* And that data_in and data_out are valid. */
 	if (data->data_in == NULL || data->data_out == NULL)
 		return SRC_ERR_BAD_DATA_PTR ;
-
+/*
 	if (data->data_in == NULL)
 		data->input_frames = 0 ;
-
+*/
 	if (data->input_frames < 0)
 		data->input_frames = 0 ;
 	if (data->output_frames < 0)
 		data->output_frames = 0 ;
 
 	if (data->data_in < data->data_out)
-	{	if (data->data_in + data->input_frames * psrc->channels > data->data_out)
-		{	/*-printf ("\n\ndata_in: %p    data_out: %p\n",
-				(void*) (data->data_in + data->input_frames * psrc->channels), (void*) data->data_out) ;-*/
+	{	
+		if (data->data_in + data->input_frames * psrc->channels > data->data_out)
 			return SRC_ERR_DATA_OVERLAP ;
-			} ;
-		}
+	}
 	else if (data->data_out + data->output_frames * psrc->channels > data->data_in)
-	{	/*-printf ("\n\ndata_in : %p   ouput frames: %ld    data_out: %p\n", (void*) data->data_in, data->output_frames, (void*) data->data_out) ;
-
-		printf ("data_out: %p (%p)    data_in: %p\n", (void*) data->data_out,
-			(void*) (data->data_out + data->input_frames * psrc->channels), (void*) data->data_in) ;-*/
 		return SRC_ERR_DATA_OVERLAP ;
-		} ;
 
 	/* Set the input and output counts to zero. */
 	data->input_frames_used = 0 ;

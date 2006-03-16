@@ -248,12 +248,11 @@ public:
   pipe_copy_list *write_copy_cb;
 
   int pipesize;
-  
   bool read_blocking;
   bool write_blocking;
   int read_blocking_time;
   int write_blocking_time;
-
+  unsigned int sleep_time;
 };
 
 #endif
