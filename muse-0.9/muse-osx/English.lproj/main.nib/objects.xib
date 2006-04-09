@@ -4,7 +4,7 @@
   <object name="rootObject" class="NSCustomObject" id="1">
     <string name="customClass">NSApplication</string>
   </object>
-  <array count="352" name="allObjects">
+  <array count="358" name="allObjects">
     <object class="IBCarbonMenu" id="29">
       <string name="title">main</string>
       <array count="4" name="items">
@@ -486,6 +486,10 @@
             <string name="viewFrame">56 346 39 22 </string>
             <string name="title">open</string>
             <ostype name="command">oFil</ostype>
+            <object name="layoutInfo" class="IBCarbonHILayoutInfo">
+              <int name="bindingLeftKind">1</int>
+              <int name="bindingBottomKind">2</int>
+            </object>
             <int name="contentType">0</int>
             <boolean name="rounded">TRUE</boolean>
           </object>
@@ -494,6 +498,10 @@
             <string name="viewFrame">103 346 39 22 </string>
             <string name="title">clean</string>
             <ostype name="command">repl</ostype>
+            <object name="layoutInfo" class="IBCarbonHILayoutInfo">
+              <int name="bindingLeftKind">1</int>
+              <int name="bindingBottomKind">2</int>
+            </object>
             <int name="contentType">0</int>
             <boolean name="rounded">TRUE</boolean>
           </object>
@@ -502,6 +510,10 @@
             <string name="viewFrame">150 346 39 22 </string>
             <string name="title">shuffle</string>
             <ostype name="command">shuf</ostype>
+            <object name="layoutInfo" class="IBCarbonHILayoutInfo">
+              <int name="bindingLeftKind">1</int>
+              <int name="bindingBottomKind">2</int>
+            </object>
             <int name="contentType">0</int>
             <boolean name="rounded">TRUE</boolean>
           </object>
@@ -2810,7 +2822,7 @@
           <object class="IBCarbonGroupBox" id="916">
             <string name="bounds">6 20 131 339 </string>
             <string name="viewFrame">20 6 319 125 </string>
-            <array count="3" name="subviews">
+            <array count="5" name="subviews">
               <object class="IBCarbonPopupButton" id="918">
                 <string name="bounds">36 36 56 190 </string>
                 <string name="viewFrame">16 30 154 20 </string>
@@ -2820,13 +2832,18 @@
                 <int name="titleJustification">-2</int>
                 <object name="menu" class="IBCarbonMenu" id="919">
                   <string name="title">Popup</string>
-                  <array count="7" name="items">
+                  <array count="8" name="items">
                     <object class="IBCarbonMenuItem" id="922">
                       <boolean name="checked">TRUE</boolean>
                       <boolean name="updateSingleItem">TRUE</boolean>
                       <string name="title">no channel</string>
                     </object>
                     <object class="IBCarbonMenuItem" id="948">
+                      <boolean name="disabled">TRUE</boolean>
+                      <boolean name="updateSingleItem">TRUE</boolean>
+                      <string name="title">dspin</string>
+                    </object>
+                    <object class="IBCarbonMenuItem" id="974">
                       <boolean name="disabled">TRUE</boolean>
                       <boolean name="updateSingleItem">TRUE</boolean>
                       <string name="title">channel 0</string>
@@ -2860,21 +2877,39 @@
                 </object>
               </object>
               <object class="IBCarbonProgressBar" id="923">
-                <string name="bounds">98 35 117 324 </string>
-                <string name="viewFrame">15 92 289 19 </string>
+                <string name="bounds">98 35 117 298 </string>
+                <string name="viewFrame">15 92 263 19 </string>
                 <ostype name="controlSignature">MuSE</ostype>
                 <int name="controlID">612</int>
                 <boolean name="indeterminate">FALSE</boolean>
                 <int name="maximumValue">1000</int>
               </object>
               <object class="IBCarbonSlider" id="924">
-                <string name="bounds">76 36 92 323 </string>
-                <string name="viewFrame">16 70 287 16 </string>
+                <string name="bounds">76 36 92 297 </string>
+                <string name="viewFrame">16 70 261 16 </string>
                 <ostype name="controlSignature">MuSE</ostype>
                 <int name="controlID">611</int>
                 <ostype name="command">sibu</ostype>
                 <int name="orientation">2</int>
                 <int name="maximumValue">1000</int>
+              </object>
+              <object class="IBCarbonStaticText" id="977">
+                <string name="bounds">75 305 88 343 </string>
+                <string name="viewFrame">285 69 38 13 </string>
+                <ostype name="controlSignature">MuSE</ostype>
+                <int name="controlID">613</int>
+                <boolean name="small">TRUE</boolean>
+                <int name="controlSize">1</int>
+                <string name="title">0B</string>
+              </object>
+              <object class="IBCarbonStaticText" id="979">
+                <string name="bounds">100 305 113 343 </string>
+                <string name="viewFrame">285 94 38 13 </string>
+                <ostype name="controlSignature">MuSE</ostype>
+                <int name="controlID">614</int>
+                <boolean name="small">TRUE</boolean>
+                <int name="controlSize">1</int>
+                <string name="title">0%</string>
               </object>
             </array>
             <ostype name="controlSignature">MuSE</ostype>
@@ -2883,7 +2918,7 @@
           <object class="IBCarbonGroupBox" id="960">
             <string name="bounds">137 20 262 339 </string>
             <string name="viewFrame">20 137 319 125 </string>
-            <array count="3" name="subviews">
+            <array count="5" name="subviews">
               <object class="IBCarbonPopupButton" id="963">
                 <string name="bounds">167 36 187 191 </string>
                 <string name="viewFrame">16 30 155 20 </string>
@@ -2893,31 +2928,54 @@
                 <int name="titleJustification">-2</int>
                 <object name="menu" class="IBCarbonMenu" id="964">
                   <string name="title">Popup</string>
-                  <array count="1" name="items">
+                  <array count="2" name="items">
                     <object class="IBCarbonMenuItem" id="967">
                       <boolean name="checked">TRUE</boolean>
                       <boolean name="updateSingleItem">TRUE</boolean>
                       <string name="title">no channel</string>
                     </object>
+                    <object class="IBCarbonMenuItem" id="973">
+                      <boolean name="disabled">TRUE</boolean>
+                      <boolean name="updateSingleItem">TRUE</boolean>
+                      <string name="title">dspout</string>
+                    </object>
                   </array>
                 </object>
               </object>
               <object class="IBCarbonProgressBar" id="961">
-                <string name="bounds">229 35 248 324 </string>
-                <string name="viewFrame">15 92 289 19 </string>
+                <string name="bounds">229 35 248 298 </string>
+                <string name="viewFrame">15 92 263 19 </string>
                 <ostype name="controlSignature">MuSE</ostype>
                 <int name="controlID">622</int>
                 <boolean name="indeterminate">FALSE</boolean>
                 <int name="maximumValue">1000</int>
               </object>
               <object class="IBCarbonSlider" id="962">
-                <string name="bounds">207 36 223 323 </string>
-                <string name="viewFrame">16 70 287 16 </string>
+                <string name="bounds">207 36 223 297 </string>
+                <string name="viewFrame">16 70 261 16 </string>
                 <ostype name="controlSignature">MuSE</ostype>
                 <int name="controlID">621</int>
                 <ostype name="command">sobu</ostype>
                 <int name="orientation">2</int>
                 <int name="maximumValue">1000</int>
+              </object>
+              <object class="IBCarbonStaticText" id="980">
+                <string name="bounds">231 305 244 343 </string>
+                <string name="viewFrame">285 94 38 13 </string>
+                <ostype name="controlSignature">MuSE</ostype>
+                <int name="controlID">624</int>
+                <boolean name="small">TRUE</boolean>
+                <int name="controlSize">1</int>
+                <string name="title">0%</string>
+              </object>
+              <object class="IBCarbonStaticText" id="981">
+                <string name="bounds">206 305 219 343 </string>
+                <string name="viewFrame">285 69 38 13 </string>
+                <ostype name="controlSignature">MuSE</ostype>
+                <int name="controlID">623</int>
+                <boolean name="small">TRUE</boolean>
+                <int name="controlSize">1</int>
+                <string name="title">0B</string>
               </object>
             </array>
             <ostype name="controlSignature">MuSE</ostype>
@@ -2954,8 +3012,14 @@
     <reference idRef="964"/>
     <reference idRef="967"/>
     <reference idRef="972"/>
+    <reference idRef="973"/>
+    <reference idRef="974"/>
+    <reference idRef="977"/>
+    <reference idRef="979"/>
+    <reference idRef="980"/>
+    <reference idRef="981"/>
   </array>
-  <array count="352" name="allParents">
+  <array count="358" name="allParents">
     <reference idRef="1"/>
     <reference idRef="29"/>
     <reference idRef="131"/>
@@ -3308,6 +3372,12 @@
     <reference idRef="963"/>
     <reference idRef="964"/>
     <reference idRef="843"/>
+    <reference idRef="964"/>
+    <reference idRef="919"/>
+    <reference idRef="916"/>
+    <reference idRef="916"/>
+    <reference idRef="960"/>
+    <reference idRef="960"/>
   </array>
   <dictionary count="38" name="nameTable">
     <string>AboutWindow</string>
@@ -3387,5 +3457,5 @@
     <string>WarnWindow</string>
     <reference idRef="251"/>
   </dictionary>
-  <unsigned_int name="nextObjectID">973</unsigned_int>
+  <unsigned_int name="nextObjectID">982</unsigned_int>
 </object>

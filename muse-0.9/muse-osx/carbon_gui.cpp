@@ -104,6 +104,7 @@ CARBON_GUI::CARBON_GUI(int argc, char **argv, Stream_mixer *mix)
 	selectedChannel=NULL;
 	memset(channel,0,sizeof(channel));
 	playlistManager=new PlaylistManager();
+	msgList=new Linklist();
 	
 	/* init mutex used when accessing the statusbox buffer ...
 	 * this is needed because other threads can try to write status messages concurrently
@@ -193,6 +194,16 @@ CARBON_GUI::~CARBON_GUI()
 	delete streamHandler;
 	delete playlistManager;
 	delete aboutWindow;
+	if(msgList) {
+		while(msgList->len()) {
+			Entry *e = msgList->begin();
+			void *val = e->get_value();
+			if(val) 
+				free(val);
+			delete e;
+		}
+		delete msgList;
+	}
 	/* delete all input channels */
 	for (int i=0;i<MAX_CHANNELS;i++) 
 		if(channel[i]) delete channel[i];
@@ -316,15 +327,72 @@ void CARBON_GUI::run() {
 			playlistManager->untouch(); /* reset playlistManager update flag */
 		unlock();
 		if(meterShown()) updateVumeters();
-	//	Delay(2,&finalTicks); /* DISABLED BEACAUSE NOW TICK IS SIGNALED BY JMIXER */
+		if(statusText && msgList->len() > 0) {
+			/*	
+			statusLock();
+			if(statusText && !quit) {
+				err=TXNSetTypeAttributes(statusText,3,attributes,kTXNUseCurrentSelection,kTXNUseCurrentSelection);
+				if(err!=noErr) msg->warning("Can't set status text attributes (%d)!!",err);
+			}
+			statusUnlock(); 
+			*/ 
+			while(msgList->len() > 0) {
+				Entry *msg = msgList->begin();
+				char *txt = (char *)msg->get_value();
+				if(txt) {
+					msgOut(txt);
+					free(txt);
+				}
+				delete msg;
+			}
+		}
+		//	Delay(2,&finalTicks); /* DISABLED BEACAUSE NOW TICK IS SIGNALED BY JMIXER */
+		if(IsWindowVisible(bufferInspector->window))
+			bufferInspector->run();
 	}
  }
+
+void CARBON_GUI::msgOut(char *txt) {
+	ItemCount nLines=0;
+	//SInt32 nCols=0;
+	Handle oldText = NULL;
+	TXNOffset start,end;
+	char *p;
+	int off;
+	
+	if(txt && statusText) {
+		TXNGetLineCount(statusText,&nLines);
+		if(nLines > CGUI_STATUS_MAX_LINES) {
+			TXNSelectAll(statusText);
+			TXNGetSelection(statusText,&start,&end);
+			//TXNSetSelection(statusText,kTXNEndOffset,kTXNEndOffset);
+			
+			if(TXNGetDataEncoded(statusText,start,end,&oldText,kTXNTextData) != noErr)
+				msg->error("Can't get status text buffer!! (%d)\n");
+		
+			p = *oldText;
+			while(*p != '\n' && off < end-start) {
+				p++;
+				off++;
+			}
+			p++;
+			off++;
+			TXNSetData(statusText,kTXNTextData,p,(end-start)-off,kTXNStartOffset,kTXNEndOffset);
+			//err = TXNScroll(statusText,kTXNScrollUnitsInLines,kTXNScrollUnitsInLines,&nLines,&nCols);
+		}
+		TXNSetData(statusText,kTXNTextData,"[*] ",4,kTXNEndOffset,kTXNEndOffset);
+		TXNSetData(statusText,kTXNTextData,txt,strlen(txt),kTXNEndOffset,kTXNEndOffset);
+		TXNSetData(statusText,kTXNTextData,"\n",1,kTXNEndOffset,kTXNEndOffset);
+	}
+	if(oldText)
+		DisposeHandle(oldText);
+
+}
 
 /*
  * update vumeterWindow to reflect actual volume and bandwith information
  */
-void CARBON_GUI::updateVumeters() 
-{
+void CARBON_GUI::updateVumeters() {
 	ControlID cid= { CARBON_GUI_APP_SIGNATURE , 0 };
 	ControlRef control;
 	SInt32 val;
@@ -435,47 +503,15 @@ void CARBON_GUI::set_title(char *txt) {
 }
  
 void CARBON_GUI::set_status(char *txt) {
-	ItemCount nLines=0;
-	//SInt32 nCols=0;
-	Handle oldText;
-	TXNOffset start,end;
+	OSStatus err = noErr;
+	Entry *newEntry;
 	char *p;
 	int off=0;
-	OSStatus err = noErr;
-	if(txt && statusText && !quit) {
-		/*	
-		statusLock();
-		if(statusText && !quit) {
-			err=TXNSetTypeAttributes(statusText,3,attributes,kTXNUseCurrentSelection,kTXNUseCurrentSelection);
-			if(err!=noErr) msg->warning("Can't set status text attributes (%d)!!",err);
-		}
-		statusUnlock(); 
-		*/ 
-		TXNGetLineCount(statusText,&nLines);
-		if(nLines > CGUI_STATUS_MAX_LINES) {
-			TXNSelectAll(statusText);
-			TXNGetSelection(statusText,&start,&end);
-			//TXNSetSelection(statusText,kTXNEndOffset,kTXNEndOffset);
-			
-			if(TXNGetDataEncoded(statusText,start,end,&oldText,kTXNTextData) != noErr)
-				msg->error("Can't get status text buffer!! (%d)\n");
-			
-			p = *oldText;
-			while(*p != '\n' && off < end-start) {
-				p++;
-				off++;
-			}
-			p++;
-			off++;
-			TXNSetData(statusText,kTXNTextData,p,(end-start)-off,kTXNStartOffset,kTXNEndOffset);
-			DisposeHandle(oldText);
-			//err = TXNScroll(statusText,kTXNScrollUnitsInLines,kTXNScrollUnitsInLines,&nLines,&nCols);
-		}
-		TXNSetData(statusText,kTXNTextData,"[*] ",4,kTXNEndOffset,kTXNEndOffset);
-		TXNSetData(statusText,kTXNTextData,txt,strlen(txt),kTXNEndOffset,kTXNEndOffset);
-		TXNSetData(statusText,kTXNTextData,"\n",1,kTXNEndOffset,kTXNEndOffset);
-
-	}
+	
+	if(!txt) 
+		return;
+	newEntry = new Entry((void *)strdup(txt));
+	msgList->append(newEntry);
 }
 
 void CARBON_GUI::add_playlist(unsigned int ch, char *txt) {

@@ -79,18 +79,17 @@ class Entry {
   
   Linklist *list;
 
-  bool up();
-  bool down();
-  bool move(int pos);
-  void rem();
-  void sel(bool on);
-  void *get_value();
-  void set_value(void *val);
-
-  int id;  /* deprecated, here just for MuSE */
-  bool select;
+   bool up();
+   bool down();
+   bool move(int pos);
+   void rem();
+   void sel(bool on);
+   void *get_value();
+   void set_value(void *val);
+   int id;  /* deprecated, here just for MuSE */
+   bool select;
   private:
-	void *value;
+   void *value;
 };
 
 #endif

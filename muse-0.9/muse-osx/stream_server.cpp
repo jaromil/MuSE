@@ -90,31 +90,40 @@ void CarbonStreamServer::applyIce() {
 char *CarbonStreamServer::host() {
 	return _host;
 }
+
 int CarbonStreamServer::port() {
 	return _port;
 }
+
 char *CarbonStreamServer::mount() {
 	return _mount;
 }
+
 char *CarbonStreamServer::name() {
 	return _name;
 }
+
 char *CarbonStreamServer::url() {
 	sprintf(_url,"http://%s:%d/%s",_host,_port,_mount);
 	return _url;
 }
+
 char *CarbonStreamServer::description() {
 	return _description;
 }
+
 int CarbonStreamServer::loginType() {
 	return _loginType;
 }
+
 char *CarbonStreamServer::username() {
 	return _username;
 }
+
 char *CarbonStreamServer::password() {
 	return _password;
 }
+
 int CarbonStreamServer::status() {
 	return _status;
 }
@@ -128,9 +137,16 @@ void CarbonStreamServer::host(char *h) {
 		applyIce();
 	}
 }
+
 void CarbonStreamServer::port(int p) {
 	_port=p;
+	Shouter *ice=getIce();
+	if(ice) {
+		ice->port(_port);
+		applyIce();
+	}
 }
+
 void CarbonStreamServer::mount(char *m) {
 	//strncpy(_mount,m,SERVER_STRING_BUFFER_LEN-1);
 	//_mount[SERVER_STRING_BUFFER_LEN-1]=0;
@@ -148,6 +164,7 @@ void CarbonStreamServer::mount(char *m) {
 		applyIce();
 	}
 }
+
 void CarbonStreamServer::name(char *n) {
 	strncpy(_name,n,SERVER_STRING_BUFFER_LEN-1);
 	_name[SERVER_STRING_BUFFER_LEN-1]=0;
@@ -157,6 +174,7 @@ void CarbonStreamServer::name(char *n) {
 		applyIce();
 	}
 }
+
 void CarbonStreamServer::url(char *u) {
 	strncpy(_url,u,SERVER_STRING_BUFFER_LEN-1);
 	_url[SERVER_STRING_BUFFER_LEN-1]=0;
@@ -166,6 +184,7 @@ void CarbonStreamServer::url(char *u) {
 		applyIce();
 	}
 }
+
 void CarbonStreamServer::description(char *d) {
 	strncpy(_description,d,SERVER_STRING_BUFFER_LEN-1);
 	_description[SERVER_STRING_BUFFER_LEN-1]=0;
@@ -175,10 +194,12 @@ void CarbonStreamServer::description(char *d) {
 		applyIce();
 	}
 }
+
 void CarbonStreamServer::loginType(int lType) {
 	_loginType=lType;
 		applyIce();
 }
+
 void CarbonStreamServer::username(char *user) {
 	strncpy(_username,user,SERVER_STRING_BUFFER_LEN-1);
 	_username[SERVER_STRING_BUFFER_LEN-1]=0;
@@ -188,6 +209,7 @@ void CarbonStreamServer::username(char *user) {
 		applyIce();
 	}
 }
+
 void CarbonStreamServer::password(char *pass) {
 	strncpy(_password,pass,SERVER_STRING_BUFFER_LEN-1);
 	_password[SERVER_STRING_BUFFER_LEN-1]=0;

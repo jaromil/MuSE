@@ -85,9 +85,7 @@ private:
   void updateVumeters();
   void setupStatusWindow();
   bool new_channel(int idx);
-  void statusLock() { pthread_mutex_lock(&_statusLock); };
-  void statusUnlock() { pthread_mutex_unlock(&_statusLock); };
-
+  void msgOut(char *txt);
 
   bool new_pos[MAX_CHANNELS];
   bool new_lcd[MAX_CHANNELS];
@@ -106,6 +104,7 @@ private:
   CarbonStream *streamHandler;
   AboutWindow *aboutWindow;
   pthread_mutex_t _statusLock;
+  Linklist *msgList;
 };
 
 #endif

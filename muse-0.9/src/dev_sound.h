@@ -60,14 +60,15 @@ class SoundDevice {
   bool jack_in;
   bool jack_out;
 
+  /* TODO - should be private */
+  PaDevInfo input_device; ///< portaudio input device
+  PaDevInfo output_device; ///< portaudio output device
  private:
   bool pa_open(bool state,int mode);
   PaError pa_real_open(int mode);
   
   PaError err;
 
-  PaDevInfo input_device; ///< portaudio input device
-  PaDevInfo output_device; ///< portaudio output device 
   PaDevices pa_dev;
   int pa_mode; ///< a switch to represent portaudio mode currently using (for noaudio,input,output or both) 
 #define PaNull 0

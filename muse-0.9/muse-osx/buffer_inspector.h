@@ -31,6 +31,12 @@ class BufferInspector {
 		~BufferInspector();
 		void show();
 		void hide();
+		void scanChannels();
+		bool selectInput();
+		bool selectOutput();
+		bool setInput();
+		bool setOutput();
+		void run();
 		
 		CarbonMessage *msg;
 		WindowRef window;
@@ -39,7 +45,6 @@ class BufferInspector {
 		bool attach();
 		bool detach();
 		void setupControls();
-		void scanChannels();
 		
 		IBNibRef nibRef;
 		WindowRef parent;
@@ -50,6 +55,10 @@ class BufferInspector {
 		ControlRef oBar;
 		ControlRef oStatus;
 		Stream_mixer *jmix;
+		MenuHandle iMenu;
+		MenuHandle oMenu;
+		int inIdx;
+		int outIdx;
 	protected:
 };
 
