@@ -443,6 +443,8 @@ void CarbonStream::deleteServer() {
 	int serIdx=getTabValue(SERVER_TAB_CONTROL,selectedServer)-1;
 	deleteServer(encIdx,serIdx);
 	delTab(SERVER_TAB_CONTROL,selectedServer);
+	// update _selectedServer to point to the new one (if we deleted the selected one)
+	_selectedServer=GetControl32BitValue(serverTabControl);
 	if(IsControlVisible(serverTabControl)) {
 		SInt32 newSel = GetControl32BitValue(serverTabControl);
 		int newIdx=getTabValue(SERVER_TAB_CONTROL,newSel)-1;
@@ -637,6 +639,9 @@ void CarbonStream::initServerControls() {
 	cid.id=CONNECT_BUTTON;
 	err=GetControlByID(window,&cid,&serverConnectButton);
 	if(err!=noErr) msg->error("Can't get serverConnectButton control (%d)!!",err);
+	cid.id=LOGIN_TYPE_CONTROL;
+	err=GetControlByID(window,&cid,&serverLTypeButton);
+	if(err!=noErr) msg->error("Can't get serverLTypeButton control (%d)!!",err);
 //	err=SetControlProperty(serverConnectButton,CARBON_GUI_APP_SIGNATURE,SERVER_TEXT_PROPERTY,
 //		sizeof(CarbonStream *),&self);
 //	if(err!=noErr) msg->error("Can't attach CarbonStream pointer to serverConnectButtonControl (%d)!!",err);
@@ -672,6 +677,7 @@ void CarbonStream::initServerControls() {
 void CarbonStream::saveServerInfo(CarbonStreamServer *server) {
 	ControlRef control;	
 	OSStatus err;
+	MenuHandle lMenu;
 	int intBuffer =0;
 	if(!server) return;
 	char buffer[SERVER_STRING_BUFFER_LEN];
@@ -687,14 +693,17 @@ void CarbonStream::saveServerInfo(CarbonStreamServer *server) {
 	SAVE_SERVER_TEXT_INFO(serverMount,mount);
 	/* name */
 	SAVE_SERVER_TEXT_INFO(serverName,name);
-	/* url */
-	//SAVE_SERVER_TEXT_INFO(serverUrl,url);
 	/*description */
 	SAVE_SERVER_TEXT_INFO(serverDescr,description);
 	/* username */
 	SAVE_SERVER_TEXT_INFO(serverUser,username);
 	/* password */
 	SAVE_SERVER_TEXT_INFO(serverPass,password);
+	/* url */
+	SAVE_SERVER_TEXT_INFO(serverUrl,url);
+	
+	SInt32 val = GetControl32BitValue(serverLTypeButton);
+ 	server->loginType(val-1);
 }
 
 #define UPDATE_SERVER_TEXT_INFO(__c,__func) \
@@ -727,6 +736,8 @@ void CarbonStream::updateServerInfo(CarbonStreamServer *server) {
 	char *buffer=NULL;
 	int intBuf=0;
 	char intBufStr[256];
+	SInt32 val;
+	
 	cid.signature=CARBON_GUI_APP_SIGNATURE;
 	
 	if(!server) return;
@@ -745,9 +756,11 @@ void CarbonStream::updateServerInfo(CarbonStreamServer *server) {
 	UPDATE_SERVER_TEXT_INFO(serverUser,username);
 	/* password */
 	UPDATE_SERVER_TEXT_INFO(serverPass,password);
-	
 	/*port */
 	UPDATE_SERVER_INT_INFO(serverPort,port);
+	/* login type */
+	val = server->loginType();
+	SetControl32BitValue(serverLTypeButton,val+1);
 	
 	/* connect button */
 	if(server->isConnected()) {
@@ -1201,9 +1214,9 @@ bool CarbonStream::loadPreset(int idx) {
 											}
 											else if(strcmp(opt,"ltype")==0) {
 												if(serverCfg->value()) {
-												if(sscanf(serverCfg->value(),"%d",&val)==1) {
-													server->loginType(val);
-												}
+													if(sscanf(serverCfg->value(),"%d",&val)==1) {
+														server->loginType(val);
+													}
 												}
 											}
 											else if(strcmp(opt,"username")==0) {
@@ -1535,8 +1548,13 @@ static OSStatus StreamCommandHandler (
 		case RECORD_STREAM_CMD:
 			me->recordStream();
 			break;
+		case LTYPE_CMD:
+			me->saveServerInfo(me->selectedServer());
+			err = eventNotHandledErr;
+			break;
 		case ABOUT_CMD:
 			SendEventToEventTarget(event,GetWindowEventTarget(me->parent));
+			break;
 		default:
 			err = eventNotHandledErr;
 			break;

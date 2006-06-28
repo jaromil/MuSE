@@ -1546,7 +1546,7 @@
                           <int name="controlID">824</int>
                           <boolean name="small">TRUE</boolean>
                           <int name="controlSize">1</int>
-                          <ostype name="command">ltyp</ostype>
+                          <ostype name="command">ltyb</ostype>
                           <object name="menu" class="IBCarbonMenu" id="503">
                             <string name="title">Popup:</string>
                             <array count="3" name="items">
@@ -1554,14 +1554,17 @@
                                 <boolean name="checked">TRUE</boolean>
                                 <boolean name="updateSingleItem">TRUE</boolean>
                                 <string name="title">icecast 2</string>
+                                <ostype name="command">ltyp</ostype>
                               </object>
                               <object class="IBCarbonMenuItem" id="502">
                                 <boolean name="updateSingleItem">TRUE</boolean>
                                 <string name="title">icecast 1</string>
+                                <ostype name="command">ltyp</ostype>
                               </object>
                               <object class="IBCarbonMenuItem" id="504">
                                 <boolean name="updateSingleItem">TRUE</boolean>
                                 <string name="title">shoutcast</string>
+                                <ostype name="command">ltyp</ostype>
                               </object>
                             </array>
                           </object>

@@ -197,7 +197,11 @@ void CarbonStreamServer::description(char *d) {
 
 void CarbonStreamServer::loginType(int lType) {
 	_loginType=lType;
+	Shouter *ice=getIce();
+	if(ice) {
+		ice->login(lType);
 		applyIce();
+	}
 }
 
 void CarbonStreamServer::username(char *user) {

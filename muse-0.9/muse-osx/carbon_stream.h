@@ -112,6 +112,7 @@ class CarbonStream {
 		ControlRef serverDescr;
 		ControlRef serverUser;
 		ControlRef serverPass;
+		ControlRef serverLTypeButton;
 		ControlRef serverConnectButton;
 	
 		ControlKeyFilterUPP textFilterRoutine;

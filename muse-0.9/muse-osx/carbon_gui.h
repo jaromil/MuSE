@@ -100,11 +100,16 @@ private:
   OSStatus		err;
   CarbonChannel	*channel[MAX_CHANNELS];
   CarbonChannel *selectedChannel;
+  HIViewRef statusTextView;
   TXNObject statusText;
   CarbonStream *streamHandler;
   AboutWindow *aboutWindow;
-  pthread_mutex_t _statusLock;
   Linklist *msgList;
+  
+  pthread_mutex_t _statusLock;
+  void statusLock() { pthread_mutex_lock(&_statusLock); };
+  void statusUnlock() { pthread_mutex_unlock(&_statusLock); };
+  
 };
 
 #endif

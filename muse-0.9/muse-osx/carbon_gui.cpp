@@ -194,6 +194,7 @@ CARBON_GUI::~CARBON_GUI()
 	delete streamHandler;
 	delete playlistManager;
 	delete aboutWindow;
+	pthread_mutex_destroy(&_statusLock);
 	if(msgList) {
 		while(msgList->len()) {
 			Entry *e = msgList->begin();
@@ -235,7 +236,6 @@ void CARBON_GUI::setupStatusWindow()
 		
 	/* obtain an HIViewRef for the status text box ... we have to use it 
 	 * to setup various properties and to obain a TXNObject needed to manage its content */
-	HIViewRef statusTextView;
 	const ControlID txtid={ CARBON_GUI_APP_SIGNATURE, STATUS_TEXT_ID };
 	err= HIViewFindByID(HIViewGetRoot(statusWindow), txtid, &statusTextView);
 	if(err!=noErr) return;// msg->warning("Can't get textView for status window (%d)!!",err);
@@ -243,7 +243,11 @@ void CARBON_GUI::setupStatusWindow()
 	if(!statusText) {
 		msg->error("Can't get statusText object from status window!!");
 	}
-
+//	TXNControlTag iControlTags[1] = { kTXNAutoScrollBehaviorTag };
+//	TXNControlData iControlData[1] = { kTXNAutoScrollNever }; //kTXNAutoScrollWhenInsertionVisible };
+//	err = TXNSetTXNObjectControls(statusText,false,1,iControlTags,iControlData);
+	//TextViewSetObjectControlData
+	//TextViewSetObjectControlData(statusText,kTXNAutoScrollBehaviorTag,kUn kTXNAutoScrollWhenInsertionVisible)
 	/* setup status text font size and color */
 	// Create type attribute data structure
 	UInt32   fontSize = 10 << 16; // needs to be in Fixed format
@@ -346,7 +350,7 @@ void CARBON_GUI::run() {
 				delete msg;
 			}
 		}
-		//	Delay(2,&finalTicks); /* DISABLED BEACAUSE NOW TICK IS SIGNALED BY JMIXER */
+	//	Delay(2,&finalTicks); /* XXX - DISABLED BEACAUSE NOW TICK IS SIGNALED BY JMIXER */
 		if(IsWindowVisible(bufferInspector->window))
 			bufferInspector->run();
 	}
@@ -354,30 +358,41 @@ void CARBON_GUI::run() {
 
 void CARBON_GUI::msgOut(char *txt) {
 	ItemCount nLines=0;
-	//SInt32 nCols=0;
+	SInt32 sLines;
 	Handle oldText = NULL;
-	TXNOffset start,end;
-	char *p;
-	int off;
-	
+	TXNOffset start = 0;
+	TXNOffset end = 0;
+	TXNDataType dType;
+	UniChar *p;
+	int off = 0;
+	statusLock();
 	if(txt && statusText) {
 		TXNGetLineCount(statusText,&nLines);
 		if(nLines > CGUI_STATUS_MAX_LINES) {
-			TXNSelectAll(statusText);
-			TXNGetSelection(statusText,&start,&end);
-			//TXNSetSelection(statusText,kTXNEndOffset,kTXNEndOffset);
+			TXNControlTag iControlTags[1] = { kTXNAutoScrollBehaviorTag };
+			TXNControlData iControlData[1] = { kTXNAutoScrollNever }; //kTXNAutoScrollWhenInsertionVisible };
+			err = TXNSetTXNObjectControls(statusText,false,1,iControlTags,iControlData);
+
+			TXNTypeAttributes attr = { kTXNTextEncodingAttribute,kTXNTextEncodingAttributeSize,{0} };
 			
-			if(TXNGetDataEncoded(statusText,start,end,&oldText,kTXNTextData) != noErr)
+			//TXNGetIndexedRunInfoFromRange(statusText,0,kTXNStartOffset,kTXNEndOffset,&start,&end,&dType,1,&attr);
+			
+			if(TXNGetData(statusText,kTXNStartOffset,kTXNEndOffset,&oldText) != noErr)
 				msg->error("Can't get status text buffer!! (%d)\n");
-		
-			p = *oldText;
-			while(*p != '\n' && off < end-start) {
-				p++;
+			
+			end = TXNDataSize(statusText);
+			p = (UniChar *)*oldText;
+			while(*((*oldText)+off) != '\n' && off < end) {
 				off++;
 			}
 			p++;
 			off++;
-			TXNSetData(statusText,kTXNTextData,p,(end-start)-off,kTXNStartOffset,kTXNEndOffset);
+			//off = 256;
+			TXNSetData(statusText,kTXNTextData,"",0,kTXNStartOffset,off/sizeof(UniChar));
+			/*
+			if(end > off) 
+				TXNSetData(statusText,kTXNUnicodeTextData,(*oldText)+off,end-off,kTXNStartOffset,kTXNEndOffset);
+			*/
 			//err = TXNScroll(statusText,kTXNScrollUnitsInLines,kTXNScrollUnitsInLines,&nLines,&nCols);
 		}
 		TXNSetData(statusText,kTXNTextData,"[*] ",4,kTXNEndOffset,kTXNEndOffset);
@@ -386,7 +401,7 @@ void CARBON_GUI::msgOut(char *txt) {
 	}
 	if(oldText)
 		DisposeHandle(oldText);
-
+	statusUnlock();
 }
 
 /*
@@ -625,16 +640,15 @@ void CARBON_GUI::showVumeters(bool flag) {
  */
 void CARBON_GUI::showStatus(bool flag) {
 	OSStatus err;
-	SInt32 nLines=0;
-	SInt32 nCols=0;
 	if(flag) { 
 		Rect bounds;
 		GetWindowBounds(window,kWindowGlobalPortRgn,&bounds);
 		MoveWindow(statusWindow,bounds.left,bounds.bottom+30,false);
 		ShowWindow(statusWindow);
-		TXNGetLineCount(statusText,(ItemCount *)&nLines);
 		//TXNSetData(statusText,kTXNTextData,"",0,kTXNEndOffset,kTXNEndOffset);
-		TXNScroll(statusText,kTXNScrollUnitsInLines,kTXNScrollUnitsInLines,&nLines,&nCols);
+	//	err = HIScrollViewNavigate (statusTextView,kHIScrollViewScrollToBottom);
+	//	if(err!=noErr)
+	//		msg->warning("Can't scroll statusText : %d \n",err);
 		TXNForceUpdate(statusText);
 		//OpenDrawer(statusWindow,kWindowEdgeBottom,false);
 	}
@@ -667,6 +681,9 @@ void CARBON_GUI::toggleVumeters() {
  */
 void CARBON_GUI::clearStatus() {
 	TXNSetData(statusText,kTXNTextData,"",0,kTXNStartOffset,kTXNEndOffset);
+	TXNControlTag iControlTags[1] = { kTXNAutoScrollBehaviorTag };
+	TXNControlData iControlData[1] = { 0 }; 
+	err = TXNSetTXNObjectControls(statusText,false,1,iControlTags,iControlData);
 }
 
 /*

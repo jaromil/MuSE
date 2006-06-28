@@ -139,22 +139,21 @@ void Channel::run() {
 	 dec->samplerate and dec->channels tell about the audio format */
 
       buff = dec->get_audio();
-      dec->unlock();
-
+	  dec->unlock();
     /* then call resample() which sets up:
        frames = number of 16bit sound values
        and returns *IN_DATATYPE pointing to the resampled buffer */
-      if(buff) {
-	buff = resample(buff);
+	if(buff) {
+      buff = resample(buff);
 
-	/* at last pushes it up into the pipe
-	   bytes are samples*4 being the audio 16bit stereo */
-	erbapipa->write(frames*2,buff);
+	  /* at last pushes it up into the pipe
+	     bytes are samples*4 being the audio 16bit stereo */
+      erbapipa->write(frames*2,buff);
 
 	/* then calculates the position and time */
-	if(dec->seekable) state = upd_time();
+      if(dec->seekable) state = upd_time();
 
-      } else /* if get_audio returns NULL then is eos or error */
+	} else /* if get_audio returns NULL then is eos or error */
 
 	if(dec->eos) upd_eos();
 	else if(dec->err) upd_err();
@@ -194,11 +193,11 @@ IN_DATATYPE *Channel::resample(IN_DATATYPE *audio) {
 
   /* save last part of the chunk
      for the next resampling */
-  prev_smp[0] = audio[dec->frames-4];
+/*  prev_smp[0] = audio[dec->frames-4];
   prev_smp[1] = audio[dec->frames-3];
   prev_smp[2] = audio[dec->frames-2];
   prev_smp[3] = audio[dec->frames-1];
-
+*/
   return(buffo);
 }
 

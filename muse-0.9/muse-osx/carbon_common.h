@@ -190,6 +190,7 @@
 #define CHANGE_ENCTYPE_CMD 'senc'
 #define APPLY_FILTER_CMD 'apff'
 #define RECORD_STREAM_CMD 'recn'
+#define LTYPE_CMD 'ltyp'
 
 #define LOAD_STREAM_PRESET_BUT 830
 #define LOAD_STREAM_PRESET_CMD 'lopr'
