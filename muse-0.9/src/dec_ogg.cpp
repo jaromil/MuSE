@@ -58,7 +58,7 @@ IN_DATATYPE *MuseDecOgg::get_audio() {
 
   do {
     res = 
-#ifdef HAVE_DARWIN
+#ifdef __BIGENDIAN
       //      env  buffer  length    BENDIAN WORD SIGNED  bitstream
       ov_read(&vf, _inbuf, IN_CHUNK, 1,      2,   1,      &current_section);
 #else

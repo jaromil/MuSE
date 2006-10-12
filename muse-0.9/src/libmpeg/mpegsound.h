@@ -28,7 +28,7 @@
 #ifndef _L__SOUND__
 #define _L__SOUND__
 
-#ifdef HAVE_DARWIN
+#ifdef __BIGENDIAN
 #define WORDS_BIGENDIAN 1
 #endif
 

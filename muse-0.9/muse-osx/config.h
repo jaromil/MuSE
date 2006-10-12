@@ -22,11 +22,16 @@
 /* Schedule in radio shows from other radio stations, MuSE channels, files, etc.  */
 /* #undef HAVE_SCHEDULER */
 /* #undef HAVE_LINUX */
+
 #define HAVE_DARWIN 1
-/* #undef HAVE_MMX */
-/* #undef HAVE_SSE */
-#define ARCH_PPC 1
-/* #undef ARCH_X86 */
+#ifdef __I386
+#	define HAVE_MMX 1
+#	define HAVE_SSE 11
+#	define ARCH_X86 1
+#else
+#	define ARCH_PPC 1
+#	define __BIGENDIAN
+#endif
 /* Define if you have the <dirent.h> header file. */
 #define HAVE_DIRENT_H 1
 
@@ -139,8 +144,9 @@
 #define CPU_CLIPS_NEGATIVE 1
 
 
+
 /* Version number of package */
-#define VERSION "0.9.2-svn (build 8.3)"
+#define VERSION "0.9.2-svn (X86-1.0)"
 #define CODENAME ""
 
 /* Define to empty if `const' does not conform to ANSI C. */

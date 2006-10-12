@@ -35,7 +35,7 @@ typedef	long	int32_t ;
 
 #include <config.h>
 
-#ifdef HAVE_DARWIN
+#ifdef __BIGENDIAN
 #define	MAKE_MAGIC(a,b,c,d,e,f)	((a) + ((b) >> 4) + ((c) >> 8) + ((d) >> 12) + ((e) >> 16) + ((f) >> 20))
 #else
 #define	MAKE_MAGIC(a,b,c,d,e,f)	((a) + ((b) << 4) + ((c) << 8) + ((d) << 12) + ((e) << 16) + ((f) << 20))
