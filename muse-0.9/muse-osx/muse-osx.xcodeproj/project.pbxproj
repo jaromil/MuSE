@@ -72,12 +72,13 @@
 		AA3FDA2507FCE1410061F816 /* vumeter.c in Sources */ = {isa = PBXBuildFile; fileRef = AA3FD77F07FCE13E0061F816 /* vumeter.c */; };
 		AA4C3A8007FEBC9B00E15170 /* carbon_channel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA4C3A7E07FEBC9B00E15170 /* carbon_channel.cpp */; };
 		AA50A14509C4DC59000E1CBE /* libSystemStubs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AA50A14409C4DC59000E1CBE /* libSystemStubs.a */; };
+		AA7504BF0AF967A2001B68BB /* open_dialog.c in Sources */ = {isa = PBXBuildFile; fileRef = AA7504BE0AF967A2001B68BB /* open_dialog.c */; };
+		AA7504DC0AF96A82001B68BB /* libFLAC.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AA7504DB0AF96A82001B68BB /* libFLAC.a */; };
 		AA761B590805AFB8003C6E4A /* carbon_message.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA761B570805AFB8003C6E4A /* carbon_message.cpp */; };
 		AA852D9309BF0AF000CAAAA6 /* buffer_inspector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA852D9209BF0AF000CAAAA6 /* buffer_inspector.cpp */; };
 		AA860D360901096700B020EF /* credits.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA860D350901096700B020EF /* credits.cpp */; };
 		AA860D92090123E200B020EF /* credits.rsrc in Rez */ = {isa = PBXBuildFile; fileRef = AA860D91090123E200B020EF /* credits.rsrc */; };
 		AA8D1B91080B57B900193C49 /* carbon_stream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA8D1B8F080B57B900193C49 /* carbon_stream.cpp */; };
-		AA95A42E0815CD1A001BF965 /* open_dialog.c in Sources */ = {isa = PBXBuildFile; fileRef = AA95A42C0815CD1A001BF965 /* open_dialog.c */; };
 		AAC26997081955F000C45B1E /* xmlprofile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAC26995081955F000C45B1E /* xmlprofile.cpp */; };
 		AAC5D9F4082C570000D4AEB4 /* stream_server.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAC5D9F2082C570000D4AEB4 /* stream_server.cpp */; };
 		AAC5D9FE082C589800D4AEB4 /* stream_encoder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAC5D9FC082C589800D4AEB4 /* stream_encoder.cpp */; };
@@ -92,41 +93,6 @@
 		B3AC961E088BD81100B6C700 /* muse-icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = B3AC961D088BD81100B6C700 /* muse-icon.icns */; };
 		B3DDD65D088BBDEA0000B321 /* muse_icons.rsrc in Rez */ = {isa = PBXBuildFile; fileRef = B3DDD65C088BBDEA0000B321 /* muse_icons.rsrc */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXBuildStyle section */
-		4A9504C5FFE6A39111CA0CBA /* Development */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_ALTIVEC_EXTENSIONS = YES;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				HEADER_SEARCH_PATHS = (
-					/sw/include/,
-					"../src//**",
-					/Developer/Headers/FlatCarbon/,
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.3;
-				OTHER_LDFLAGS = "";
-				PREBINDING = NO;
-				PUBLIC_HEADERS_FOLDER_PATH = "";
-				ZERO_LINK = NO;
-			};
-			name = Development;
-		};
-		4A9504C6FFE6A39111CA0CBA /* Deployment */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				MACOSX_DEPLOYMENT_TARGET = 10.3;
-				ZERO_LINK = NO;
-			};
-			name = Deployment;
-		};
-/* End PBXBuildStyle section */
 
 /* Begin PBXFileReference section */
 		0867D6ABFE840B52C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -253,6 +219,8 @@
 		AA4C3A7D07FEBC9B00E15170 /* carbon_channel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = carbon_channel.h; sourceTree = "<group>"; };
 		AA4C3A7E07FEBC9B00E15170 /* carbon_channel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = carbon_channel.cpp; sourceTree = "<group>"; };
 		AA50A14409C4DC59000E1CBE /* libSystemStubs.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSystemStubs.a; path = /usr/lib/libSystemStubs.a; sourceTree = "<absolute>"; };
+		AA7504BE0AF967A2001B68BB /* open_dialog.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = open_dialog.c; sourceTree = "<group>"; };
+		AA7504DB0AF96A82001B68BB /* libFLAC.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libFLAC.a; path = /sw/lib/libFLAC.a; sourceTree = "<absolute>"; };
 		AA761B560805AFB8003C6E4A /* carbon_message.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = carbon_message.h; sourceTree = "<group>"; };
 		AA761B570805AFB8003C6E4A /* carbon_message.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = carbon_message.cpp; sourceTree = "<group>"; };
 		AA852D9109BF0AF000CAAAA6 /* buffer_inspector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = buffer_inspector.h; sourceTree = "<group>"; };
@@ -263,7 +231,6 @@
 		AA8D1B8E080B57B900193C49 /* carbon_stream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = carbon_stream.h; sourceTree = "<group>"; };
 		AA8D1B8F080B57B900193C49 /* carbon_stream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = carbon_stream.cpp; sourceTree = "<group>"; };
 		AA95A42B0815CD1A001BF965 /* open_dialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = open_dialog.h; sourceTree = SOURCE_ROOT; };
-		AA95A42C0815CD1A001BF965 /* open_dialog.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c; fileEncoding = 4; path = open_dialog.c; sourceTree = "<group>"; };
 		AAC26995081955F000C45B1E /* xmlprofile.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = xmlprofile.cpp; sourceTree = "<group>"; };
 		AAC26996081955F000C45B1E /* xmlprofile.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = xmlprofile.h; sourceTree = "<group>"; };
 		AAC5D9F1082C570000D4AEB4 /* stream_server.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stream_server.h; sourceTree = "<group>"; };
@@ -299,6 +266,7 @@
 				AADDE577083D03D100EE8BDF /* libvorbisenc.a in Frameworks */,
 				AADDE579083D03E100EE8BDF /* libvorbisfile.a in Frameworks */,
 				AA50A14509C4DC59000E1CBE /* libSystemStubs.a in Frameworks */,
+				AA7504DC0AF96A82001B68BB /* libFLAC.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -327,6 +295,7 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				AA7504BE0AF967A2001B68BB /* open_dialog.c */,
 				AA3FDA5607FD59300061F816 /* config.h */,
 				AAE5AE8408069517006FA613 /* carbon_common.h */,
 				AA3FCC3C07FCDD370061F816 /* carbon_gui.cpp */,
@@ -341,7 +310,6 @@
 				AAC5D9FB082C589800D4AEB4 /* stream_encoder.h */,
 				AA761B570805AFB8003C6E4A /* carbon_message.cpp */,
 				AA761B560805AFB8003C6E4A /* carbon_message.h */,
-				AA95A42C0815CD1A001BF965 /* open_dialog.c */,
 				AA95A42B0815CD1A001BF965 /* open_dialog.h */,
 				AA15AF5D0839586700530BBD /* playlist_manager.h */,
 				AA15AF5E0839586700530BBD /* playlist_manager.cpp */,
@@ -382,6 +350,7 @@
 				AADDE570083D039D00EE8BDF /* libmp3lame.a */,
 				AADDE56E083D037F00EE8BDF /* libsndfile.a */,
 				AA50A14409C4DC59000E1CBE /* libSystemStubs.a */,
+				AA7504DB0AF96A82001B68BB /* libFLAC.a */,
 			);
 			name = "Frameworks and Libraries";
 			path = ../src;
@@ -553,21 +522,6 @@
 			);
 			buildRules = (
 			);
-			buildSettings = {
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "muse-osx_Prefix.pch";
-				HEADER_SEARCH_PATHS = (
-					../src/portaudio,
-					../src,
-					/sw/include,
-				);
-				INFOPLIST_FILE = Info.plist;
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = /sw/lib;
-				PRODUCT_NAME = "muse-osx";
-				WRAPPER_EXTENSION = app;
-			};
 			dependencies = (
 			);
 			name = "muse-osx";
@@ -582,12 +536,6 @@
 		20286C28FDCF999611CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = B324DAD1088B084E00AEDB06 /* Build configuration list for PBXProject "muse-osx" */;
-			buildSettings = {
-			};
-			buildStyles = (
-				4A9504C5FFE6A39111CA0CBA /* Development */,
-				4A9504C6FFE6A39111CA0CBA /* Deployment */,
-			);
 			hasScannedForEncodings = 1;
 			mainGroup = 20286C29FDCF999611CA2CEA /* muse-osx */;
 			projectDirPath = "";
@@ -689,13 +637,13 @@
 				AA4C3A8007FEBC9B00E15170 /* carbon_channel.cpp in Sources */,
 				AA761B590805AFB8003C6E4A /* carbon_message.cpp in Sources */,
 				AA8D1B91080B57B900193C49 /* carbon_stream.cpp in Sources */,
-				AA95A42E0815CD1A001BF965 /* open_dialog.c in Sources */,
 				AAC26997081955F000C45B1E /* xmlprofile.cpp in Sources */,
 				AAC5D9F4082C570000D4AEB4 /* stream_server.cpp in Sources */,
 				AAC5D9FE082C589800D4AEB4 /* stream_encoder.cpp in Sources */,
 				AA15AF5F0839586700530BBD /* playlist_manager.cpp in Sources */,
 				AA860D360901096700B020EF /* credits.cpp in Sources */,
 				AA852D9309BF0AF000CAAAA6 /* buffer_inspector.cpp in Sources */,
+				AA7504BF0AF967A2001B68BB /* open_dialog.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -801,7 +749,7 @@
 				GCC_UNROLL_LOOPS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OTHER_CFLAGS = (
-					"-fastf",
+					"-fast",
 					"-mcpu=G4",
 					"-mtune=G4",
 				);
@@ -820,7 +768,7 @@
 				GCC_UNROLL_LOOPS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OTHER_CFLAGS = (
-					"-fastf",
+					"-fast",
 					"-mcpu=G4",
 					"-mtune=G4",
 				);
@@ -838,7 +786,7 @@
 				GCC_UNROLL_LOOPS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OTHER_CFLAGS = (
-					"-fastf",
+					"-fast",
 					"-mcpu=G4",
 					"-mtune=G4",
 				);
