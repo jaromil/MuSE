@@ -576,7 +576,7 @@
     <reference idRef="249"/>
     <reference idRef="250"/>
     <object class="IBCarbonWindow" id="251">
-      <string name="windowRect">744 463 878 878 </string>
+      <string name="windowRect">596 463 730 878 </string>
       <string name="title">Warning</string>
       <object name="rootControl" class="IBCarbonRootControl" id="255">
         <string name="bounds">0 0 134 415 </string>
@@ -648,7 +648,7 @@
     <reference idRef="257"/>
     <reference idRef="258"/>
     <object class="IBCarbonWindow" id="259">
-      <string name="windowRect">622 480 756 895 </string>
+      <string name="windowRect">596 480 730 895 </string>
       <string name="title">Info</string>
       <reference name="rootControl" idRef="256"/>
       <boolean name="receiveUpdates">FALSE</boolean>
@@ -958,7 +958,7 @@
     <reference idRef="298"/>
     <reference idRef="300"/>
     <object class="IBCarbonWindow" id="310">
-      <string name="windowRect">674 469 761 1028 </string>
+      <string name="windowRect">596 469 683 1028 </string>
       <string name="title">Add URL</string>
       <object name="rootControl" class="IBCarbonRootControl" id="311">
         <string name="bounds">0 0 87 559 </string>
@@ -1018,17 +1018,17 @@
     <reference idRef="312"/>
     <reference idRef="313"/>
     <object class="IBCarbonRootControl" id="314">
-      <string name="bounds">0 0 657 527 </string>
-      <string name="viewFrame">0 0 527 657 </string>
+      <string name="bounds">0 0 552 601 </string>
+      <string name="viewFrame">0 0 601 552 </string>
       <array count="7" name="subviews">
         <object class="IBCarbonStaticText" id="362">
-          <string name="bounds">29 20 45 134 </string>
-          <string name="viewFrame">20 29 114 16 </string>
+          <string name="bounds">5 20 21 134 </string>
+          <string name="viewFrame">20 5 114 16 </string>
           <string name="title">Output Streams</string>
         </object>
         <object class="IBCarbonButton" id="363">
-          <string name="bounds">29 344 46 420 </string>
-          <string name="viewFrame">344 29 76 17 </string>
+          <string name="bounds">2 418 19 494 </string>
+          <string name="viewFrame">418 2 76 17 </string>
           <ostype name="controlSignature">MuSE</ostype>
           <int name="controlID">800</int>
           <boolean name="small">TRUE</boolean>
@@ -1037,8 +1037,8 @@
           <ostype name="command">adst</ostype>
         </object>
         <object class="IBCarbonButton" id="364">
-          <string name="bounds">29 430 46 506 </string>
-          <string name="viewFrame">430 29 76 17 </string>
+          <string name="bounds">2 504 19 580 </string>
+          <string name="viewFrame">504 2 76 17 </string>
           <ostype name="controlSignature">MuSE</ostype>
           <int name="controlID">801</int>
           <boolean name="small">TRUE</boolean>
@@ -1047,50 +1047,20 @@
           <ostype name="command">dest</ostype>
         </object>
         <object class="IBCarbonTab" id="318">
-          <string name="bounds">46 20 606 507 </string>
-          <string name="viewFrame">20 46 487 560 </string>
+          <string name="bounds">15 20 510 581 </string>
+          <string name="viewFrame">20 15 561 495 </string>
           <array count="1" name="subviews">
             <object class="IBCarbonUserPane" id="317">
-              <string name="bounds">74 20 606 507 </string>
-              <string name="viewFrame">0 28 487 532 </string>
+              <string name="bounds">43 20 510 581 </string>
+              <string name="viewFrame">0 28 561 467 </string>
               <array count="7" name="subviews">
-                <object class="IBCarbonPopupButton" id="676">
-                  <string name="bounds">83 133 100 208 </string>
-                  <string name="viewFrame">113 9 75 17 </string>
-                  <ostype name="controlSignature">MuSE</ostype>
-                  <int name="controlID">803</int>
-                  <boolean name="small">TRUE</boolean>
-                  <int name="controlSize">1</int>
-                  <ostype name="command">senc</ostype>
-                  <object name="menu" class="IBCarbonMenu" id="677">
-                    <string name="title">Popup</string>
-                    <array count="2" name="items">
-                      <object class="IBCarbonMenuItem" id="680">
-                        <boolean name="checked">TRUE</boolean>
-                        <boolean name="updateSingleItem">TRUE</boolean>
-                        <string name="title">ogg</string>
-                      </object>
-                      <object class="IBCarbonMenuItem" id="679">
-                        <boolean name="updateSingleItem">TRUE</boolean>
-                        <string name="title">mp3</string>
-                      </object>
-                    </array>
-                  </object>
-                </object>
-                <object class="IBCarbonStaticText" id="325">
-                  <string name="bounds">85 40 101 125 </string>
-                  <string name="viewFrame">20 11 85 16 </string>
-                  <boolean name="small">TRUE</boolean>
-                  <int name="controlSize">1</int>
-                  <string name="title">Encoder Type:</string>
-                </object>
                 <object class="IBCarbonGroupBox" id="319">
-                  <string name="bounds">113 40 377 487 </string>
-                  <string name="viewFrame">20 39 447 264 </string>
+                  <string name="bounds">40 40 289 561 </string>
+                  <string name="viewFrame">20 -3 521 249 </string>
                   <array count="24" name="subviews">
                     <object class="IBCarbonPopupButton" id="497">
-                      <string name="bounds">140 399 157 475 </string>
-                      <string name="viewFrame">359 27 76 17 </string>
+                      <string name="bounds">100 149 117 225 </string>
+                      <string name="viewFrame">109 60 76 17 </string>
                       <ostype name="controlSignature">MuSE</ostype>
                       <int name="controlID">805</int>
                       <boolean name="small">TRUE</boolean>
@@ -1112,29 +1082,29 @@
                       </object>
                     </object>
                     <object class="IBCarbonStaticText" id="356">
-                      <string name="bounds">141 54 154 168 </string>
-                      <string name="viewFrame">14 28 114 13 </string>
+                      <string name="bounds">72 261 85 375 </string>
+                      <string name="viewFrame">221 32 114 13 </string>
                       <boolean name="small">TRUE</boolean>
                       <int name="controlSize">1</int>
                       <string name="title">Quality</string>
                     </object>
                     <object class="IBCarbonStaticText" id="359">
-                      <string name="bounds">142 357 155 391 </string>
-                      <string name="viewFrame">317 29 34 13 </string>
+                      <string name="bounds">102 54 115 88 </string>
+                      <string name="viewFrame">14 62 34 13 </string>
                       <boolean name="small">TRUE</boolean>
                       <int name="controlSize">1</int>
                       <string name="title">Mode</string>
                     </object>
                     <object class="IBCarbonStaticText" id="358">
-                      <string name="bounds">143 114 154 136 </string>
-                      <string name="viewFrame">74 30 22 11 </string>
+                      <string name="bounds">74 317 85 339 </string>
+                      <string name="viewFrame">277 34 22 11 </string>
                       <boolean name="small">TRUE</boolean>
                       <int name="controlSize">3</int>
                       <string name="title">(low)</string>
                     </object>
                     <object class="IBCarbonSlider" id="342">
-                      <string name="bounds">143 144 160 290 </string>
-                      <string name="viewFrame">104 30 146 17 </string>
+                      <string name="bounds">73 347 90 508 </string>
+                      <string name="viewFrame">307 33 161 17 </string>
                       <ostype name="controlSignature">MuSE</ostype>
                       <int name="controlID">804</int>
                       <boolean name="small">TRUE</boolean>
@@ -1147,15 +1117,15 @@
                       <int name="maximumValue">9</int>
                     </object>
                     <object class="IBCarbonStaticText" id="357">
-                      <string name="bounds">144 298 155 327 </string>
-                      <string name="viewFrame">258 31 29 11 </string>
+                      <string name="bounds">74 516 85 545 </string>
+                      <string name="viewFrame">476 34 29 11 </string>
                       <boolean name="small">TRUE</boolean>
                       <int name="controlSize">3</int>
                       <string name="title">(high)</string>
                     </object>
                     <object class="IBCarbonStaticText" id="644">
-                      <string name="bounds">168 119 181 399 </string>
-                      <string name="viewFrame">79 55 280 13 </string>
+                      <string name="bounds">95 360 108 495 </string>
+                      <string name="viewFrame">320 55 135 13 </string>
                       <ostype name="controlSignature">MuSE</ostype>
                       <int name="controlID">806</int>
                       <boolean name="small">TRUE</boolean>
@@ -1163,8 +1133,8 @@
                       <int name="justification">1</int>
                     </object>
                     <object class="IBCarbonPopupButton" id="482">
-                      <string name="bounds">193 114 210 225 </string>
-                      <string name="viewFrame">74 80 111 17 </string>
+                      <string name="bounds">129 114 146 225 </string>
+                      <string name="viewFrame">74 89 111 17 </string>
                       <ostype name="controlSignature">MuSE</ostype>
                       <int name="controlID">807</int>
                       <boolean name="small">TRUE</boolean>
@@ -1210,8 +1180,8 @@
                       </object>
                     </object>
                     <object class="IBCarbonPopupButton" id="495">
-                      <string name="bounds">193 399 210 475 </string>
-                      <string name="viewFrame">359 80 76 17 </string>
+                      <string name="bounds">114 421 131 497 </string>
+                      <string name="viewFrame">381 74 76 17 </string>
                       <ostype name="controlSignature">MuSE</ostype>
                       <int name="controlID">809</int>
                       <boolean name="small">TRUE</boolean>
@@ -1233,36 +1203,36 @@
                       </object>
                     </object>
                     <object class="IBCarbonStaticText" id="352">
-                      <string name="bounds">195 62 208 99 </string>
-                      <string name="viewFrame">22 82 37 13 </string>
+                      <string name="bounds">131 54 144 91 </string>
+                      <string name="viewFrame">14 91 37 13 </string>
                       <boolean name="small">TRUE</boolean>
                       <int name="controlSize">1</int>
                       <string name="title">bitrate</string>
                     </object>
                     <object class="IBCarbonStaticText" id="354">
-                      <string name="bounds">195 288 208 391 </string>
-                      <string name="viewFrame">248 82 103 13 </string>
+                      <string name="bounds">116 310 129 413 </string>
+                      <string name="viewFrame">270 76 103 13 </string>
                       <boolean name="small">TRUE</boolean>
                       <int name="controlSize">1</int>
                       <string name="title">frequency filtering</string>
                     </object>
                     <object class="IBCarbonStaticText" id="355">
-                      <string name="bounds">218 290 231 357 </string>
-                      <string name="viewFrame">250 105 67 13 </string>
+                      <string name="bounds">144 261 157 328 </string>
+                      <string name="viewFrame">221 104 67 13 </string>
                       <boolean name="small">TRUE</boolean>
                       <int name="controlSize">1</int>
                       <string name="title">lowpass Hz</string>
                     </object>
                     <object class="IBCarbonStaticText" id="351">
-                      <string name="bounds">218 399 231 472 </string>
-                      <string name="viewFrame">359 105 73 13 </string>
+                      <string name="bounds">144 407 157 480 </string>
+                      <string name="viewFrame">367 104 73 13 </string>
                       <boolean name="small">TRUE</boolean>
                       <int name="controlSize">1</int>
                       <string name="title">highpass Hz</string>
                     </object>
                     <object class="IBCarbonPopupButton" id="487">
-                      <string name="bounds">226 114 243 225 </string>
-                      <string name="viewFrame">74 113 111 17 </string>
+                      <string name="bounds">158 114 175 225 </string>
+                      <string name="viewFrame">74 118 111 17 </string>
                       <ostype name="controlSignature">MuSE</ostype>
                       <int name="controlID">808</int>
                       <boolean name="small">TRUE</boolean>
@@ -1293,15 +1263,15 @@
                       </object>
                     </object>
                     <object class="IBCarbonStaticText" id="353">
-                      <string name="bounds">228 54 241 106 </string>
-                      <string name="viewFrame">14 115 52 13 </string>
+                      <string name="bounds">160 54 173 106 </string>
+                      <string name="viewFrame">14 120 52 13 </string>
                       <boolean name="small">TRUE</boolean>
                       <int name="controlSize">1</int>
                       <string name="title">frequency</string>
                     </object>
                     <object class="IBCarbonEditText" id="341">
-                      <string name="bounds">240 293 256 366 </string>
-                      <string name="viewFrame">253 127 73 16 </string>
+                      <string name="bounds">144 330 160 391 </string>
+                      <string name="viewFrame">290 104 61 16 </string>
                       <ostype name="controlSignature">MuSE</ostype>
                       <int name="controlID">810</int>
                       <int name="fontStyle">-2</int>
@@ -1312,8 +1282,8 @@
                       <boolean name="isUnicode">TRUE</boolean>
                     </object>
                     <object class="IBCarbonEditText" id="340">
-                      <string name="bounds">240 402 256 472 </string>
-                      <string name="viewFrame">362 127 70 16 </string>
+                      <string name="bounds">144 482 160 542 </string>
+                      <string name="viewFrame">442 104 60 16 </string>
                       <ostype name="controlSignature">MuSE</ostype>
                       <int name="controlID">811</int>
                       <int name="fontStyle">-2</int>
@@ -1324,8 +1294,8 @@
                       <boolean name="isUnicode">TRUE</boolean>
                     </object>
                     <object class="IBCarbonButton" id="674">
-                      <string name="bounds">267 341 281 422 </string>
-                      <string name="viewFrame">301 154 81 14 </string>
+                      <string name="bounds">171 371 185 452 </string>
+                      <string name="viewFrame">331 131 81 14 </string>
                       <ostype name="controlSignature">MuSE</ostype>
                       <int name="controlID">899</int>
                       <boolean name="small">TRUE</boolean>
@@ -1334,19 +1304,19 @@
                       <ostype name="command">apff</ostype>
                     </object>
                     <object class="IBCarbonSeparator" id="411">
-                      <string name="bounds">287 56 288 468 </string>
-                      <string name="viewFrame">16 174 412 1 </string>
+                      <string name="bounds">196 59 197 541 </string>
+                      <string name="viewFrame">19 156 482 1 </string>
                     </object>
                     <object class="IBCarbonStaticText" id="643">
-                      <string name="bounds">296 218 309 302 </string>
-                      <string name="viewFrame">178 183 84 13 </string>
+                      <string name="bounds">205 251 218 335 </string>
+                      <string name="viewFrame">211 165 84 13 </string>
                       <boolean name="small">TRUE</boolean>
                       <int name="controlSize">1</int>
                       <string name="title">Record Stream</string>
                     </object>
                     <object class="IBCarbonEditText" id="347">
-                      <string name="bounds">320 117 336 388 </string>
-                      <string name="viewFrame">77 207 271 16 </string>
+                      <string name="bounds">229 117 245 460 </string>
+                      <string name="viewFrame">77 189 343 16 </string>
                       <ostype name="controlSignature">MuSE</ostype>
                       <int name="controlID">812</int>
                       <int name="fontStyle">-2</int>
@@ -1357,8 +1327,8 @@
                       <boolean name="isSingleLine">TRUE</boolean>
                     </object>
                     <object class="IBCarbonButton" id="348">
-                      <string name="bounds">317 400 334 470 </string>
-                      <string name="viewFrame">360 204 70 17 </string>
+                      <string name="bounds">226 474 243 544 </string>
+                      <string name="viewFrame">434 186 70 17 </string>
                       <ostype name="controlSignature">MuSE</ostype>
                       <int name="controlID">813</int>
                       <boolean name="small">TRUE</boolean>
@@ -1367,15 +1337,15 @@
                       <ostype name="command">brow</ostype>
                     </object>
                     <object class="IBCarbonStaticText" id="350">
-                      <string name="bounds">320 54 333 106 </string>
-                      <string name="viewFrame">14 207 52 13 </string>
+                      <string name="bounds">229 54 242 106 </string>
+                      <string name="viewFrame">14 189 52 13 </string>
                       <boolean name="small">TRUE</boolean>
                       <int name="controlSize">1</int>
                       <string name="title">Filename:</string>
                     </object>
                     <object class="IBCarbonButton" id="349">
-                      <string name="bounds">346 208 363 306 </string>
-                      <string name="viewFrame">168 233 98 17 </string>
+                      <string name="bounds">255 240 272 338 </string>
+                      <string name="viewFrame">200 215 98 17 </string>
                       <ostype name="controlSignature">MuSE</ostype>
                       <int name="controlID">814</int>
                       <boolean name="small">TRUE</boolean>
@@ -1388,13 +1358,13 @@
                   <string name="title">Encoder Preferences</string>
                 </object>
                 <object class="IBCarbonStaticText" id="360">
-                  <string name="bounds">395 40 411 154 </string>
-                  <string name="viewFrame">20 321 114 16 </string>
+                  <string name="bounds">301 61 317 175 </string>
+                  <string name="viewFrame">41 258 114 16 </string>
                   <string name="title">Stream Servers</string>
                 </object>
                 <object class="IBCarbonButton" id="367">
-                  <string name="bounds">395 324 412 400 </string>
-                  <string name="viewFrame">304 321 76 17 </string>
+                  <string name="bounds">301 345 318 421 </string>
+                  <string name="viewFrame">325 258 76 17 </string>
                   <ostype name="controlSignature">MuSE</ostype>
                   <int name="controlID">815</int>
                   <boolean name="small">TRUE</boolean>
@@ -1403,8 +1373,8 @@
                   <ostype name="command">adse</ostype>
                 </object>
                 <object class="IBCarbonButton" id="366">
-                  <string name="bounds">395 410 412 486 </string>
-                  <string name="viewFrame">390 321 76 17 </string>
+                  <string name="bounds">301 431 318 507 </string>
+                  <string name="viewFrame">411 258 76 17 </string>
                   <ostype name="controlSignature">MuSE</ostype>
                   <int name="controlID">816</int>
                   <boolean name="small">TRUE</boolean>
@@ -1413,16 +1383,16 @@
                   <ostype name="command">dese</ostype>
                 </object>
                 <object class="IBCarbonTab" id="327">
-                  <string name="bounds">414 40 586 487 </string>
-                  <string name="viewFrame">20 340 447 172 </string>
+                  <string name="bounds">316 40 490 561 </string>
+                  <string name="viewFrame">20 273 521 174 </string>
                   <array count="1" name="subviews">
                     <object class="IBCarbonUserPane" id="328">
-                      <string name="bounds">442 40 586 487 </string>
-                      <string name="viewFrame">0 28 447 144 </string>
+                      <string name="bounds">344 40 490 561 </string>
+                      <string name="viewFrame">0 28 521 146 </string>
                       <array count="20" name="subviews">
                         <object class="IBCarbonEditText" id="862">
-                          <string name="bounds">445 87 458 223 </string>
-                          <string name="viewFrame">47 3 136 13 </string>
+                          <string name="bounds">347 85 360 297 </string>
+                          <string name="viewFrame">45 3 212 13 </string>
                           <ostype name="controlSignature">MuSE</ostype>
                           <int name="controlID">818</int>
                           <int name="fontStyle">-2</int>
@@ -1432,8 +1402,8 @@
                           <boolean name="isSingleLine">TRUE</boolean>
                         </object>
                         <object class="IBCarbonEditText" id="873">
-                          <string name="bounds">445 263 458 314 </string>
-                          <string name="viewFrame">223 3 51 13 </string>
+                          <string name="bounds">347 340 360 391 </string>
+                          <string name="viewFrame">300 3 51 13 </string>
                           <ostype name="controlSignature">MuSE</ostype>
                           <int name="controlID">819</int>
                           <int name="fontStyle">-2</int>
@@ -1443,8 +1413,8 @@
                           <boolean name="isSingleLine">TRUE</boolean>
                         </object>
                         <object class="IBCarbonEditText" id="874">
-                          <string name="bounds">445 357 458 472 </string>
-                          <string name="viewFrame">317 3 115 13 </string>
+                          <string name="bounds">347 434 360 549 </string>
+                          <string name="viewFrame">394 3 115 13 </string>
                           <ostype name="controlSignature">MuSE</ostype>
                           <int name="controlID">820</int>
                           <int name="fontStyle">-2</int>
@@ -1454,29 +1424,29 @@
                           <boolean name="isSingleLine">TRUE</boolean>
                         </object>
                         <object class="IBCarbonStaticText" id="376">
-                          <string name="bounds">445 49 458 76 </string>
-                          <string name="viewFrame">9 3 27 13 </string>
+                          <string name="bounds">347 47 360 74 </string>
+                          <string name="viewFrame">7 3 27 13 </string>
                           <boolean name="small">TRUE</boolean>
                           <int name="controlSize">1</int>
                           <string name="title">Host</string>
                         </object>
                         <object class="IBCarbonStaticText" id="372">
-                          <string name="bounds">445 234 458 259 </string>
-                          <string name="viewFrame">194 3 25 13 </string>
+                          <string name="bounds">347 311 360 336 </string>
+                          <string name="viewFrame">271 3 25 13 </string>
                           <boolean name="small">TRUE</boolean>
                           <int name="controlSize">1</int>
                           <string name="title">Port</string>
                         </object>
                         <object class="IBCarbonStaticText" id="373">
-                          <string name="bounds">445 325 458 346 </string>
-                          <string name="viewFrame">285 3 21 13 </string>
+                          <string name="bounds">347 402 360 423 </string>
+                          <string name="viewFrame">362 3 21 13 </string>
                           <boolean name="small">TRUE</boolean>
                           <int name="controlSize">1</int>
                           <string name="title">Mnt</string>
                         </object>
                         <object class="IBCarbonEditText" id="332">
-                          <string name="bounds">472 87 485 189 </string>
-                          <string name="viewFrame">47 30 102 13 </string>
+                          <string name="bounds">374 85 387 261 </string>
+                          <string name="viewFrame">45 30 176 13 </string>
                           <ostype name="controlSignature">MuSE</ostype>
                           <int name="controlID">821</int>
                           <int name="fontStyle">-2</int>
@@ -1486,8 +1456,8 @@
                           <boolean name="isSingleLine">TRUE</boolean>
                         </object>
                         <object class="IBCarbonEditText" id="869">
-                          <string name="bounds">472 269 485 472 </string>
-                          <string name="viewFrame">229 30 203 13 </string>
+                          <string name="bounds">374 340 387 549 </string>
+                          <string name="viewFrame">300 30 209 13 </string>
                           <ostype name="controlSignature">MuSE</ostype>
                           <int name="controlID">823</int>
                           <int name="fontStyle">-2</int>
@@ -1497,22 +1467,22 @@
                           <boolean name="isSingleLine">TRUE</boolean>
                         </object>
                         <object class="IBCarbonStaticText" id="374">
-                          <string name="bounds">472 49 485 82 </string>
-                          <string name="viewFrame">9 30 33 13 </string>
+                          <string name="bounds">374 47 387 80 </string>
+                          <string name="viewFrame">7 30 33 13 </string>
                           <boolean name="small">TRUE</boolean>
                           <int name="controlSize">1</int>
                           <string name="title">Name</string>
                         </object>
                         <object class="IBCarbonStaticText" id="377">
-                          <string name="bounds">472 201 485 267 </string>
-                          <string name="viewFrame">161 30 66 13 </string>
+                          <string name="bounds">373 272 386 338 </string>
+                          <string name="viewFrame">232 29 66 13 </string>
                           <boolean name="small">TRUE</boolean>
                           <int name="controlSize">1</int>
                           <string name="title">Description</string>
                         </object>
                         <object class="IBCarbonEditText" id="861">
-                          <string name="bounds">499 87 512 472 </string>
-                          <string name="viewFrame">47 57 385 13 </string>
+                          <string name="bounds">401 85 414 549 </string>
+                          <string name="viewFrame">45 57 464 13 </string>
                           <ostype name="controlSignature">MuSE</ostype>
                           <int name="controlID">822</int>
                           <int name="fontStyle">-2</int>
@@ -1522,15 +1492,15 @@
                           <boolean name="isSingleLine">TRUE</boolean>
                         </object>
                         <object class="IBCarbonStaticText" id="518">
-                          <string name="bounds">499 49 512 67 </string>
-                          <string name="viewFrame">9 57 18 13 </string>
+                          <string name="bounds">401 47 414 65 </string>
+                          <string name="viewFrame">7 57 18 13 </string>
                           <boolean name="small">TRUE</boolean>
                           <int name="controlSize">1</int>
                           <string name="title">Url</string>
                         </object>
                         <object class="IBCarbonEditText" id="868">
-                          <string name="bounds">526 392 539 472 </string>
-                          <string name="viewFrame">352 84 80 13 </string>
+                          <string name="bounds">429 311 442 391 </string>
+                          <string name="viewFrame">271 85 80 13 </string>
                           <ostype name="controlSignature">MuSE</ostype>
                           <int name="controlID">825</int>
                           <int name="fontStyle">-2</int>
@@ -1540,8 +1510,8 @@
                           <boolean name="isSingleLine">TRUE</boolean>
                         </object>
                         <object class="IBCarbonPopupButton" id="505">
-                          <string name="bounds">524 123 541 226 </string>
-                          <string name="viewFrame">83 82 103 17 </string>
+                          <string name="bounds">427 121 444 224 </string>
+                          <string name="viewFrame">81 83 103 17 </string>
                           <ostype name="controlSignature">MuSE</ostype>
                           <int name="controlID">824</int>
                           <boolean name="small">TRUE</boolean>
@@ -1570,22 +1540,22 @@
                           </object>
                         </object>
                         <object class="IBCarbonStaticText" id="378">
-                          <string name="bounds">526 49 539 115 </string>
-                          <string name="viewFrame">9 84 66 13 </string>
+                          <string name="bounds">429 47 442 113 </string>
+                          <string name="viewFrame">7 85 66 13 </string>
                           <boolean name="small">TRUE</boolean>
                           <int name="controlSize">1</int>
                           <string name="title">Login Type</string>
                         </object>
                         <object class="IBCarbonStaticText" id="379">
-                          <string name="bounds">526 325 539 381 </string>
-                          <string name="viewFrame">285 84 56 13 </string>
+                          <string name="bounds">429 244 442 300 </string>
+                          <string name="viewFrame">204 85 56 13 </string>
                           <boolean name="small">TRUE</boolean>
                           <int name="controlSize">1</int>
                           <string name="title">Username</string>
                         </object>
                         <object class="IBCarbonButton" id="875">
-                          <string name="bounds">556 210 573 311 </string>
-                          <string name="viewFrame">170 114 101 17 </string>
+                          <string name="bounds">455 245 472 346 </string>
+                          <string name="viewFrame">205 111 101 17 </string>
                           <ostype name="controlSignature">MuSE</ostype>
                           <int name="controlID">828</int>
                           <boolean name="small">TRUE</boolean>
@@ -1594,8 +1564,8 @@
                           <ostype name="command">doco</ostype>
                         </object>
                         <object class="IBCarbonEditText" id="337">
-                          <string name="bounds">553 392 566 472 </string>
-                          <string name="viewFrame">352 111 80 13 </string>
+                          <string name="bounds">430 469 443 549 </string>
+                          <string name="viewFrame">429 86 80 13 </string>
                           <ostype name="controlSignature">MuSE</ostype>
                           <int name="controlID">826</int>
                           <int name="fontStyle">-2</int>
@@ -1606,15 +1576,15 @@
                           <boolean name="isSingleLine">TRUE</boolean>
                         </object>
                         <object class="IBCarbonStaticText" id="380">
-                          <string name="bounds">553 325 566 381 </string>
-                          <string name="viewFrame">285 111 56 13 </string>
+                          <string name="bounds">429 403 442 459 </string>
+                          <string name="viewFrame">363 85 56 13 </string>
                           <boolean name="small">TRUE</boolean>
                           <int name="controlSize">1</int>
                           <string name="title">Password</string>
                         </object>
                         <object class="IBCarbonStaticText" id="410">
-                          <string name="bounds">594 78 610 192 </string>
-                          <string name="viewFrame">38 152 114 16 </string>
+                          <string name="bounds">496 99 512 213 </string>
+                          <string name="viewFrame">59 152 114 16 </string>
                           <ostype name="controlSignature">MuSE</ostype>
                           <int name="controlID">827</int>
                         </object>
@@ -1641,6 +1611,36 @@
                     </dictionary>
                   </array>
                 </object>
+                <object class="IBCarbonPopupButton" id="676">
+                  <string name="bounds">71 150 88 225 </string>
+                  <string name="viewFrame">130 28 75 17 </string>
+                  <ostype name="controlSignature">MuSE</ostype>
+                  <int name="controlID">803</int>
+                  <boolean name="small">TRUE</boolean>
+                  <int name="controlSize">1</int>
+                  <ostype name="command">senc</ostype>
+                  <object name="menu" class="IBCarbonMenu" id="677">
+                    <string name="title">Popup</string>
+                    <array count="2" name="items">
+                      <object class="IBCarbonMenuItem" id="680">
+                        <boolean name="checked">TRUE</boolean>
+                        <boolean name="updateSingleItem">TRUE</boolean>
+                        <string name="title">ogg</string>
+                      </object>
+                      <object class="IBCarbonMenuItem" id="679">
+                        <boolean name="updateSingleItem">TRUE</boolean>
+                        <string name="title">mp3</string>
+                      </object>
+                    </array>
+                  </object>
+                </object>
+                <object class="IBCarbonStaticText" id="325">
+                  <string name="bounds">73 53 89 138 </string>
+                  <string name="viewFrame">33 30 85 16 </string>
+                  <boolean name="small">TRUE</boolean>
+                  <int name="controlSize">1</int>
+                  <string name="title">Encoder Type</string>
+                </object>
               </array>
               <string name="title">1</string>
               <int name="featureBits">2</int>
@@ -1666,8 +1666,8 @@
           </array>
         </object>
         <object class="IBCarbonBevelButton" id="645">
-          <string name="bounds">614 407 637 435 </string>
-          <string name="viewFrame">407 614 28 23 </string>
+          <string name="bounds">518 481 541 509 </string>
+          <string name="viewFrame">481 518 28 23 </string>
           <ostype name="controlSignature">MuSE</ostype>
           <int name="controlID">830</int>
           <int name="fontStyle">-5</int>
@@ -1691,8 +1691,8 @@
           <boolean name="rounded">TRUE</boolean>
         </object>
         <object class="IBCarbonBevelButton" id="648">
-          <string name="bounds">614 443 637 471 </string>
-          <string name="viewFrame">443 614 28 23 </string>
+          <string name="bounds">518 517 541 545 </string>
+          <string name="viewFrame">517 518 28 23 </string>
           <ostype name="controlSignature">MuSE</ostype>
           <int name="controlID">831</int>
           <int name="fontStyle">-5</int>
@@ -1716,8 +1716,8 @@
           <boolean name="rounded">TRUE</boolean>
         </object>
         <object class="IBCarbonBevelButton" id="651">
-          <string name="bounds">614 479 637 507 </string>
-          <string name="viewFrame">479 614 28 23 </string>
+          <string name="bounds">518 553 541 581 </string>
+          <string name="viewFrame">553 518 28 23 </string>
           <ostype name="controlSignature">MuSE</ostype>
           <int name="controlID">832</int>
           <int name="fontStyle">-5</int>
@@ -1735,7 +1735,7 @@
       </array>
     </object>
     <object class="IBCarbonWindow" id="315">
-      <string name="windowRect">78 164 735 691 </string>
+      <string name="windowRect">45 -9 597 592 </string>
       <string name="title">Streams</string>
       <reference name="rootControl" idRef="314"/>
       <boolean name="receiveUpdates">FALSE</boolean>
@@ -1852,7 +1852,7 @@
       </array>
     </object>
     <object class="IBCarbonWindow" id="454">
-      <string name="windowRect">299 878 605 1013 </string>
+      <string name="windowRect">299 760 605 895 </string>
       <string name="title"></string>
       <reference name="rootControl" idRef="453"/>
       <boolean name="receiveUpdates">FALSE</boolean>
@@ -2206,7 +2206,7 @@
           <string name="title">Connect/Disconnect</string>
           <string name="keyEquivalent">C</string>
           <int name="keyEquivalentModifier">1179648</int>
-          <ostype name="command">conn</ostype>
+          <ostype name="command">doco</ostype>
         </object>
       </array>
     </object>
@@ -2395,7 +2395,7 @@
     <reference idRef="588"/>
     <reference idRef="591"/>
     <object class="IBCarbonWindow" id="615">
-      <string name="windowRect">669 474 756 1033 </string>
+      <string name="windowRect">596 474 683 1033 </string>
       <string name="title">Save Playlist</string>
       <object name="rootControl" class="IBCarbonRootControl" id="616">
         <string name="bounds">0 0 87 559 </string>
@@ -2582,7 +2582,7 @@
     <reference idRef="662"/>
     <reference idRef="663"/>
     <object class="IBCarbonWindow" id="668">
-      <string name="windowRect">656 474 743 1033 </string>
+      <string name="windowRect">596 474 683 1033 </string>
       <string name="title">Save Stream Preset</string>
       <object name="rootControl" class="IBCarbonRootControl" id="669">
         <string name="bounds">0 0 87 559 </string>
