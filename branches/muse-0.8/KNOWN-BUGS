@@ -1,9 +1,0 @@
-
-BUG REPORTING is REALLY APPRECIATED! BUT TAKE CARE TO DO IT WELL:
-please ALWAYS REPORT the muse --version you are running and possibly
-run the binary with gdb giving us the backtrace of the error.
-
-go to http://bugs.dyne.org and submit a BUG!!!
-
-sometimes we are also on irc.freenode.net channel #dyne
-
