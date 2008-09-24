@@ -13,6 +13,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <iostream>
+
 #include "mpegsound.h"
 #include "mpegsound_locals.h"
 
@@ -419,7 +421,6 @@ bool Mpegtoraw::loadheader(void)
   return true;
 }
 
-#include <iostream.h>
 // Convert mpeg to raw
 bool Mpegtoraw::run(int frames) {
   clearrawdata();

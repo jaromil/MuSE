@@ -74,7 +74,7 @@
 typedef void (pipe_copy_f)(void *src, void *dst, int samples);
 
 /** this is the prototype struct holding the list of available types */
-typedef struct pipe_copy_list {
+struct pipe_copy_list {
   char *name;
   pipe_copy_f *callback;
   int src_samplesize;

@@ -25,6 +25,7 @@
    knows which inheriting class they are (delete is done in main)
 */
 
+#include <stdlib.h>
 #include <iostream>
 
 #include <jutils.h>
@@ -239,7 +240,7 @@ void Linklist::shuffle() {
     ptr1=ptr2=first;
 	/* get entry at index i */
 	for(n=0;n<i;n++) ptr1=ptr1->next;
-	num = random()%length;
+	num = rand()%length;
 	/* get a new random index in the array */
 	if(num == i) num=(num+1)%length;
 	/* get entry at the random index num */
