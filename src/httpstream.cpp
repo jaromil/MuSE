@@ -363,7 +363,7 @@ http_open( const char *url )
 	file = (char*)calloc( 1, strlen(url)+1 );
 	if (!host || !file) goto out;
 	
-	p = strstr(url, HTTP_PREFIX); if (!p) goto out;
+	p = strstr((char *)url, HTTP_PREFIX); if (!p) goto out;
 	p += 7;
 	strcpy(host, p);
 	
