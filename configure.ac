@@ -27,14 +27,10 @@ AC_MSG_CHECKING(for which platform we are compiling)
 case "$host_os" in
      *linux*)
      AC_MSG_RESULT([Linux])
+     # HAVE_LINUX/UNIX are needed by portaudio only
      AC_DEFINE(HAVE_LINUX,1,[define if compiling for Linux])
      AC_DEFINE(HAVE_UNIX,1,[define if compiling for UNIX])
      have_linux=yes
-     if test $host_cpu = powerpc; then
-       AC_DEFINE(ARCH_PPC,1,[define if compiling for Linux/PPC])
-     else
-       AC_DEFINE(ARCH_X86,1,[define if compiling for Linux/x86])
-     fi
 
      CPUFLAGS=`cat /proc/cpuinfo | grep flags`
      if grep "^flags.* mmx" /proc/cpuinfo > /dev/null; then
@@ -73,8 +69,6 @@ case "$host_os" in
 esac
 
 
-
-
 dnl ==============================================================
 dnl Check for tools
 dnl ==============================================================
@@ -98,9 +92,10 @@ dnl Checks for header files.
 dnl ==============================================================
 AC_HEADER_STDC
 AC_HEADER_DIRENT
-AC_CHECK_HEADERS(fcntl.h sys/file.h sys/time.h unistd.h dirent.h sys/ndir.h sys/dir.h ndir.h limits.h unistd.h stdint.h inttypes.h)
+AC_CHECK_HEADERS([fcntl.h sys/file.h sys/time.h unistd.h dirent.h sys/ndir.h \
+                  sys/dir.h ndir.h limits.h unistd.h stdint.h inttypes.h])
 
-AC_CHECK_HEADER(pthread.h,, [ 
+AC_CHECK_HEADER(pthread.h,, [
 	echo
 	echo "==================== PTHREAD HEADERS NOT FOUND"
 	echo "pthread.h needs to be found on your system in order"
@@ -126,7 +121,9 @@ dnl ==============================================================
 dnl Checks for library functions.
 dnl ==============================================================
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(gettimeofday select socket strdup nanosleep inet_aton scandir getcwd mktime strerror sethostent endhostent getnameinfo getaddrinfo inet_pton)
+AC_CHECK_FUNCS([gettimeofday select socket strdup nanosleep inet_aton scandir \
+                getcwd mktime strerror sethostent endhostent getnameinfo \
+                getaddrinfo inet_pton])
 
 AC_CHECK_SIZEOF(short, 2)
 AC_CHECK_SIZEOF(int, 4)
@@ -329,13 +326,13 @@ dnl CHECK LAME LIB
 dnl ==============
 AC_CHECK_HEADER(lame/lame.h, [
         have_lame=yes;
-        echo "MP3 encoder found and succesfully linked"
+        AC_MSG_NOTICE([MP3 encoder found and succesfully linked])
 	AC_DEFINE(HAVE_LAME)
 	LAME_LIBS="-lmp3lame"
 	AC_SUBST(LAME_LIBS)
                              ], [
         have_lame=no;
-        echo "LAME libraries not found, no MP3 support"
+        AC_MSG_WARN([LAME libraries not found, no MP3 support])
                              ])
 
 dnl Check for socklen_t
@@ -441,7 +438,8 @@ AC_ARG_WITH(static-shout,
     LIBSHOUT_LIBS="$LIBSHOUT_SRCDIR/.libs/libshout.a"
     if test ! -r "$LIBSHOUT_LIBS"; then
         AC_MSG_RESULT(external static not found, using internal)
-	echo "!! $LIBSHOUT_LIBS not found: you must compile the static library of libshout"
+	AC_MSG_WARN([!! $LIBSHOUT_LIBS not found: you must compile the static library
+               of libshout])
 	LIBSHOUT_LIBS="shout/libshout.a"
 	LIBSHOUT_DIR="shout"
     else
@@ -552,7 +550,7 @@ AC_ARG_ENABLE(lubrify,
 if test x$have_lubrifications = xyes; then
 #  LUBRIFY_CFLAGS="-O4 -fomit-frame-pointer -march=${host_cpu} -finline-functions -ffast-math -funroll-loops"
    if test x$have_profiling = xyes -o x$debug = xtrue; then
-     echo "cannot lubrify code if debug or profiling are enabled"
+     AC_MSG_WARN([cannot lubrify code if debug or profiling are enabled])
      CFLAGS="$CFLAGS -ggdb"
    else
      CFLAGS="$CFLAGS -O3 -fomit-frame-pointer -ffast-math"
@@ -593,7 +591,7 @@ AC_SUBST(LUBRIFY_CFLAGS)
 CXXFLAGS="$CFLAGS"
 LIBS="$LIBS"
 
-AC_OUTPUT([  
+AC_OUTPUT([
 Makefile
 src/Makefile
 src/shout/Makefile
