@@ -2,7 +2,7 @@ dnl ==============================================================
 dnl Process this file with autoconf to produce a configure script.
 dnl ==============================================================
 
-AC_INIT([MuSE], [0.9.1-cvs])
+AC_INIT([MuSE], [0.10])
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_CANONICAL_HOST
