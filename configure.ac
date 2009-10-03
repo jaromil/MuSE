@@ -196,10 +196,10 @@ AC_ARG_ENABLE(ncurses,
 [  want_ncurses=$enableval])
 
 if test "$have_ncurses" = yes -a ! x$want_ncurses = xno; then
-  AC_DEFINE(HAVE_COLOR)
-  AC_CHECK_FUNC(XCursesExit, AC_DEFINE(HAVE_XCURSES))
+  AC_DEFINE(HAVE_COLOR, 1, [Build with ncurses color support])
+  AC_CHECK_FUNC(XCursesExit, AC_DEFINE(HAVE_XCURSES, 1, [Build with xcurses]))
   GUI_RUBIK=true
-  AC_DEFINE(GUI_RUBIK)
+  AC_DEFINE([GUI_RUBIK], 1, [Have ncurses GUI])
 fi
 #  else
 #  AC_MSG_RESULT(no)
@@ -298,11 +298,11 @@ PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0 gthread-2.0 >= 2.0.0, [
 
   if test  "${HAVE_GTK}" = "yes" ; then
     GUI_NIGHTOLO=true
-    AC_DEFINE(GUI_NIGHTOLO)
+    AC_DEFINE(GUI_NIGHTOLO, 1, [Have GTK GUI])
   fi
   if test  "${HAVE_GTK2}" = "yes" ; then
     GUI_NIGHTOLO2=true
-    AC_DEFINE(GUI_NIGHTOLO2)
+    AC_DEFINE(GUI_NIGHTOLO2, 1, [Have GTK2 GUI])
   fi
 fi
 
@@ -327,7 +327,7 @@ dnl ==============
 AC_CHECK_HEADER(lame/lame.h, [
         have_lame=yes;
         AC_MSG_NOTICE([MP3 encoder found and succesfully linked])
-	AC_DEFINE(HAVE_LAME)
+	AC_DEFINE(HAVE_LAME, 1, [Building with LAME support])
 	LAME_LIBS="-lmp3lame"
 	AC_SUBST(LAME_LIBS)
                              ], [
@@ -351,7 +351,7 @@ dnl assign some defines
 dnl ===================
 
 if test "${HAVE_X11}" = "yes" ; then
-  AC_DEFINE(HAVE_X11)
+  AC_DEFINE(HAVE_X11, 1, [Build with X11 support])
 fi
 
 GUI_LIBS=""
