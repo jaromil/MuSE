@@ -7,5 +7,4 @@ man_MANS = muse.1
 
 ACLOCAL_AMFLAGS = -I m4
 
-EXTRA_DIST = autogen.sh config.rpath
-
+EXTRA_DIST = autogen.sh
