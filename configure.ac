@@ -25,47 +25,37 @@ dnl Get the operating system and version number...
 dnl ==============================================================
 AC_MSG_CHECKING(for which platform we are compiling)
 case "$host_os" in
-     *linux*)
-     AC_MSG_RESULT([Linux])
-     # HAVE_LINUX/UNIX are needed by portaudio only
-     AC_DEFINE(HAVE_LINUX,1,[define if compiling for Linux])
-     AC_DEFINE(HAVE_UNIX,1,[define if compiling for UNIX])
-     have_linux=yes
+  *linux*)
+    AC_MSG_RESULT([Linux])
+    # HAVE_LINUX/UNIX are needed by portaudio only
+    AC_DEFINE(HAVE_LINUX,1,[define if compiling for Linux])
+    AC_DEFINE(HAVE_UNIX,1,[define if compiling for UNIX])
+    have_linux=yes
+  ;;
 
-     CPUFLAGS=`cat /proc/cpuinfo | grep flags`
-     if grep "^flags.* mmx" /proc/cpuinfo > /dev/null; then
-       have_mmx=yes
-       AC_DEFINE(HAVE_MMX,1,[define if enabling MMX acceleration])
-     fi
-     if grep "^flags.* sse" /proc/cpuinfo > /dev/null; then
-       have_sse=yes
-       AC_DEFINE(HAVE_SSE,1,[define if enabling SSE acceleration])
-     fi
-     ;;
+  *darwin*)
+    AC_MSG_RESULT([Darwin/OSX])
+    AC_DEFINE(HAVE_DARWIN,1,[define if compiling for Apple Darwin OSX])
+    DARWIN_LIBS="-L/sw/lib -lintl -framework AudioToolbox -framework CoreAudio"
+    DARWIN_CFLAGS="-I/sw/include"
+    have_darwin=yes
+  ;;
 
-     *darwin*)
-     AC_MSG_RESULT([Darwin/OSX])
-     AC_DEFINE(HAVE_DARWIN,1,[define if compiling for Apple Darwin OSX])
-     have_darwin=yes
-     DARWIN_LIBS="-L/sw/lib -lintl -framework AudioToolbox -framework CoreAudio"
-     DARWIN_CFLAGS="-I/sw/include"
-     ;;
+  *bsd*)
+    AC_MSG_RESULT(${host})
+    AC_DEFINE(HAVE_BSD,1,[define if compiling for BSD])
+    AC_DEFINE(HAVE_UNIX,1,[define if compiling for UNIX])
+    have_bsd=yes
+  ;;
 
-     *bsd*)
-     AC_MSG_RESULT(${host})
-     AC_DEFINE(HAVE_BSD,1,[define if compiling for BSD])
-     AC_DEFINE(HAVE_UNIX,1,[define if compiling for UNIX])
-     have_bsd=yes
-     ;;
-
-     *)
-     AC_MSG_RESULT([$host_os?!])
-     AC_MSG_ERROR([[
+  *)
+    AC_MSG_RESULT([$host_os?!])
+    AC_MSG_ERROR([[
 [!] Your system architecture is not supported by MuSE
 [!] if you are interested in porting MuSE to your architecture
 [!] you are very welcome to contact me <jaromil@dyne.org>
 ]], 0)
-     ;;
+  ;;
 esac
 
 
@@ -74,6 +64,7 @@ dnl Check for tools
 dnl ==============================================================
 AC_PROG_CC
 AC_PROG_CXX
+AC_PROG_CPP
 AC_ISC_POSIX
 AC_PROG_RANLIB
 AC_PROG_MAKE_SET
@@ -229,8 +220,7 @@ AC_ARG_ENABLE(gtk2,
     [want_gtk2_gui=auto])
 
 if test x$want_gtk2_gui = xyes || test x$want_gtk2_gui = xauto; then
-  PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0 gthread-2.0 >= 2.0.0 glib-2.0 >=
-                    2.0.0,
+  PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0 gthread-2.0 >= 2.0.0,
                     have_gtk2="yes", have_gtk2="no")
 
   if test x$want_gtk2_gui = xyes && test x$have_gtk2 = xno; then
