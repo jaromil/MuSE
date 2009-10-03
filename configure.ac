@@ -351,12 +351,6 @@ AC_DEFINE_UNQUOTED(CPU_CLIPS_POSITIVE, ${ac_cv_c_clip_positive},
 AC_DEFINE_UNQUOTED(CPU_CLIPS_NEGATIVE, ${ac_cv_c_clip_negative},
 	[Target processor clips on negative float to int conversion.])
 
-dnl ==============================================================
-dnl check for lrint and lrintf functions
-dnl ==============================================================
-AC_C99_FUNC_LRINT
-AC_C99_FUNC_LRINTF
-
 
 dnl ==============================================================
 dnl Detect possible output devices 
