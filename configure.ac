@@ -219,47 +219,6 @@ dnl		*) AC_MSG_ERROR(--enable-gtk expects either yes or no) ;;
 dnl	esac], [nightolo=false])
 
 dnl AM_CONDITIONAL(NIGHTOLO, test x$nightolo = xtrue)
-dnl ===================
-dnl CHECK FOR X Windows
-dnl // this one i took from the Emacs configure.in
-dnl ===================
-
-AC_PATH_X
-if test "$no_x" = yes; then
-   window_system=none
-else
-   window_system=x11
-fi
-if test "${x_libraries}" != NONE && test -n "${x_libraries}"; then
-  LD_SWITCH_X_SITE=-L`echo ${x_libraries} | sed -e "s/:/ -L/g"`
-  LD_SWITCH_X_SITE_AUX=-R`echo ${x_libraries} | sed -e "s/:/ -R/g"`
-  x_default_search_path=""
-  for x_library in `echo ${x_libraries} | sed -e "s/:/ /g"`; do
-    x_search_path="\
-${x_library}/X11/%L/%T/%N%C%S:\
-${x_library}/X11/%l/%T/%N%C%S:\
-${x_library}/X11/%T/%N%C%S:\
-${x_library}/X11/%L/%T/%N%S:\
-${x_library}/X11/%l/%T/%N%S:\
-${x_library}/X11/%T/%N%S"
-    if test x"${x_default_search_path}" = x; then
-      x_default_search_path=${x_search_path}
-    else
-      x_default_search_path="${x_search_path}:${x_default_search_path}"
-    fi
-  done
-fi
-if test "${x_includes}" != NONE && test -n "${x_includes}"; then
-  C_SWITCH_X_SITE=-I`echo ${x_includes} | sed -e "s/:/ -I/g"`
-fi
-case "${window_system}" in
-  x11 )
-    HAVE_X11=yes
-  ;;
-  none )
-    HAVE_X11=no
-  ;;
-esac
 
 dnl ==================
 dnl GTK2 GUI
@@ -337,10 +296,6 @@ AC_TRY_COMPILE([#include <sys/types.h>
 dnl ===================
 dnl assign some defines
 dnl ===================
-
-if test "${HAVE_X11}" = "yes" ; then
-  AC_DEFINE(HAVE_X11, 1, [Build with X11 support])
-fi
 
 GUI_LIBS=""
 GUI_DIRS=""
