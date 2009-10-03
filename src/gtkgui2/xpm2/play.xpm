@@ -17,7 +17,7 @@
  */
 
 
-static char *play_xpm[] = {
+static const char *play_xpm[] = {
 "9 14 7 1",
 " \tc None",
 ".\tc #000000",

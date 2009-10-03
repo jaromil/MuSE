@@ -27,9 +27,10 @@ void cfade_set(GtkWidget *, struct pack *);
 
 void putstatusbar(void);
 GtkWidget* create_pixmap(GtkWidget *widget, const gchar *filename);
-GtkWidget *createpixmap(GtkWidget *, GtkWidget *, gchar **, gchar *, bool);
-void win_error(gchar *);
-void win_warning(gchar *);
+GtkWidget *createpixmap(GtkWidget *, GtkWidget *, const gchar **,
+                        const gchar *, bool);
+void win_error(const gchar *);
+void win_warning(const gchar *);
 void win_profile_save(GtkWidget *, void *);
 void win_profile_remove(GtkWidget *, void *);
 void set_tip(GtkWidget *, gchar *);

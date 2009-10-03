@@ -218,15 +218,15 @@ bool createch(void)
 	//gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(tree), TRUE);
 	
 	/* DND stuff */
-	target_entry[0].target = DRAG_TAR_NAME_0;
+	target_entry[0].target = (gchar *)DRAG_TAR_NAME_0;
 	target_entry[0].flags = 0;
 	target_entry[0].info = DRAG_TAR_INFO_0;
 
-	target_entry[1].target = DRAG_TAR_NAME_1;
+	target_entry[1].target = (gchar *)DRAG_TAR_NAME_1;
 	target_entry[1].flags = 0;
 	target_entry[1].info = DRAG_TAR_INFO_1;
 
-	target_entry[2].target = DRAG_TAR_NAME_2;
+	target_entry[2].target = (gchar *)DRAG_TAR_NAME_2;
 	target_entry[2].flags = 0;
 	target_entry[2].info = DRAG_TAR_INFO_2;
 

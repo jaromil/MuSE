@@ -19,7 +19,7 @@
 #ifndef MP3FILE_H
 #define MP3FILE_H
 
-GtkWidget *filedump_new(char *, struct encdata *);
+GtkWidget *filedump_new(const char *, struct encdata *);
 void filedump_sel_file(GtkWidget *, GtkWidget *);
 void filedump_set_entry(GtkWidget *, GtkWidget *);
 

@@ -30,7 +30,7 @@ struct encdata {
 	OutChannel *outchan;
 };
 
-struct encdata *enc_new(char *); 
+struct encdata *enc_new(const char *);
 void enc_profmenu(struct encdata *);
 
 void enc_fill(struct encdata *);

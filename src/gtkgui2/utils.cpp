@@ -204,7 +204,7 @@ void putstatusbar(void)
 }
 
 GtkWidget *createpixmap(GtkWidget *w, GtkWidget *but, 
-		gchar **pippo, gchar *tip, bool istoggled)
+		const gchar **pippo, const gchar *tip, bool istoggled)
 {
 	/* create and return button with pixmap */
 
@@ -217,7 +217,7 @@ GtkWidget *createpixmap(GtkWidget *w, GtkWidget *but,
 	style=gtk_widget_get_style(w);
 	gtk_widget_realize(w);
 	pixmap=gdk_pixmap_create_from_xpm_d(w->window, &mask, 
-			&style->bg[GTK_STATE_NORMAL], pippo);
+			&style->bg[GTK_STATE_NORMAL], (gchar **)pippo);
 	image = gtk_image_new_from_pixmap(pixmap, mask);
 	
 	if(!istoggled)
@@ -232,7 +232,7 @@ GtkWidget *createpixmap(GtkWidget *w, GtkWidget *but,
 	
 }
 
-void win_error(gchar *text)
+void win_error(const gchar *text)
 {
 	GtkWidget *dialog;
 
@@ -247,7 +247,7 @@ void win_error(gchar *text)
 
 }
 
-void win_warning(gchar *text)
+void win_warning(const gchar *text)
 {
 	GtkWidget *dialog;
 

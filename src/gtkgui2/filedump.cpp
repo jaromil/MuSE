@@ -29,7 +29,7 @@
 
 #include <config.h>
 
-GtkWidget *filedump_new(char *text, struct encdata *enc)
+GtkWidget *filedump_new(const char *text, struct encdata *enc)
 {
 	GtkWidget *dumpbox;
 	GtkWidget *hbox, *tmpwid, *entry;

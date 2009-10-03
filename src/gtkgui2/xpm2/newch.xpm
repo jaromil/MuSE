@@ -1,5 +1,5 @@
 /* XPM */
-static char * newch_xpm[] = {
+static const char * newch_xpm[] = {
 "24 24 204 2",
 "  	c None",
 ". 	c #000000",

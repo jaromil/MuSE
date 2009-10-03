@@ -1,5 +1,5 @@
 /* XPM */
-static char * mic_xpm[] = {
+static const char * mic_xpm[] = {
 "24 24 94 2",
 "  	c None",
 ". 	c #000000",

@@ -16,7 +16,7 @@
  * Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char *stop_xpm[] = {
+static const char *stop_xpm[] = {
 "9 14 7 1",
 " \tc None",
 ".\tc #000000",

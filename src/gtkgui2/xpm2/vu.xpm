@@ -16,7 +16,7 @@
  * Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char *vu_xpm[] = {
+static const char *vu_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "20 20 7 1",
 "  c Gray0",

@@ -67,7 +67,7 @@ gtk_dial_get_type ()
     {
       GtkTypeInfo dial_info =
       {
-	"GtkDial",
+	(gchar *)"GtkDial",
 	sizeof (GtkDial),
 	sizeof (GtkDialClass),
 	(GtkClassInitFunc) gtk_dial_class_init,

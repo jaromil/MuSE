@@ -1,5 +1,5 @@
 /* XPM */
-static char * stream_xpm[] = {
+static const char * stream_xpm[] = {
 "24 24 42 1",
 " 	c None",
 ".	c #000000",

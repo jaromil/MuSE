@@ -16,7 +16,7 @@
  * Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char *forward_xpm[] = {
+static const char *forward_xpm[] = {
 "13 14 11 1",
 " \tc None",
 ".\tc #000000",

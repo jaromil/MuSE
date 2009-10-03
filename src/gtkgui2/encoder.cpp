@@ -34,7 +34,7 @@
 
 extern int lameid, oggid;
 
-struct encdata *enc_new(char *text)
+struct encdata *enc_new(const char *text)
 {
 	GtkWidget *verbox, *tabbola;
 	GtkWidget *tmpbar, *tmplabel;
