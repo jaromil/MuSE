@@ -377,41 +377,31 @@ AM_CONDITIONAL(HAVE_OSS,test "${ac_cv_header_sys_soundcard_h}" = "yes" || test "
 dnl ==============================================================
 dnl link with memory debugging library dmalloc
 dnl ==============================================================
-AC_CHECK_HEADER(dmalloc.h)
-if test "$ac_cv_header_dmalloc_h" = "yes"; then
-
-AC_MSG_CHECKING(if malloc debugging is wanted)
+AC_CHECK_HEADERS([dmalloc.h], [have_dmalloc=yes], [have_dmalloc=no])
 AC_ARG_WITH(dmalloc,
-[  --with-dmalloc          use dmalloc, as in
-                          ftp://ftp.letters.com/src/dmalloc/dmalloc.tar.gz],
-[if test "$withval" = yes; then
-  AC_MSG_RESULT(yes)
-  AC_DEFINE(WITH_DMALLOC,1,
-            [Define if using the dmalloc debugging malloc package])
-  LIBS="$LIBS -ldmallocthcxx"
-  DMALLOCC="dmallocc.cpp"
-  have_dmalloc=yes
-  debug=true
-else
-  AC_MSG_RESULT(no)
-  DMALLOCC=""
-  have_dmalloc=no
-fi], [AC_MSG_RESULT(no)])
+  AS_HELP_STRING([--with-dmalloc],[use dmalloc, as in ftp://ftp.letters.com/src/dmalloc/dmalloc.tar.gz]),
+  [with_dmalloc=$withval],
+  [with_dmalloc=no])
 
+if test x$with_dmalloc = xyes; then
+  if test x$have_dmalloc = xyes; then
+    AC_DEFINE(WITH_DMALLOC,1,[Define if using the dmalloc package])
+    LIBS="$LIBS -ldmallocthcxx"
+  else
+    AC_MSG_ERROR([*** dmalloc requested but header not found!])
+  fi
 fi
+
 
 dnl ==============================================================
 dnl compile with full warnings and debugging symbols
 dnl ==============================================================
 AC_ARG_ENABLE(debug,
-	[  --enable-debug          compile with debug symbols (-Wall -g) [yes]],
-	[case "${enableval}" in
-		yes) debug=true ;;
-		no) debug=false ;;
-		*) AC_MSG_ERROR(--enable-debug expects either yes or no) ;;
-	esac], [debug=false])
-AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
-if test x$debug = xtrue; then
+    AS_HELP_STRING([--enable-debug],[compile with debug symbols (no)]),
+    [enable_debug=$enableval],
+    [enable_debug=no])
+
+if test x$enable_debug = xyes; then
    CFLAGS="$CFLAGS -Wall -g"
 fi
 
@@ -444,7 +434,7 @@ AC_ARG_ENABLE(lubrify,
   fi ],[ have_lubrifications=yes ])
 if test x$have_lubrifications = xyes; then
 #  LUBRIFY_CFLAGS="-O4 -fomit-frame-pointer -march=${host_cpu} -finline-functions -ffast-math -funroll-loops"
-   if test x$have_profiling = xyes -o x$debug = xtrue; then
+   if test x$have_profiling = xyes -o x$enable_debug = xyes; then
      AC_MSG_WARN([cannot lubrify code if debug or profiling are enabled])
      CFLAGS="$CFLAGS -ggdb"
    else
@@ -543,7 +533,7 @@ fi
 if test "$external_portaudio" = "yes"; then
 	echo ":: Embedding external portaudio from $PORTAUDIO_LIBS"
 fi
-if test "$debug" = "true"; then
+if test "$enable_debug" = "yes"; then
 	echo ":: DEBUG informations ON (-Wall -g compile flags)"
 else
 	echo ":: DEBUG informations OFF"
@@ -555,7 +545,7 @@ else
         echo ":: PROFILING informations OFF (see man gprof)"
 fi
 
-if test "$have_dmalloc" = "yes"; then
+if test "$with_dmalloc" = "yes"; then
 	echo ":: Using dmalloc for memory fencing and debugging"
 fi
 
