@@ -101,7 +101,7 @@ int PaHost_FindClosestTableEntry( double allowableError,  const double *rateTabl
 PaError PaHost_ValidateSampleRate( PaDeviceID id, double requestedFrameRate,
                                    double *closestFrameRatePtr )
 {
-    long bestRateIndex;
+    int32_t bestRateIndex;
     const PaDeviceInfo *pdi;
     pdi = Pa_GetDeviceInfo( id );
     if( pdi == NULL )
@@ -141,9 +141,9 @@ PaError Pa_OpenStream(
     PaSampleFormat outputSampleFormat,
     void *outputDriverInfo,
     double sampleRate,
-    unsigned long framesPerBuffer,
-    unsigned long numberOfBuffers,
-    unsigned long streamFlags,
+    uint32_t framesPerBuffer,
+    uint32_t numberOfBuffers,
+    PaStreamFlags streamFlags,
     PortAudioCallback *callback,
     void *userData )
 {
@@ -307,8 +307,8 @@ PaError Pa_OpenDefaultStream( PortAudioStream** stream,
                               int numOutputChannels,
                               PaSampleFormat sampleFormat,
                               double sampleRate,
-                              unsigned long framesPerBuffer,
-                              unsigned long numberOfBuffers,
+                              uint32_t framesPerBuffer,
+                              uint32_t numberOfBuffers,
                               PortAudioCallback *callback,
                               void *userData )
 {
@@ -496,12 +496,12 @@ internalPortAudioStream* PaHost_GetStreamRepresentation( PortAudioStream *stream
 */
 #define PA_DITHER_BITS   (15)
 #define PA_DITHER_SCALE  (1.0f / ((1<<PA_DITHER_BITS)-1))
-long PaConvert_TriangularDither( void )
+int32_t PaConvert_TriangularDither( void )
 {
-    static unsigned long previous = 0;
-    static unsigned long randSeed1 = 22222;
-    static unsigned long randSeed2 = 5555555;
-    long current, highPass;
+    static uint32_t previous = 0;
+    static uint32_t randSeed1 = 22222;
+    static uint32_t randSeed2 = 5555555;
+    int32_t current, highPass;
     /* Generate two random numbers. */
     randSeed1 = (randSeed1 * 196314165) + 907633515;
     randSeed2 = (randSeed2 * 196314165) + 907633515;
@@ -524,11 +524,11 @@ long PaConvert_TriangularDither( void )
 ** Assumes host native format is paInt16.
 ** Returns result from user callback.
 */
-long Pa_CallConvertInt16( internalPortAudioStream   *past,
+int32_t Pa_CallConvertInt16( internalPortAudioStream   *past,
                           short *nativeInputBuffer,
                           short *nativeOutputBuffer )
 {
-    long              temp;
+    int32_t              temp;
     int               userResult;
     unsigned int      i;
     void             *inputBuffer = NULL;

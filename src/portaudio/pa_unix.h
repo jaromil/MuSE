@@ -42,15 +42,6 @@
  on the Pa_OpenStream() call. The contents and interpretation of
  the structure is determined by the PA implementation.
 */
-typedef struct PaDriverInfo /* PROPOSED */
-{
-    /* Size of structure. Allows driver to extend the structure without breaking existing applications. */
-    int           size;
-    /* Can be used to request a specific device name. */
-    const char   *name;
-    unsigned long data;
-}
-PaDriverInfo;
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -87,6 +78,16 @@ PaDriverInfo;
 #else
  #define DEVICE_NAME_BASE            "/dev/audio"
 #endif
+
+typedef struct PaDriverInfo /* PROPOSED */
+{
+    /* Size of structure. Allows driver to extend the structure without breaking existing applications. */
+    int           size;
+    /* Can be used to request a specific device name. */
+    const char   *name;
+    uint32_t data;
+}
+PaDriverInfo;
 
 #define MAX_CHARS_DEVNAME           (32)
 #define MAX_SAMPLE_RATES            (10)

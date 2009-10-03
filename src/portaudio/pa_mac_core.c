@@ -293,9 +293,9 @@ static const char *ErrorToString( OSStatus err )
 }
 
 /**********************************************************************/
-static unsigned long RoundUpToNextPowerOf2( unsigned long n )
+static unsigned int32_t RoundUpToNextPowerOf2( unsigned int32_t n )
 {
-    long numBits = 0;
+    int32_t numBits = 0;
     if( ((n-1) & n) == 0) return n; /* Already Power of two. */
     while( n > 0 )
     {
@@ -763,9 +763,9 @@ static OSStatus PaOSX_InputConverterCallbackProc (AudioConverterRef			inAudioCon
     internalPortAudioStream   *past = (internalPortAudioStream *) inUserData;
     PaHostSoundControl *pahsc = (PaHostSoundControl *) past->past_DeviceData;
     void *dataPtr1;
-    long size1;
+    int32_t size1;
     void *dataPtr2;
-    long size2;
+    int32_t size2;
            
     /* Pass contiguous region from FIFO directly to converter. */
     RingBuffer_GetReadRegions( &pahsc->ringBuffer, *outDataSize,
@@ -871,7 +871,7 @@ static OSStatus PaOSX_WriteInputRingBuffer( internalPortAudioStream   *past,
     int   numInterleavedChannels;
     int   numChannelsRemaining;
 	int   i;
-    long  writeRoom;
+    int32_t  writeRoom;
     char *inputNativeBufferfPtr = NULL;
     PaHostSoundControl *pahsc = (PaHostSoundControl *) past->past_DeviceData;
 
@@ -973,8 +973,8 @@ static OSStatus PaOSX_HandleInput( internalPortAudioStream   *past,
     
     if( pahsc->mode == PA_MODE_INPUT_ONLY )
     {
-        /* Generate user buffers as long as we have a half full input FIFO. */
-        long halfSize = pahsc->ringBuffer.bufferSize / 2;
+        /* Generate user buffers as int32_t as we have a half full input FIFO. */
+        int32_t halfSize = pahsc->ringBuffer.bufferSize / 2;
         while( (RingBuffer_GetReadAvailable( &pahsc->ringBuffer ) >= halfSize) &&
             (past->past_StopSoon == 0) )
         {
@@ -1438,7 +1438,7 @@ static PaError PaOSX_CreateInputRingBuffer( internalPortAudioStream   *past )
     OSStatus  err = noErr;
     UInt32    dataSize;
     double    sampleRateRatio;
-    long      numBytes;
+    int32_t      numBytes;
     UInt32    framesPerHostBuffer;
     UInt32    bytesForDevice;
     UInt32    bytesForUser;
@@ -2022,7 +2022,7 @@ PaError PaHost_Term( void )
  * paged to virtual memory.
  * This call MUST be balanced with a call to PaHost_FreeFastMemory().
  */
-void *PaHost_AllocateFastMemory( long numBytes )
+void *PaHost_AllocateFastMemory( int32_t numBytes )
 {
     void *addr = malloc( numBytes ); /* FIXME - do we need physical memory, not virtual memory? */
     if( addr != NULL ) memset( addr, 0, numBytes );
@@ -2033,7 +2033,7 @@ void *PaHost_AllocateFastMemory( long numBytes )
  * Free memory that could be accessed in real-time.
  * This call MUST be balanced with a call to PaHost_AllocateFastMemory().
  */
-void PaHost_FreeFastMemory( void *addr, long numBytes )
+void PaHost_FreeFastMemory( void *addr, int32_t numBytes )
 {
     if( addr != NULL ) free( addr );
 }
@@ -2088,7 +2088,7 @@ int Pa_GetMinNumBuffers( int framesPerBuffer, double framesPerSecond )
 }
 
 /*************************************************************************/
-void Pa_Sleep( long msec )
+void Pa_Sleep( int32_t msec )
 {
     usleep( msec * 1000 );
 }
@@ -2112,7 +2112,7 @@ PaTimestamp Pa_StreamTime( PortAudioStream *stream )
 }
 
 /************************************************************************************/
-long Pa_GetHostError()
+int32_t Pa_GetHostError()
 {
     return sSavedHostError;
 }

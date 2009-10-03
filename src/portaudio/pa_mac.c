@@ -183,8 +183,8 @@ PaHostSoundControl;
 /* Mac specific device information. */
 typedef struct internalPortAudioDevice
 {
-    long                    pad_DeviceRefNum;
-    long                    pad_DeviceBufferSize;
+    int32_t                    pad_DeviceRefNum;
+    int32_t                    pad_DeviceBufferSize;
     Component               pad_Identifier;
     PaDeviceInfo            pad_Info;
 }
@@ -215,11 +215,11 @@ static PaError PaMac_QueryInputDeviceInfo( Str255 deviceName, internalPortAudioD
 static void    PaMac_InitSoundHeader( internalPortAudioStream   *past, CmpSoundHeader *sndHeader );
 static void    PaMac_EndLoadCalculation( internalPortAudioStream   *past );
 static void    PaMac_PlayNext ( internalPortAudioStream *past, int index );
-static long    PaMac_FillNextOutputBuffer( internalPortAudioStream   *past, int index );
+static int32_t    PaMac_FillNextOutputBuffer( internalPortAudioStream   *past, int index );
 static pascal void PaMac_InputCompletionProc(SPBPtr recParams);
 static pascal void PaMac_OutputCompletionProc (SndChannelPtr theChannel, SndCommand * theCmd);
 static PaError PaMac_BackgroundManager( internalPortAudioStream   *past, int index );
-long PaHost_GetTotalBufferFrames( internalPortAudioStream   *past );
+int32_t PaHost_GetTotalBufferFrames( internalPortAudioStream   *past );
 static int     Mac_IsVirtualMemoryOn( void );
 static void    PToCString(unsigned char* inString, char* outString);
 static void    CToPString(char *inString, unsigned char* outString);
@@ -282,7 +282,7 @@ void MultiBuffer_AdvanceWriteIndex(  MultiBuffer *mbuf )
 */
 static void PToCString(unsigned char* inString, char* outString)
 {
-    long i;
+    int32_t i;
     for(i=0; i<inString[0]; i++)  /* convert Pascal to C string */
         outString[i] = inString[i+1];
     outString[i]=0;
@@ -293,8 +293,8 @@ static void PToCString(unsigned char* inString, char* outString)
 */
 static void CToPString(char* inString, unsigned char* outString)
 {
-    long len = strlen(inString);
-    long i;
+    int32_t len = strlen(inString);
+    int32_t i;
 
     if (len > 255)
         len = 255;
@@ -351,7 +351,7 @@ static PaError PaMac_ScanOutputDevices( void )
     PaError       err;
     Component     identifier=0;
     ComponentDescription criteria = { kSoundOutputDeviceType, 0, 0, 0, 0 };
-    long       numComponents, i;
+    int32_t       numComponents, i;
 
     /* Search the system linked list for output components  */
     numComponents = CountComponents (&criteria);
@@ -533,8 +533,8 @@ static PaError PaMac_QueryInputDeviceInfo( Str255 deviceName, internalPortAudioD
     PaError result = paNoError;
     int     len;
     OSErr   err;
-    long    mRefNum = 0;
-    long    tempL;
+    int32_t    mRefNum = 0;
+    int32_t    tempL;
     int16   tempS;
     Fixed   tempF;
     PaDeviceInfo *dev =  &ipad->pad_Info;
@@ -772,7 +772,7 @@ static void PaMac_EndLoadCalculation( internalPortAudioStream   *past )
 {
     UnsignedWide widePad;
     UInt64    currentCount;
-    long      usecsElapsed;
+    int32_t      usecsElapsed;
     double    newUsage;
     PaHostSoundControl *pahsc = (PaHostSoundControl *) past->past_DeviceData;
     if( pahsc == NULL ) return;
@@ -818,7 +818,7 @@ PaError PaHost_StopInput( internalPortAudioStream   *past, int abort )
     int32   timeOutMsec;
     PaError result = paNoError;
     OSErr   err = 0;
-    long    mRefNum;
+    int32_t    mRefNum;
     PaHostSoundControl *pahsc = (PaHostSoundControl *) past->past_DeviceData;
     if( pahsc == NULL ) return paNoError;
 
@@ -936,7 +936,7 @@ exit:
 }
 
 /*******************************************************************/
-long PaHost_GetTotalBufferFrames( internalPortAudioStream   *past )
+int32_t PaHost_GetTotalBufferFrames( internalPortAudioStream   *past )
 {
     PaHostSoundControl *pahsc = (PaHostSoundControl *) past->past_DeviceData;
     return (long) (pahsc->pahsc_NumHostBuffers * pahsc->pahsc_FramesPerHostBuffer);
@@ -998,7 +998,7 @@ PaError PaHost_StreamActive( internalPortAudioStream   *past )
 }
 int Mac_IsVirtualMemoryOn( void )
 {
-    long  attr;
+    int32_t  attr;
     OSErr result = Gestalt( gestaltVMAttr, &attr );
     DBUG(("gestaltVMAttr : 0x%x\n", attr ));
     return ((attr >> gestaltVMHasPagingControl ) & 1);
@@ -1147,9 +1147,9 @@ PaError PaHost_OpenStream( internalPortAudioStream   *past )
     if( past->past_NumInputChannels > 0 )
     {
         int16   tempS;
-        long    tempL;
+        int32_t    tempL;
         Fixed   tempF;
-        long    mRefNum;
+        int32_t    mRefNum;
         Str255 namePString;
 #if TARGET_API_MAC_CARBON
         pahsc->pahsc_InputCompletionProc = NewSICompletionUPP((SICompletionProcPtr)PaMac_InputCompletionProc);
@@ -1344,7 +1344,7 @@ int32 Pa_GetHostError( void )
  * paged to virtual memory.
  * This call MUST be balanced with a call to PaHost_FreeFastMemory().
  */
-void *PaHost_AllocateFastMemory( long numBytes )
+void *PaHost_AllocateFastMemory( int32_t numBytes )
 {
     void *addr = NewPtrClear( numBytes );
     if( (addr == NULL) || (MemError () != 0) ) return NULL;
@@ -1363,7 +1363,7 @@ void *PaHost_AllocateFastMemory( long numBytes )
  * Free memory that could be accessed in real-time.
  * This call MUST be balanced with a call to PaHost_AllocateFastMemory().
  */
-void PaHost_FreeFastMemory( void *addr, long numBytes )
+void PaHost_FreeFastMemory( void *addr, int32_t numBytes )
 {
     if( addr == NULL ) return;
 #if TARGET_API_MAC_CARBON
@@ -1382,8 +1382,8 @@ PaTimestamp Pa_StreamTime( PortAudioStream *stream )
 	UInt64        whenIncremented;
 	UnsignedWide  now;
 	UInt64        now64;
-	long          microsElapsed;
-	long          framesElapsed;
+	int32_t          microsElapsed;
+	int32_t          framesElapsed;
 	
     PaHostSoundControl *pahsc;
     internalPortAudioStream   *past = (internalPortAudioStream *) stream;
@@ -1565,10 +1565,10 @@ static PaError PaMac_RecordNext( internalPortAudioStream   *past )
 ** Callback for Output Playback()
 ** Return negative error, 0 to continue, 1 to stop.
 */
-long    PaMac_FillNextOutputBuffer( internalPortAudioStream   *past, int index )
+int32_t    PaMac_FillNextOutputBuffer( internalPortAudioStream   *past, int index )
 {
     PaHostSoundControl  *pahsc;
-    long                 result = 0;
+    int32_t                 result = 0;
     int                  finished = 1;
     char                *outPtr;
 
@@ -1653,7 +1653,7 @@ static PaError PaMac_BackgroundManager( internalPortAudioStream   *past, int ind
 static void PaMac_PlayNext ( internalPortAudioStream *past, int index )
 {
     OSErr                  error;
-    long                     result;
+    int32_t                     result;
     SndCommand               playCmd;
     SndCommand           callbackCmd;
     PaHostSoundControl      *pahsc = (PaHostSoundControl *) past->past_DeviceData;

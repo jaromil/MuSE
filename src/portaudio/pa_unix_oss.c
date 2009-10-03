@@ -64,7 +64,7 @@
  */
 int Get_AFMT_S16_NE( void )
 {
-    long testData = 1; 
+    int32_t testData = 1; 
     char *ptr = (char *) &testData;
     int isLittle = ( *ptr == 1 ); /* Does address point to least significant byte? */
     return isLittle ? AFMT_S16_LE : AFMT_S16_BE;

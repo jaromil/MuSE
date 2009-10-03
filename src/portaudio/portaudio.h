@@ -1,6 +1,8 @@
 #ifndef PORT_AUDIO_H
 #define PORT_AUDIO_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -82,7 +84,7 @@ PaError Pa_Terminate( void );
 
 */
 
-long Pa_GetHostError( void );
+int32_t Pa_GetHostError( void );
 
 /*
  Pa_GetErrorText() translates the supplied PortAudio error number
@@ -109,7 +111,7 @@ const char *Pa_GetErrorText( PaError errnum );
 
 */
 
-typedef unsigned long PaSampleFormat;
+typedef uint32_t PaSampleFormat;
 #define paFloat32      ((PaSampleFormat) (1<<0)) /*always available*/
 #define paInt16        ((PaSampleFormat) (1<<1)) /*always available*/
 #define paInt32        ((PaSampleFormat) (1<<2)) /*always available*/
@@ -220,7 +222,7 @@ typedef double PaTimestamp;
 
 typedef int (PortAudioCallback)(
     void *inputBuffer, void *outputBuffer,
-    unsigned long framesPerBuffer,
+    uint32_t framesPerBuffer,
     PaTimestamp outTime, void *userData );
 
 
@@ -236,7 +238,7 @@ typedef int (PortAudioCallback)(
 #define   paClipOff     (1<<0)   /* disable default clipping of out of range samples */
 #define   paDitherOff   (1<<1)   /* disable default dithering */
 #define   paPlatformSpecificFlags (0x00010000)
-typedef   unsigned long PaStreamFlags;
+typedef   uint32_t PaStreamFlags;
 
 /*
  A single PortAudioStream provides multiple channels of real-time
@@ -332,8 +334,8 @@ PaError Pa_OpenStream( PortAudioStream** stream,
                        PaSampleFormat outputSampleFormat,
                        void *outputDriverInfo,
                        double sampleRate,
-                       unsigned long framesPerBuffer,
-                       unsigned long numberOfBuffers,
+                       uint32_t framesPerBuffer,
+                       uint32_t numberOfBuffers,
                        PaStreamFlags streamFlags,
                        PortAudioCallback *callback,
                        void *userData );
@@ -357,8 +359,8 @@ PaError Pa_OpenDefaultStream( PortAudioStream** stream,
                               int numOutputChannels,
                               PaSampleFormat sampleFormat,
                               double sampleRate,
-                              unsigned long framesPerBuffer,
-                              unsigned long numberOfBuffers,
+                              uint32_t framesPerBuffer,
+                              uint32_t numberOfBuffers,
                               PortAudioCallback *callback,
                               void *userData );
 
@@ -445,7 +447,7 @@ int Pa_GetMinNumBuffers( int framesPerBuffer, double sampleRate );
  
 */
 
-void Pa_Sleep( long msec );
+void Pa_Sleep( int32_t msec );
 
 /*
  Pa_GetSampleSize() returns the size in bytes of a single sample in the

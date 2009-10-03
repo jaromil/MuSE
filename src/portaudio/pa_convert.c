@@ -37,7 +37,7 @@ static void PaConvert_Float32_Int16_Clip(
 	int i;
 	for( i=0; i<numSamples; i++ )
 	{
-        long samp = (long) (*sourceBuffer * (32767.0f));
+        int32_t samp = (long) (*sourceBuffer * (32767.0f));
         CLIP( samp, -0x8000, 0x7FFF );
         *targetBuffer = (short) samp;
         sourceBuffer += sourceStride;
@@ -57,7 +57,7 @@ static void PaConvert_Float32_Int16_ClipDither(
     // use smaller scaler to prevent overflow when we add the dither
         float dither  = PaConvert_TriangularDither() * PA_DITHER_SCALE;
         float dithered = (*sourceBuffer * (32766.0f)) + dither;
-        long samp = (long) dithered;
+        int32_t samp = (long) dithered;
         CLIP( samp, -0x8000, 0x7FFF );
         *targetBuffer = (short) samp;
         sourceBuffer += sourceStride;
@@ -126,7 +126,7 @@ static void PaConvert_Float32_Int8_Clip(
 	int i;
 	for( i=0; i<numSamples; i++ )
 	{
-        long samp = (long) (*sourceBuffer * 127.0f);
+        int32_t samp = (long) (*sourceBuffer * 127.0f);
         CLIP( samp, -0x80, 0x7F );
         *targetBuffer = (char) samp;
         sourceBuffer += sourceStride;
@@ -146,7 +146,7 @@ static void PaConvert_Float32_Int8_ClipDither(
     // use smaller scaler to prevent overflow when we add the dither
         float dither  = PaConvert_TriangularDither() * PA_DITHER_SCALE;
         float dithered = (*sourceBuffer * (126.0f)) + dither;
-        long samp = (long) dithered;
+        int32_t samp = (long) dithered;
         CLIP( samp, -0x80, 0x7F );
         *targetBuffer = (char) samp;
         sourceBuffer += sourceStride;
@@ -166,7 +166,7 @@ static void PaConvert_Float32_Int8_Dither(
     // use smaller scaler to prevent overflow when we add the dither
         float dither  = PaConvert_TriangularDither() * PA_DITHER_SCALE;  //FIXME
         float dithered = (*sourceBuffer * (126.0f)) + dither;
-        long samp = (long) dithered;
+        int32_t samp = (long) dithered;
         *targetBuffer = (char) samp;
         sourceBuffer += sourceStride;
         targetBuffer += targetStride;
@@ -224,7 +224,7 @@ static void PaConvert_UInt8_Float32(
 /*************************************************************************/
 static void PaConvert_Float32_Int32(
     float *sourceBuffer, int sourceStride,
-    long *targetBuffer, int targetStride,
+    int32_t *targetBuffer, int targetStride,
     int numSamples )
 {
 	int i;
@@ -240,7 +240,7 @@ static void PaConvert_Float32_Int32(
 /*************************************************************************/
 static void PaConvert_Float32_Int32_Clip(
     float *sourceBuffer, int sourceStride,
-    long *targetBuffer, int targetStride,
+    int32_t *targetBuffer, int targetStride,
     int numSamples )
 {
 	int i;
@@ -258,7 +258,7 @@ static void PaConvert_Float32_Int32_Clip(
 
 /*************************************************************************/
 static void PaConvert_Int32_Float32(
-    long *sourceBuffer, int sourceStride,
+    int32_t *sourceBuffer, int sourceStride,
     float *targetBuffer, int targetStride,
     int numSamples )
 {
@@ -411,7 +411,7 @@ PaError PaConvert_SetupOutput( internalPortAudioStream   *past,
 ** then convert output to native format.
 ** Returns result from user callback.
 */
-long PaConvert_Process( internalPortAudioStream   *past,
+int32_t PaConvert_Process( internalPortAudioStream   *past,
                             void *nativeInputBuffer,
                             void *nativeOutputBuffer )
 {

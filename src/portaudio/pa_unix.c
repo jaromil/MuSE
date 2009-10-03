@@ -109,10 +109,10 @@ static void Pa_StartUsageCalculation( internalPortAudioStream   *past )
     gettimeofday( &pahsc->pahsc_EntryTime, NULL );
 }
 
-static long SubtractTime_AminusB( struct timeval *timeA, struct timeval *timeB )
+static int32_t SubtractTime_AminusB( struct timeval *timeA, struct timeval *timeB )
 {
-    long secs = timeA->tv_sec - timeB->tv_sec;
-    long usecs = secs * 1000000;
+    int32_t secs = timeA->tv_sec - timeB->tv_sec;
+    int32_t usecs = secs * 1000000;
     usecs += (timeA->tv_usec - timeB->tv_usec);
     return usecs;
 }
@@ -124,7 +124,7 @@ static long SubtractTime_AminusB( struct timeval *timeA, struct timeval *timeB )
 static void Pa_EndUsageCalculation( internalPortAudioStream   *past )
 {
     struct timeval currentTime;
-    long  usecsElapsed;
+    int32_t  usecsElapsed;
     double newUsage;
 
 #define LOWPASS_COEFFICIENT_0   (0.95)
@@ -1070,7 +1070,7 @@ PaError PaHost_Term( void )
 /*************************************************************************
  * Sleep for the requested number of milliseconds.
  */
-void Pa_Sleep( long msec )
+void Pa_Sleep( int32_t msec )
 {
 #if 0
     struct timeval timeout;
@@ -1078,7 +1078,7 @@ void Pa_Sleep( long msec )
     timeout.tv_usec = (msec % 1000) * 1000;
     select( 0, NULL, NULL, NULL, &timeout );
 #else
-    long usecs = msec * 1000;
+    int32_t usecs = msec * 1000;
     usleep( usecs );
 #endif
 }
@@ -1089,7 +1089,7 @@ void Pa_Sleep( long msec )
  * paged to virtual memory.
  * This call MUST be balanced with a call to PaHost_FreeFastMemory().
  */
-void *PaHost_AllocateFastMemory( long numBytes )
+void *PaHost_AllocateFastMemory( int32_t numBytes )
 {
     void *addr = malloc( numBytes ); /* FIXME - do we need physical, wired, non-virtual memory? */
     if( addr != NULL ) memset( addr, 0, numBytes );
@@ -1100,7 +1100,7 @@ void *PaHost_AllocateFastMemory( long numBytes )
  * Free memory that could be accessed in real-time.
  * This call MUST be balanced with a call to PaHost_AllocateFastMemory().
  */
-void PaHost_FreeFastMemory( void *addr, long numBytes )
+void PaHost_FreeFastMemory( void *addr, int32_t numBytes )
 {
     numBytes = numBytes; /* unused */
     if( addr != NULL ) free( addr );
@@ -1118,7 +1118,7 @@ PaError PaHost_StreamActive( internalPortAudioStream   *past )
 }
 
 /***********************************************************************/
-long Pa_GetHostError( void )
+int32_t Pa_GetHostError( void )
 {
     return (long) sPaHostError;
 }

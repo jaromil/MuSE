@@ -49,16 +49,16 @@ extern "C"
 #endif
 
 #ifndef int32
-    typedef long int32;
+    typedef int32_t int32;
 #endif
 #ifndef uint32
-    typedef unsigned long uint32;
+    typedef uint32_t uint32;
 #endif
 #ifndef int16
-    typedef short int16;
+    typedef int16_t int16;
 #endif
 #ifndef uint16
-    typedef unsigned short uint16;
+    typedef uint16_t uint16;
 #endif
 
 /* Used to convert between various sample formats. */
@@ -142,8 +142,8 @@ PaError PaHost_StartEngine( internalPortAudioStream   *past );
 PaError PaHost_StopEngine( internalPortAudioStream *past, int abort );
 PaError PaHost_StreamActive( internalPortAudioStream   *past );
 
-void   *PaHost_AllocateFastMemory( long numBytes );
-void    PaHost_FreeFastMemory( void *addr, long numBytes );
+void   *PaHost_AllocateFastMemory( int32_t numBytes );
+void    PaHost_FreeFastMemory( void *addr, int32_t numBytes );
 
 /* This only called if PA_VALIDATE_RATE IS CALLED. */
 PaError PaHost_ValidateSampleRate( PaDeviceID id, double requestedFrameRate,
@@ -161,7 +161,7 @@ internalPortAudioStream* PaHost_GetStreamRepresentation( PortAudioStream *stream
 int PaHost_FindClosestTableEntry( double allowableError,  const double *rateTable,
                                   int numRates, double frameRate );
 
-long Pa_CallConvertInt16( internalPortAudioStream   *past,
+int32_t Pa_CallConvertInt16( internalPortAudioStream   *past,
                           short *nativeInputBuffer,
                           short *nativeOutputBuffer );
                           
@@ -171,7 +171,7 @@ long Pa_CallConvertInt16( internalPortAudioStream   *past,
 ** Multiply by PA_DITHER_SCALE to get a float between -2.0 and 2.0. */
 #define PA_DITHER_BITS   (15)
 #define PA_DITHER_SCALE  (1.0f / ((1<<PA_DITHER_BITS)-1))
-long PaConvert_TriangularDither( void );
+int32_t PaConvert_TriangularDither( void );
 
 PaError PaConvert_SetupInput( internalPortAudioStream   *past,
     PaSampleFormat   nativeInputSampleFormat );
@@ -179,7 +179,7 @@ PaError PaConvert_SetupInput( internalPortAudioStream   *past,
 PaError PaConvert_SetupOutput( internalPortAudioStream   *past,
     PaSampleFormat   nativeOutputSampleFormat );
 
-long PaConvert_Process( internalPortAudioStream   *past,
+int32_t PaConvert_Process( internalPortAudioStream   *past,
             void *nativeInputBuffer,
             void *nativeOutputBuffer );
 

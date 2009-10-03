@@ -93,7 +93,7 @@ close();
 }
 
 static int pa_process( void *inputBuffer, void *outputBuffer, 
-	unsigned long framesPerBuffer, 
+	uint32_t framesPerBuffer, 
 	PaTimestamp outTime, void *userData )
 {
 int i,n;
