@@ -76,7 +76,7 @@ dnl ==============================================================
 #AM_DEFINE_UNQUOTED(HOST_CPU, "${host_cpu}")
 
 #CFLAGS="-O4 -D_REENTRANT -fomit-frame-pointer -march=${host_cpu} -ffast-math -malign-double -funroll-loops -pipe"
-CFLAGS="-pipe -D_REENTRANT"
+GLOBAL_CFLAGS="-pipe -D_REENTRANT"
 
 dnl ==============================================================
 dnl Checks for header files.
@@ -372,7 +372,6 @@ dnl Check for OSS
 
 AC_CHECK_HEADERS(sys/soundcard.h)
 AC_CHECK_HEADERS(machine/soundcard.h)
-AM_CONDITIONAL(HAVE_OSS,test "${ac_cv_header_sys_soundcard_h}" = "yes" || test "${ac_cv_header_machine_soundcard_h}" = "yes")
 
 dnl ==============================================================
 dnl link with memory debugging library dmalloc
@@ -397,12 +396,12 @@ dnl ==============================================================
 dnl compile with full warnings and debugging symbols
 dnl ==============================================================
 AC_ARG_ENABLE(debug,
-    AS_HELP_STRING([--enable-debug],[compile with debug symbols (no)]),
-    [enable_debug=$enableval],
-    [enable_debug=no])
+  AS_HELP_STRING([--enable-debug],[compile with debug symbols (no)]),
+  [enable_debug=$enableval],
+  [enable_debug=no])
 
 if test x$enable_debug = xyes; then
-   CFLAGS="$CFLAGS -Wall -g"
+  GLOBAL_CFLAGS="$GLOBAL_CFLAGS -Wall -g"
 fi
 
 
@@ -419,7 +418,7 @@ AC_ARG_ENABLE(profiling,
       have_profiling=yes;
   fi ],[ have_profiling=no ])
 if test x$have_profiling = xyes; then
-  CFLAGS="$CFLAGS -pg"
+  GLOBAL_CFLAGS="$GLOBAL_CFLAGS -pg"
 fi
 
 dnl ==============================================================
@@ -436,15 +435,15 @@ if test x$have_lubrifications = xyes; then
 #  LUBRIFY_CFLAGS="-O4 -fomit-frame-pointer -march=${host_cpu} -finline-functions -ffast-math -funroll-loops"
    if test x$have_profiling = xyes -o x$enable_debug = xyes; then
      AC_MSG_WARN([cannot lubrify code if debug or profiling are enabled])
-     CFLAGS="$CFLAGS -ggdb"
+     GLOBAL_CFLAGS="$GLOBAL_CFLAGS -ggdb"
    else
-     CFLAGS="$CFLAGS -O3 -fomit-frame-pointer -ffast-math"
+     GLOBAL_CFLAGS="$GLOBAL_CFLAGS -O3 -fomit-frame-pointer -ffast-math"
      if test x$have_darwin = xyes; then
-	CFLAGS="$CFLAGS -mabi=altivec -maltivec"
+       GLOBAL_CFLAGS="$GLOBAL_CFLAGS -mabi=altivec -maltivec"
      fi
    fi
 else
-   CFLAGS="$CFLAGS -O2 -ffast-math"
+   GLOBAL_CFLAGS="$GLOBAL_CFLAGS -O2 -ffast-math"
 fi
 
 
@@ -470,7 +469,8 @@ AC_SUBST(GUI_DEPS)
 AC_SUBST(DMALLOCC)
 AC_SUBST(LUBRIFY_CFLAGS)
 
-CXXFLAGS="$CFLAGS"
+CFLAGS="$GLOBAL_CFLAGS $CFLAGS"
+CXXFLAGS="$GLOBAL_CFLAGS $CXXFLAGS"
 LIBS="$LIBS"
 
 AC_OUTPUT([
