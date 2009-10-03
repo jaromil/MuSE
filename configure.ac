@@ -277,7 +277,7 @@ GUI_FLAGS=""
 if test "$want_ncurses_gui" = "yes"; then
    GUI_LIBS="$GUI_LIBS ncursesgui/librubik.a ncursesgui/libcdk/libcdk.a"
    GUI_DIRS="$GUI_DIRS ncursesgui"
-   GUI_FLAGS="$GUI_FLAGS"
+   GUI_FLAGS="$GUI_FLAGS -I\$(top_srcdir)/src/ncursesgui"
 fi
 
 if test "${HAVE_GTK}" = "yes"; then
