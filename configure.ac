@@ -308,16 +308,16 @@ dnl ==============================================================
 dnl Choose external portaudio library
 dnl =========================================
 AC_MSG_CHECKING(if external portaudio library is requested)
-PORTAUDIO_LIBS="portaudio/libportaudio.a"
-PORTAUDIO_CFLAGS="-Iportaudio"
+PORTAUDIO_LIBS="\$(top_builddir)/lib/portaudio/libportaudio.a"
+PORTAUDIO_CFLAGS="-I\$(top_srcdir)/lib/portaudio"
 PORTAUDIO_DIRS="portaudio"
 # add -lossaudio library needed for BSD systems
-if test $have_bsd = yes; then
+if test x$have_bsd = xyes; then
 	PORTAUDIO_LIBS="$PORTAUDIO_LIBS -lossaudio"
 fi
 AC_ARG_WITH(portaudio,
 [  --with-portaudio=/sw portaudio lib prefix],
-[if test -r "$withval"; then
+[if test -n "$withval" && test -d "$withval" ; then
 	 external_portaudio=yes
      PORTAUDIO_LIBS="$withval/lib/libportaudio.a -I$withval/pa_common "
 	 PORTAUDIO_CFLAGS="-I$withval/include -I$withval/pa_common "
@@ -327,6 +327,16 @@ AC_ARG_WITH(portaudio,
 AC_SUBST(PORTAUDIO_LIBS)
 AC_SUBST(PORTAUDIO_CFLAGS)
 AC_SUBST(PORTAUDIO_DIRS)
+
+
+dnl ==============================================================
+dnl mpeg lib
+dnl ==============================================================
+LIBMPEG_LIBS="\$(top_builddir)/lib/libmpeg/libmpeg.a"
+LIBMPEG_CFLAGS="-I\$(top_srcdir)/lib/libmpeg"
+AC_SUBST(LIBMPEG_LIBS)
+AC_SUBST(LIBMPEG_CFLAGS)
+
 
 dnl ==============================================================
 dnl shout lib
@@ -479,13 +489,14 @@ LIBS="$LIBS"
 
 AC_OUTPUT([
 Makefile
+lib/Makefile
+lib/libmpeg/Makefile
+lib/portaudio/Makefile
 src/Makefile
-src/libmpeg/Makefile
 src/gtkgui/Makefile
 src/gtkgui2/Makefile
 src/ncursesgui/Makefile
 src/ncursesgui/libcdk/Makefile
-src/portaudio/Makefile
 ])
 
 dnl locales removed

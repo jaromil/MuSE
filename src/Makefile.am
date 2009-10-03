@@ -1,10 +1,11 @@
-SUBDIRS = libmpeg @GUI_DIRS@ @PORTAUDIO_DIRS@
+SUBDIRS = @GUI_DIRS@
 
 INCLUDES = -I/usr/X11R6/include -Incursesgui @GLIB2_CFLAGS@ \
 		@DARWIN_CFLAGS@ @PORTAUDIO_CFLAGS@ @SHOUT_CFLAGS@ \
-		@VORBIS_CFLAGS@ @OGG_CFLAGS@ @SAMPLERATE_CFLAGS@
+		@VORBIS_CFLAGS@ @OGG_CFLAGS@ @SAMPLERATE_CFLAGS@ \
+		@LIBMPEG_CFLAGS@
 
-CFLAGS = @GUI_FLAGS@  @JACK_CFLAGS@ @OGG_CFLAGS@ @VORBIS_CFLAGS@
+CFLAGS = @GUI_FLAGS@ @JACK_CFLAGS@ @OGG_CFLAGS@ @VORBIS_CFLAGS@
 
 bin_PROGRAMS = muse
 
@@ -32,11 +33,9 @@ muse_SOURCES =  \
     dev_sound.cpp
 
 muse_DEPENDENCIES = \
-	@GUI_DEPS@ \
-	libmpeg/libmpeg.a
+	@GUI_DEPS@
 
 muse_LDADD = \
-	$(top_srcdir)/src/libmpeg/libmpeg.a \
 	-lpthread \
 	@SAMPLERATE_LIBS@ \
 	@M_LIBS@ \
@@ -49,4 +48,5 @@ muse_LDADD = \
 	@JACK_LIBS@ \
 	@DARWIN_LIBS@ \
 	@PORTAUDIO_LIBS@ \
+	@LIBMPEG_LIBS@ \
 	@SHOUT_LIBS@
