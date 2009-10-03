@@ -2,7 +2,7 @@ dnl ==============================================================
 dnl Process this file with autoconf to produce a configure script.
 dnl ==============================================================
 
-AC_INIT([MuSE], [0.10])
+AC_INIT([MuSE],[0.10])
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_CANONICAL_HOST
@@ -58,6 +58,9 @@ case "$host_os" in
   ;;
 esac
 
+#GLOBAL_CFLAGS="-O4 -D_REENTRANT -fomit-frame-pointer -march=${host_cpu} -ffast-math -malign-double -funroll-loops -pipe"
+GLOBAL_CFLAGS="-pipe -D_REENTRANT"
+
 
 dnl ==============================================================
 dnl Check for tools
@@ -65,26 +68,18 @@ dnl ==============================================================
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_CPP
-AC_ISC_POSIX
+AC_SEARCH_LIBS([strerror],[cposix])
 AC_PROG_RANLIB
-AC_PROG_MAKE_SET
 
-dnl ==============================================================
-dnl Add the local include path and some flags - only linux i*86 supported
-dnl ==============================================================
-#AC_SUBST(OSTYPE)
-#AM_DEFINE_UNQUOTED(HOST_CPU, "${host_cpu}")
-
-#CFLAGS="-O4 -D_REENTRANT -fomit-frame-pointer -march=${host_cpu} -ffast-math -malign-double -funroll-loops -pipe"
-GLOBAL_CFLAGS="-pipe -D_REENTRANT"
 
 dnl ==============================================================
 dnl Checks for header files.
 dnl ==============================================================
 AC_HEADER_STDC
 AC_HEADER_DIRENT
-AC_CHECK_HEADERS([fcntl.h sys/file.h sys/time.h unistd.h dirent.h sys/ndir.h \
-                  sys/dir.h ndir.h limits.h unistd.h stdint.h inttypes.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h libintl.h limits.h locale.h \
+netdb.h netinet/in.h sys/file.h sys/ioctl.h \
+sys/socket.h termios.h])
 
 AC_CHECK_HEADER(pthread.h,, AC_MSG_ERROR([[
 ==================== PTHREAD HEADERS NOT FOUND
@@ -102,18 +97,32 @@ dnl ==============================================================
 dnl Checks for typedefs, structures, and compiler characteristics.
 dnl ==============================================================
 AC_C_CONST
-AC_TYPE_SIZE_T
-AC_TYPE_MODE_T
-AC_TYPE_SIGNAL
 AC_HEADER_TIME
+AC_HEADER_STDBOOL
+AC_C_INLINE
+AC_TYPE_INT16_T
+AC_TYPE_INT32_T
+AC_TYPE_INT8_T
+AC_TYPE_MODE_T
+AC_TYPE_OFF_T
+AC_TYPE_SIZE_T
+AC_CHECK_MEMBERS([struct stat.st_rdev])
+AC_TYPE_UINT32_T
+AC_TYPE_UINT8_T
 
 dnl ==============================================================
 dnl Checks for library functions.
 dnl ==============================================================
+AC_FUNC_ERROR_AT_LINE
+AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
+AC_FUNC_MALLOC
+AC_FUNC_MKTIME
+AC_FUNC_REALLOC
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([gettimeofday select socket strdup nanosleep inet_aton scandir \
-                getcwd mktime strerror sethostent endhostent getnameinfo \
-                getaddrinfo inet_pton])
+AC_CHECK_FUNCS([atexit endhostent ftruncate getaddrinfo getcwd gethostbyname \
+getnameinfo gettimeofday inet_aton inet_pton memset mkdir nanosleep scandir \
+select sethostent setlocale socket strcasecmp strchr strdup strerror \
+strncasecmp strstr strtol])
 
 AC_CHECK_SIZEOF(short, 2)
 AC_CHECK_SIZEOF(int, 4)
@@ -247,7 +256,7 @@ dnl CHECK LAME LIB
 dnl ==============
 AC_CHECK_HEADER(lame/lame.h, [
         have_lame=yes;
-        AC_MSG_NOTICE([MP3 encoder found and succesfully linked])
+        AC_MSG_NOTICE([MP3 encoder found and successfully linked])
 	AC_DEFINE(HAVE_LAME, 1, [Building with LAME support])
 	LAME_LIBS="-lmp3lame"
 	AC_SUBST(LAME_LIBS)
@@ -258,14 +267,11 @@ AC_CHECK_HEADER(lame/lame.h, [
 
 dnl Check for socklen_t
 AC_MSG_CHECKING([for unix98 socklen_t])
-AC_TRY_COMPILE([#include <sys/types.h>
-                #include <sys/socket.h>],
-               [typedef socklen_t int;
-                int test() { return 1; }],
-               AC_MSG_RESULT(yes)
-               HAVE_SOCKLEN_T=yes,
-               AC_MSG_RESULT(no)
-               HAVE_SOCKLEN_T=no)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
+                #include <sys/socket.h>]], [[typedef socklen_t int;
+                int test() { return 1; }]])],[AC_MSG_RESULT(yes)
+               HAVE_SOCKLEN_T=yes],[AC_MSG_RESULT(no)
+               HAVE_SOCKLEN_T=no])
 
 dnl ===================
 dnl assign some defines
@@ -461,7 +467,7 @@ CFLAGS="$GLOBAL_CFLAGS $CFLAGS"
 CXXFLAGS="$GLOBAL_CFLAGS $CXXFLAGS"
 LIBS="$LIBS"
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
 Makefile
 lib/Makefile
 lib/libmpeg/Makefile
@@ -471,6 +477,7 @@ src/gtkgui2/Makefile
 src/ncursesgui/Makefile
 src/ncursesgui/libcdk/Makefile
 ])
+AC_OUTPUT
 
 dnl locales removed
 dnl intl/Makefile
