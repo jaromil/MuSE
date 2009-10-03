@@ -32,9 +32,6 @@ muse_SOURCES =  \
     gui.cpp 		\
     dev_sound.cpp
 
-muse_DEPENDENCIES = \
-	@GUI_DEPS@
-
 muse_LDADD = \
 	-lpthread \
 	@SAMPLERATE_LIBS@ \

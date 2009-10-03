@@ -274,26 +274,22 @@ dnl ===================
 GUI_LIBS=""
 GUI_DIRS=""
 GUI_FLAGS=""
-GUI_DEPS=""
 if test "$want_ncurses_gui" = "yes"; then
    GUI_LIBS="$GUI_LIBS ncursesgui/librubik.a ncursesgui/libcdk/libcdk.a"
    GUI_DIRS="$GUI_DIRS ncursesgui"
    GUI_FLAGS="$GUI_FLAGS"
-   GUI_DEPS="$GUI_DEPS ncursesgui/librubik.a"
 fi
 
 if test "${HAVE_GTK}" = "yes"; then
    GUI_LIBS="$GUI_LIBS $GTK_LIBS -lgthread gtkgui/libnightolo.a"
    GUI_DIRS="$GUI_DIRS gtkgui"
    GUI_FLAGS="$GUI_FLAGS $GTK_FLAGS"
-   GUI_DEPS="$GUI_DEPS gtkgui/libnightolo.a"
 fi
 
 if test "${want_gtk2_gui}" = "yes"; then
    GUI_LIBS="$GUI_LIBS $GTK2_LIBS gtkgui2/libnightolo2.a"
    GUI_DIRS="$GUI_DIRS gtkgui2"
    GUI_FLAGS="$GUI_FLAGS $GTK2_CFLAGS"
-   GUI_DEPS="$GUI_DEPS gtkgui2/libnightolo2.a"
 
    dnl =========
    dnl Scheduler 
