@@ -5,7 +5,7 @@ docsdir = ${prefix}/doc/MuSE
 
 man_MANS = muse.1
 
-ACLOCAL_AMFLAGS = -I . -I m4
+ACLOCAL_AMFLAGS = -I m4
 
 EXTRA_DIST = autogen.sh config.rpath
 
