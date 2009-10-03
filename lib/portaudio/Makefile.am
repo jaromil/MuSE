@@ -1,5 +1,8 @@
+EXTRA_DIST = LICENSE
 
 AUTOMAKE_OPTIONS = foreign
+
+noinst_HEADERS = pa_host.h pa_trace.h pa_unix.h portaudio.h ringbuffer.h
 
 noinst_LIBRARIES = libportaudio.a
 

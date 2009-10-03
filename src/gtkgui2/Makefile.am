@@ -3,6 +3,12 @@ DEFS = -DLOCALEDIR=\"$(localedir)\" @DEFS@
 
 INCLUDES = -I. -I../.. -I$(top_srcdir)/src @GTK2_CFLAGS@ -I/sw/include
 
+EXTRA_DIST = xpm2
+
+noinst_HEADERS = about.h docking.h encoder.h filedump.h gchan_events.h gchan.h \
+	gen.h gradiosched.h gtk2_gui.h gtkdial.h ice.h listpack.h musegtk.h utils.h \
+	vumeters.h xmlprofile.h
+
 noinst_LIBRARIES = libnightolo2.a
 
 libnightolo2_a_SOURCES =	\

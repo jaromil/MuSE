@@ -1,3 +1,5 @@
+EXTRA_DIST = fileplayer.cc
+
 noinst_LIBRARIES = libmpeg.a
 libmpeg_a_SOURCES = soundinputstream.cc fileinput.cc httpinput.cc \
 	soundplayer.cc \

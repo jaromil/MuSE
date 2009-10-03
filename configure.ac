@@ -14,7 +14,7 @@ dnl ==============================================================
 dnl Setup for automake
 dnl ==============================================================
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([dist-bzip2])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 # never run autotools and configure automatically
@@ -131,7 +131,7 @@ dnl =================
 dnl removed until someone fixes the Makefile (TODO)
 dnl the current mess with locales prevents from compiling
 dnl and i couldn't figure out why // jrml 11apr05
-dnl AM_GNU_GETTEXT
+dnl AM_GNU_GETTEXT([external])
 dnl ALL_LINGUAS="it es"
 
 dnl ====================

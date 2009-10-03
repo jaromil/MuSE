@@ -4,11 +4,17 @@ DIST_SUBDIRS = gtkgui2 ncursesgui
 
 MUSE_CFLAGS = @GUI_FLAGS@ @JACK_CFLAGS@ @OGG_CFLAGS@ @VORBIS_CFLAGS@ \
               @GLIB2_CFLAGS@ @DARWIN_CFLAGS@ @PORTAUDIO_CFLAGS@ @SHOUT_CFLAGS@ \
-	      @VORBIS_CFLAGS@ @OGG_CFLAGS@ @SAMPLERATE_CFLAGS@ @LIBMPEG_CFLAGS@
+              @VORBIS_CFLAGS@ @OGG_CFLAGS@ @SAMPLERATE_CFLAGS@ @LIBMPEG_CFLAGS@
 
 AM_CFLAGS = $(MUSE_CFLAGS)
 AM_CXXFLAGS = $(MUSE_CFLAGS)
 
+EXTRA_DIST = vumeter.c xmlprofile.cpp profile.cpp
+
+noinst_HEADERS = audioproc.h dec_jack.h dec_mp3.h decoder.h dec_ogg.h dec_snd.h \
+  dev_sound.h generic.h gui.h httpstream.h inchannels.h jmixer.h jutils.h \
+  linklist.h outchannels.h out_lame.h out_vorbis.h pipe.h playlist.h profile.h \
+  radiosched.h resarr160to441.h resarr320to441.h shouter.h xmlprofile.h
 
 bin_PROGRAMS = muse
 
