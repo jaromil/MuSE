@@ -2,31 +2,31 @@ dnl ==============================================================
 dnl Process this file with autoconf to produce a configure script.
 dnl ==============================================================
 
-AC_INIT(src/muse.cpp)
+AC_INIT([MuSE], [0.9.1-cvs])
+AC_CONFIG_MACRO_DIR([m4])
 
 AC_CANONICAL_HOST
-AC_CANONICAL_TARGET
 
-AC_PROG_MAKE_SET
+AC_CONFIG_HEADER([config.h])
+AC_CONFIG_SRCDIR([src/muse.cpp])
 
 dnl ==============================================================
 dnl Setup for automake
 dnl ==============================================================
 
-AM_SANITY_CHECK
-AM_INIT_AUTOMAKE(MuSE, 0.9.1-cvs)
-AM_CONFIG_HEADER(config.h)
+AM_INIT_AUTOMAKE
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+
+# never run autotools and configure automatically
 AM_MAINTAINER_MODE
 
 dnl ==============================================================
 dnl Get the operating system and version number...
 dnl ==============================================================
-uname=`uname`
-uversion=`uname -r | sed -e 's/-.*$//g;s/[\.]//g'`
 AC_MSG_CHECKING(for which platform we are compiling)
-case $uname in
-     Linux)
-     AC_MSG_RESULT(Linux)
+case "$host_os" in
+     *linux*)
+     AC_MSG_RESULT([Linux])
      AC_DEFINE(HAVE_LINUX,1,[define if compiling for Linux])
      AC_DEFINE(HAVE_UNIX,1,[define if compiling for UNIX])
      have_linux=yes
@@ -47,25 +47,28 @@ case $uname in
      fi
      ;;
 
-     Darwin)
-     AC_MSG_RESULT(Darwin/OSX)
+     *darwin*)
+     AC_MSG_RESULT([Darwin/OSX])
      AC_DEFINE(HAVE_DARWIN,1,[define if compiling for Apple Darwin OSX])
      have_darwin=yes
      DARWIN_LIBS="-L/sw/lib -lintl -framework AudioToolbox -framework CoreAudio"
      DARWIN_CFLAGS="-I/sw/include"
      ;;
 
-     *BSD)
-     AC_MSG_RESULT($uname)
+     *bsd*)
+     AC_MSG_RESULT(${host})
      AC_DEFINE(HAVE_BSD,1,[define if compiling for BSD])
      AC_DEFINE(HAVE_UNIX,1,[define if compiling for UNIX])
      have_bsd=yes
      ;;
 
      *)
-     echo "[!] Your system architecture is not supported by MuSE"
-     echo "[!] if you are interested in porting MuSE to your architecture"
-     echo "[!] you are very welcome to contact me <jaromil@dyne.org>"
+     AC_MSG_RESULT([$host_os?!])
+     AC_MSG_ERROR([[
+[!] Your system architecture is not supported by MuSE
+[!] if you are interested in porting MuSE to your architecture
+[!] you are very welcome to contact me <jaromil@dyne.org>
+]], 0)
      ;;
 esac
 
@@ -79,6 +82,7 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_ISC_POSIX
 AC_PROG_RANLIB
+AC_PROG_MAKE_SET
 
 dnl ==============================================================
 dnl Add the local include path and some flags - only linux i*86 supported
@@ -609,7 +613,7 @@ dnl po/Makefile
 echo
 
 echo "== MuSE build configuration ====================================="
-echo ":: Building on ${host} (kernel $uname$uversion)"
+echo ":: Building on ${host}"
 
 if test "$have_darwin" = "yes"; then
 	echo ":: Linking Darwin libs $DARWIN_LIBS"
