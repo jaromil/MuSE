@@ -488,8 +488,6 @@ void gcb_play_channel(GtkWidget *w, struct gchan *o)
 {
 	guint res;
 	
-	GtkTreePath *path;
-	GtkTreeIter iter;
 	GtkTreeSelection *select;
 	GtkTreeModel *model;
 	gint index=0;

@@ -43,7 +43,7 @@ GTK2_GUI::~GTK2_GUI() {
 
 void GTK2_GUI::run() {
   while(!quit) {
-    if(quit = !gtkgui_get_state()) {
+    if( (quit = !gtkgui_get_state()) ) {
       _mix->quit = true;
     } else {
       int i;

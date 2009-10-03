@@ -42,8 +42,7 @@
 
 GtkWidget *createbbox(GtkWidget *bbox)
 {
-	GtkWidget *ice, *clame, *addch, *help, *vumeters, *scheduler;
-	GtkWidget *tmpwid;
+	GtkWidget *ice, *clame, *addch, *help, *vumeters;
 
 	ice = clame = addch = help = vumeters = NULL;
 

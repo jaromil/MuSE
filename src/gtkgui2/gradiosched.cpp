@@ -55,13 +55,11 @@ enum {
 void rsched_new(GtkWidget *w)
 {
 	GtkWidget *winsched, *scroll, *tree;
-	GtkWidget *tmpvbox, *tmphbox, *button, *starts, *stops;
+	GtkWidget *tmpvbox, *button, *starts, *stops;
 	GtkWidget *tmpwid, *tmpwid1, *tmptable, *startl, *stopl, *startl1, *stopl1;
-	GtkWidget *align;
 	GtkListStore *store;
 	GtkTreeViewColumn *column;
 	GtkCellRenderer *renderer;
-	GtkTreeIter iter;
 	GtkTreeSelection *select;
 	
 	create_xml_schedule_file();

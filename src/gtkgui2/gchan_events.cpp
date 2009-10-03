@@ -98,7 +98,7 @@ void DND_data_received(GtkWidget *w, GdkDragContext *dc, gint x, gint y,
 {
 	GtkTreeIter iter, itersrc;
 	GtkTreeModel *model, *modelsrc;
-	GtkTreePath *path, *pathsrc;
+	GtkTreePath *path;
 	GtkTreeSelection *selectsrc;
 	GtkWidget *source;
 	gint row=0, rowsrc=0;
@@ -208,9 +208,6 @@ gboolean gcb_event_view_popup(GtkWidget *w, GdkEventButton *s, struct gchan *o)
 {
 	GtkWidget *tmpwid;
 	GtkWidget *menupop = gtk_menu_new();
-	GtkTreeSelection *select;
-	GtkTreePath *path;
-	gint *row = NULL;
 	
 	if(s->button == 3) {
 		/*select = gtk_tree_view_get_selection(GTK_TREE_VIEW(w));
