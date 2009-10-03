@@ -164,52 +164,36 @@ AC_SUBST(JACK_LIBS)
 AC_SUBST(JACK_CFLAGS)
 
 
-dnl ====================
-dnl switch for rubik GUI
-dnl ====================
-#AC_MSG_CHECKING(to build ncurses GUI by rubik)
-#AC_ARG_WITH(rubik,
-#[  --with-rubik        compile with ncurses CONSOLE GUI ],
-#[if test "$withval" = yes; then
-#  AC_MSG_RESULT(yes)
-AC_CHECK_LIB(termcap, waddstr)
-AC_CHECK_LIB(ncurses, start_color)
-have_ncurses=yes
-if test "$ac_cv_lib_ncurses_start_color" != yes ; then
-  AC_CHECK_LIB(curses, initscr, have_ncurses=yes, have_ncurses=no)
-fi
-
-# ncurses now disable by default (needs more fixing)
-want_ncurses=no
+dnl ==================
+dnl ncurses GUI
+dnl ==================
 AC_ARG_ENABLE(ncurses,
-[  --enable-ncurses        compile with ncurses interface (no)],
-[  want_ncurses=$enableval])
+    AS_HELP_STRING([--enable-ncurses],[compile with ncurses GUI (no)]),
+    [want_ncurses_gui=$enableval],
+    [want_ncurses_gui=no]) # disabled for now
 
-if test "$have_ncurses" = yes -a ! x$want_ncurses = xno; then
-  AC_DEFINE(HAVE_COLOR, 1, [Build with ncurses color support])
+# this is really libcdk's configuration, needs to be reviewed if correct
+# see src/ncursesgui/libcdk
+if test x$want_ncurses_gui = xyes; then
+  AC_CHECK_LIB(termcap, waddstr,
+               [have_termcap=yes], [have_termcap=no])
+
+  AC_CHECK_LIB(ncurses, start_color,
+               AC_DEFINE([HAVE_START_COLOR], 1, [Have start_color]))
+
+  AC_CHECK_LIB(ncurses, initscr,
+               [have_ncurses=yes], [have_ncurses=no])
+
+  AC_CHECK_HEADERS([ncurses.h],
+                   [have_ncurses_h=yes], [have_ncurses_h=no])
+
   AC_CHECK_FUNC(XCursesExit, AC_DEFINE(HAVE_XCURSES, 1, [Build with xcurses]))
-  GUI_RUBIK=true
-  AC_DEFINE([GUI_RUBIK], 1, [Have ncurses GUI])
+
+  if test x$have_ncurses_h = xyes && test x$want_ncurses != xno; then
+    AC_DEFINE([GUI_RUBIK], 1, [Have ncurses GUI])
+  fi
 fi
-#  else
-#  AC_MSG_RESULT(no)
-#  have_ncurses=no
-#fi], [AC_MSG_RESULT(no)])
 
-
-dnl =======================
-dnl switch for nightolo GUI
-dnl =======================
-dnl AC_ARG_ENABLE(nightolo,
-dnl 	[  --enable-gtk		    compile with GTK+ graphical interface (autodetect)],
-dnl	GUI_NIGHTOLO="true", GUI_NIGHTOLO="false")
-dnl	[case "${enableval}" in
-dnl	        yes) nightolo=true ;;
-dnl		no) nightolo=false ;;
-dnl		*) AC_MSG_ERROR(--enable-gtk expects either yes or no) ;;
-dnl	esac], [nightolo=false])
-
-dnl AM_CONDITIONAL(NIGHTOLO, test x$nightolo = xtrue)
 
 dnl ==================
 dnl GTK2 GUI
@@ -291,12 +275,11 @@ GUI_LIBS=""
 GUI_DIRS=""
 GUI_FLAGS=""
 GUI_DEPS=""
-if test "${GUI_RUBIK}" = "true"; then
+if test "$want_ncurses_gui" = "yes"; then
    GUI_LIBS="$GUI_LIBS ncursesgui/librubik.a ncursesgui/libcdk/libcdk.a"
    GUI_DIRS="$GUI_DIRS ncursesgui"
    GUI_FLAGS="$GUI_FLAGS"
    GUI_DEPS="$GUI_DEPS ncursesgui/librubik.a"
-   AC_DEFINE(HAVE_LIBNCURSES, 1, "have working libncurses")
 fi
 
 if test "${HAVE_GTK}" = "yes"; then
@@ -577,7 +560,7 @@ if test "${want_gtk2_gui}" = "yes"; then
 	echo ":: Building the GTK-2 user interface"
 fi
 
-if test "${GUI_RUBIK}" = "true"; then
+if test "${want_ncurses_gui}" = "yes"; then
 	echo ":: Building the NCURSES user interface"
 fi
 if test "$external_libshout" = "yes"; then
