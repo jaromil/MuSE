@@ -280,12 +280,6 @@ if test "$want_ncurses_gui" = "yes"; then
    GUI_FLAGS="$GUI_FLAGS -I\$(top_srcdir)/src/ncursesgui"
 fi
 
-if test "${HAVE_GTK}" = "yes"; then
-   GUI_LIBS="$GUI_LIBS $GTK_LIBS -lgthread gtkgui/libnightolo.a"
-   GUI_DIRS="$GUI_DIRS gtkgui"
-   GUI_FLAGS="$GUI_FLAGS $GTK_FLAGS"
-fi
-
 if test "${want_gtk2_gui}" = "yes"; then
    GUI_LIBS="$GUI_LIBS $GTK2_LIBS gtkgui2/libnightolo2.a"
    GUI_DIRS="$GUI_DIRS gtkgui2"
@@ -479,7 +473,6 @@ lib/Makefile
 lib/libmpeg/Makefile
 lib/portaudio/Makefile
 src/Makefile
-src/gtkgui/Makefile
 src/gtkgui2/Makefile
 src/ncursesgui/Makefile
 src/ncursesgui/libcdk/Makefile
