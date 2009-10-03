@@ -1,8 +1,8 @@
-SUBDIRS = resample libmpeg @GUI_DIRS@ @PORTAUDIO_DIRS@
+SUBDIRS = libmpeg @GUI_DIRS@ @PORTAUDIO_DIRS@
 
 INCLUDES = -I/usr/X11R6/include -Incursesgui @GLIB2_CFLAGS@ \
 		@DARWIN_CFLAGS@ @PORTAUDIO_CFLAGS@ @SHOUT_CFLAGS@ \
-		@VORBIS_CFLAGS@ @OGG_CFLAGS@
+		@VORBIS_CFLAGS@ @OGG_CFLAGS@ @SAMPLERATE_CFLAGS@
 
 CFLAGS = @GUI_FLAGS@  @JACK_CFLAGS@ @OGG_CFLAGS@ @VORBIS_CFLAGS@
 
@@ -33,13 +33,12 @@ muse_SOURCES =  \
 
 muse_DEPENDENCIES = \
 	@GUI_DEPS@ \
-	resample/libresample.a \
 	libmpeg/libmpeg.a
 
 muse_LDADD = \
-	$(top_srcdir)/src/resample/libresample.a \
 	$(top_srcdir)/src/libmpeg/libmpeg.a \
 	-lpthread \
+	@SAMPLERATE_LIBS@ \
 	@M_LIBS@ \
 	@LAME_LIBS@ \
 	@OGG_LIBS@ \

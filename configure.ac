@@ -336,6 +336,13 @@ PKG_CHECK_MODULES([SHOUT], [shout], [:],
 
 
 dnl ==============================================================
+dnl samplerate lib
+dnl ==============================================================
+PKG_CHECK_MODULES([SAMPLERATE], [samplerate], [:],
+	AC_MSG_ERROR([*** Libsamplerate development files not found!]))
+
+
+dnl ==============================================================
 dnl Detect CPU clipping mode (from the secret rabbit code)
 dnl ==============================================================
 AC_C_CLIP_MODE
@@ -478,7 +485,6 @@ src/gtkgui/Makefile
 src/gtkgui2/Makefile
 src/ncursesgui/Makefile
 src/ncursesgui/libcdk/Makefile
-src/resample/Makefile
 src/portaudio/Makefile
 ])
 

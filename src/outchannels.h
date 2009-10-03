@@ -33,7 +33,7 @@
 #include <pipe.h>
 #include <linklist.h>
 #include <generic.h>
-#include <resample/samplerate.h>
+#include <samplerate.h>
 
 #define ENCBUFFER_SIZE 128000 // 65536 // we have ram, isn't it?
 
