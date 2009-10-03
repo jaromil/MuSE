@@ -101,7 +101,7 @@ static struct pipe_copy_list callbacks[] = {
   end is a pointer to the last character to go out
 */
 
-bool Pipe::set_input_type(char *name) {
+bool Pipe::set_input_type(const char *name) {
   int c;
   for(c=0 ; callbacks[c].callback ; c++) {
     if(strcasecmp(name,callbacks[c].name)==0) {
@@ -113,7 +113,7 @@ bool Pipe::set_input_type(char *name) {
   return false;
 }
 
-bool Pipe::set_output_type(char *name) {
+bool Pipe::set_output_type(const char *name) {
   int c;
   for(c=0 ; callbacks[c].callback ; c++) {
     if(strcasecmp(name,callbacks[c].name)==0) {

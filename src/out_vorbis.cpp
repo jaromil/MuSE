@@ -261,7 +261,7 @@ bool OutVorbis::apply_profile() {
     char tmp[128];
     sprintf(tmp,"%s version %s",PACKAGE,VERSION);
     vorbis_comment_init(&vc);
-    vorbis_comment_add_tag(&vc,"Streamed with",tmp);
+    vorbis_comment_add_tag(&vc,(char *)"Streamed with",tmp);
   }
 
   /* Now, build the three header packets and send through to the stream 

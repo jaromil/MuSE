@@ -92,7 +92,7 @@ class OutChannel: public Entry {
      @brief the OutChannel class constructor 
      @param myname given at creation by Stream_mixer
   */
-  OutChannel(char *myname);
+  OutChannel(const char *myname);
  
   virtual ~OutChannel(); ///< the OutChannel class destructor
 

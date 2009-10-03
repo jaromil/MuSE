@@ -75,7 +75,7 @@ typedef void (pipe_copy_f)(void *src, void *dst, int samples);
 
 /** this is the prototype struct holding the list of available types */
 struct pipe_copy_list {
-  char *name;
+  const char *name;
   pipe_copy_f *callback;
   int src_samplesize;
   int dst_samplesize;
@@ -113,9 +113,9 @@ public:
      * mix_int16_to_int32         simple sum of 16bit over 32bit int
 
   */
-  bool set_input_type(char *name);
+  bool set_input_type(const char *name);
   ///< set the input conversion type for this Pipe
-  bool set_output_type(char *name);
+  bool set_output_type(const char *name);
   ///< set the output conversion type for this Pipe
 
   void set_block(bool input, bool output);

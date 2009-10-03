@@ -43,7 +43,7 @@ extern "C" {
   */
 #define CHAR_SET(func,var) \
 char var[MAX_VALUE_SIZE]; \
-void func(char *in) { \
+void func(const char *in) { \
 	if(strncmp(var,in,MAX_VALUE_SIZE)==0) return; \
 	else strncpy(var,in,MAX_VALUE_SIZE); \
 } \

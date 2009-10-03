@@ -122,10 +122,10 @@
 
 /* command line stuff */
 
-char *version =
+const char *version =
 "%s version %s http://muse.dyne.org";
 
-char *help =
+const char *help =
 "Usage: muse [generic options] [-e [encoder options] [stream options] ] [files]\n"
 ":: generic options:\n"
 " -h --help         this help\n"
@@ -190,7 +190,7 @@ static const struct option long_options[] = {
   { 0, 0, 0, 0 }
 };
 
-char *short_options = "-hvD:ioCN:V:S:P:e:b:r:q:c:f:g:s:m:l:U:p:n:u:d:";
+const char *short_options = "-hvD:ioCN:V:S:P:e:b:r:q:c:f:g:s:m:l:U:p:n:u:d:";
 
 /* misc settings */
 #define MAX_CLI_CHARS 9182

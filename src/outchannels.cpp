@@ -58,7 +58,7 @@
 /* mp3 encoder */
 
 
-OutChannel::OutChannel(char *myname)
+OutChannel::OutChannel(const char *myname)
   : Entry() {
   func("OutChannel::OutChannel(%s) %p",myname,this);
 
