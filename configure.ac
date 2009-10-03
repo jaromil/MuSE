@@ -95,18 +95,17 @@ AC_HEADER_DIRENT
 AC_CHECK_HEADERS([fcntl.h sys/file.h sys/time.h unistd.h dirent.h sys/ndir.h \
                   sys/dir.h ndir.h limits.h unistd.h stdint.h inttypes.h])
 
-AC_CHECK_HEADER(pthread.h,, [
-	echo
-	echo "==================== PTHREAD HEADERS NOT FOUND"
-	echo "pthread.h needs to be found on your system in order"
-	echo "to compile the threading code. If you have this header,"
-	echo "make sure to make it reachable in the usual include path."
-	echo "Otherwise it can be that POSIX threads are not supported"
-	echo "on the platform you are compiling. Usually this is a strange"
-	echo "behaviour on a unix platform, so you're invited to report"
-	echo "the problem over the MuSE mailinglist at muse@dyne.org"
-	echo "documenting your system configuration."
-])
+AC_CHECK_HEADER(pthread.h,, AC_MSG_ERROR([[
+==================== PTHREAD HEADERS NOT FOUND
+pthread.h needs to be present on your system in order
+to compile the threading code. If you have this header,
+make sure to make it reachable in the usual include path.
+Otherwise it can be that POSIX threads are not supported
+on the platform you are compiling. Usually this is a strange
+behaviour on a unix platform, so you are invited to report
+the problem over the MuSE mailinglist at muse@dyne.org
+documenting your system configuration.
+]]))
 
 dnl ==============================================================
 dnl Checks for typedefs, structures, and compiler characteristics.
