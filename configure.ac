@@ -329,43 +329,11 @@ AC_SUBST(PORTAUDIO_CFLAGS)
 AC_SUBST(PORTAUDIO_DIRS)
 
 dnl ==============================================================
-dnl Choose which libshout version to use
+dnl shout lib
 dnl ==============================================================
-dnl LIBSHOUT_DIR=shout
-AC_MSG_CHECKING(where to link libshout... )
-LIBSHOUT_LIBS="shout/libshout.a"
-LIBSHOUT_DIR="shout"
-LIBSHOUT_CFLAGS=""
+PKG_CHECK_MODULES([SHOUT], [shout], [:],
+	AC_MSG_ERROR([*** Libshout development files not found!]))
 
-AC_ARG_WITH(shared-shout,
-[  --with-shared-shout    link to system shared libshout library],
-[  AC_MSG_RESULT(system shared libraries) 
-   PKG_CHECK_MODULES(LIBSHOUT, shout >= 2.0, [
-    system_libshout=yes
-    LIBSHOUT_DIR=""],[ system_libshout=no ]) ], system_libshout=no)
-
-AC_ARG_WITH(static-shout,
-[  --with-static-shout=/libshout source directory 
-              is compiled to embed static thread-disabled version],
-[if test -r "$withval"; then
-    LIBSHOUT_SRCDIR="`find $withval -name 'src'`"
-    LIBSHOUT_LIBS="$LIBSHOUT_SRCDIR/.libs/libshout.a"
-    if test ! -r "$LIBSHOUT_LIBS"; then
-        AC_MSG_RESULT(external static not found, using internal)
-	AC_MSG_WARN([!! $LIBSHOUT_LIBS not found: you must compile the static library
-               of libshout])
-	LIBSHOUT_LIBS="shout/libshout.a"
-	LIBSHOUT_DIR="shout"
-    else
-	LIBSHOUT_DIR=""
-	external_libshout=yes
-	AC_MSG_RESULT(external static)
-    fi
- fi
-],[AC_MSG_RESULT(libshout configured)])
-AC_SUBST(LIBSHOUT_DIR)
-AC_SUBST(LIBSHOUT_LIBS)
-AC_SUBST(LIBSHOUT_CFLAGS)
 
 dnl ==============================================================
 dnl Detect CPU clipping mode (from the secret rabbit code)
@@ -496,9 +464,6 @@ AC_SUBST(GUI_DIRS)
 AC_SUBST(GUI_FLAGS)
 AC_SUBST(GUI_DEPS)
 
-AC_SUBST(LIBSHOUT_LIBS)
-AC_SUBST(LIBSHOUT_DIR)
-
 AC_SUBST(DMALLOCC)
 AC_SUBST(LUBRIFY_CFLAGS)
 
@@ -508,7 +473,6 @@ LIBS="$LIBS"
 AC_OUTPUT([
 Makefile
 src/Makefile
-src/shout/Makefile
 src/libmpeg/Makefile
 src/gtkgui/Makefile
 src/gtkgui2/Makefile
@@ -562,12 +526,6 @@ fi
 
 if test "${want_ncurses_gui}" = "yes"; then
 	echo ":: Building the NCURSES user interface"
-fi
-if test "$external_libshout" = "yes"; then
-	echo ":: Embedding external libshout from $LIBSHOUT_LIBS"
-fi
-if test "$system_libshout" = "yes"; then
-	echo ":: Linking to system shared libshout"
 fi
 if test "$external_portaudio" = "yes"; then
 	echo ":: Embedding external portaudio from $PORTAUDIO_LIBS"
