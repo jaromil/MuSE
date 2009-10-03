@@ -263,48 +263,37 @@ case "${window_system}" in
 esac
 
 dnl ==================
-dnl CHECK GTK AND GLIB
+dnl GTK2 GUI
 dnl ==================
-#AC_MSG_CHECKING(to build new Gtk2 GUI by nightolo)
-#AC_ARG_WITH(gtk2,
-#[  --with-gtk2        force to compile with Gtk2 GUI ],
-#[if test "$withval" = yes; then
-#  AC_MSG_RESULT(yes)
-#  FORCE_GTK2=yes
-#fi], [AC_MSG_RESULT(no)])
-
 AC_ARG_ENABLE(gtk2,
-[  --enable-gtk2           compile with GTK2 gui (auto)],
-[  want_gtk2=$enableval])
+    AS_HELP_STRING([--enable-gtk2],[compile with GTK2 GUI (auto)]),
+    [want_gtk2_gui=$enableval],
+    [want_gtk2_gui=auto])
 
-if test "${HAVE_X11}" = "yes"; then
-   
-PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0 gthread-2.0 >= 2.0.0, [
-  		  HAVE_GTK2="yes"
-    		  AC_DEFINE(HAVE_GTK2, 1, have working GTK2)],
-  		  HAVE_GTK2="no")
+if test x$want_gtk2_gui = xyes || test x$want_gtk2_gui = xauto; then
+  PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0 gthread-2.0 >= 2.0.0 glib-2.0 >=
+                    2.0.0,
+                    have_gtk2="yes", have_gtk2="no")
 
-# gtk2 interface is preferred now!
-  if test x$want_gtk2 = xyes; then
-# GTK2 enabled
-    HAVE_GTK=no
-  elif test x$want_gtk2 = xno; then
-# GTK2 disabled
-    HAVE_GTK2=no
-  elif test  "${HAVE_GTK2}" = "yes" -a "${HAVE_GTK}" = "yes" ; then
-# both GTK and GTK2 are present, GTK2 is preferred
-    HAVE_GTK="no"
+  if test x$want_gtk2_gui = xyes && test x$have_gtk2 = xno; then
+    AC_MSG_ERROR([GTK2 GUI requested but GTK2 cannot be found!])
   fi
 
-  if test  "${HAVE_GTK}" = "yes" ; then
-    GUI_NIGHTOLO=true
-    AC_DEFINE(GUI_NIGHTOLO, 1, [Have GTK GUI])
+  PKG_CHECK_MODULES(GLIB2, glib-2.0 >= 2.0.0,
+                    have_glib="yes", have_glib="no")
+
+  if test x$want_gtk2_gui = xyes && test x$have_glib = xno; then
+    AC_MSG_ERROR([GTK2 GUI requested but Glib2 cannot be found!])
   fi
-  if test  "${HAVE_GTK2}" = "yes" ; then
-    GUI_NIGHTOLO2=true
+
+  if test x$have_gtk2 = xyes && test x$have_glib = xyes; then
+    want_gtk2_gui=yes
     AC_DEFINE(GUI_NIGHTOLO2, 1, [Have GTK2 GUI])
+  else
+    want_gtk2_gui=no
   fi
 fi
+
 
 dnl ===============
 dnl CHECK OGGVORBIS
@@ -373,7 +362,7 @@ if test "${HAVE_GTK}" = "yes"; then
    GUI_DEPS="$GUI_DEPS gtkgui/libnightolo.a"
 fi
 
-if test "${HAVE_GTK2}" = "yes"; then
+if test "${want_gtk2_gui}" = "yes"; then
    GUI_LIBS="$GUI_LIBS $GTK2_LIBS gtkgui2/libnightolo2.a"
    GUI_DIRS="$GUI_DIRS gtkgui2"
    GUI_FLAGS="$GUI_FLAGS $GTK2_CFLAGS"
@@ -386,8 +375,6 @@ if test "${HAVE_GTK2}" = "yes"; then
 dnl    scheduler is deactivated for now
 dnl    AC_DEFINE(HAVE_SCHEDULER)
 
-   PKG_CHECK_MODULES(GLIB2, glib-2.0 >= 2.0.0,,
-    AC_MSG_ERROR(glib-2.0 not found))
 fi
 
 dnl ==============================================================
@@ -642,7 +629,7 @@ if test "$have_lame" = "yes"; then
 	echo ":: Linking Lame libraries for MP3 encoding"
 fi
 
-if test "${GUI_NIGHTOLO2}" = "true"; then
+if test "${want_gtk2_gui}" = "yes"; then
 	echo ":: Building the GTK-2 user interface"
 fi
 
