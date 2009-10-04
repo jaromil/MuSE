@@ -144,34 +144,31 @@ dnl and i couldn't figure out why // jrml 11apr05
 dnl AM_GNU_GETTEXT([external])
 dnl ALL_LINGUAS="it es"
 
+
 dnl ====================
 dnl CHECK FOR LIBSNDFILE
 dnl ====================
-PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.0 , [
-    HAVE_SNDFILE="yes"
-    AC_DEFINE(HAVE_SNDFILE, 1, have working SNDFILE)],
-    HAVE_SNDFILE="no")
+PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.0,
+                  [have_sndfile="yes"
+                   AC_DEFINE(have_sndfile, 1, have working SNDFILE)],
+                  [have_sndfile="no"])
+
 
 dnl ====================
 dnl CHECK FOR LIBJACK
 dnl ====================
 AC_ARG_ENABLE(jack,
-[  --enable-jack            compile with Jack-it support from http://jackit.sf.net (no)],
-[ if test ! x$enableval = xyes; then
-    use_jack=no
-  else
-    use_jack=yes;
-  fi ],[ use_jack=no ])
-JACK_LIBS=""
-JACK_CFLAGS=""
-if test x$use_jack = xyes; then
-  PKG_CHECK_MODULES(JACK, jack >= 0.34, [
-      HAVE_JACK="yes"
-      AC_DEFINE(HAVE_JACK, 1, have working jack audio daemon and libjack)
-  ], HAVE_JACK="no")
+  AS_HELP_STRING([--enable-jack],
+                 [compile with Jack support http://jackaudio.org (no)]),
+  [enable_jack=$enableval],
+  [enable_jack=no])
+
+if test x$enable_jack = xyes; then
+  PKG_CHECK_MODULES(JACK, jack >= 0.34,
+                    [have_jack="yes"
+                     AC_DEFINE(HAVE_JACK, 1, have working jack)],
+                    [have_jack="no"])
 fi
-AC_SUBST(JACK_LIBS)
-AC_SUBST(JACK_CFLAGS)
 
 
 dnl ==================
@@ -238,18 +235,17 @@ fi
 
 
 dnl ===============
-dnl CHECK OGGVORBIS
+dnl CHECK OGG/VORBIS
 dnl ===============
-PKG_CHECK_MODULES(OGG, ogg, [
-	HAVE_OGG=yes
-	AC_DEFINE(HAVE_OGG, 1, have ogg libraries)],
-	HAVE_OGG=no)
-AC_SUBST(OGG_LIBS)
-PKG_CHECK_MODULES(VORBIS, vorbis vorbisenc vorbisfile, [
-	HAVE_VORBIS=yes
-	AC_DEFINE(HAVE_VORBIS, 1, have vorbis audio codec libraries)],
-	HAVE_VORBIS=no)
-AC_SUBST(VORBIS_LIBS)
+PKG_CHECK_MODULES(OGG, ogg,
+                  [have_ogg=yes
+                   AC_DEFINE(HAVE_OGG, 1, have ogg libraries)],
+                  [have_ogg=no])
+
+PKG_CHECK_MODULES(VORBIS, vorbis vorbisenc vorbisfile,
+                  [have_vorbis=yes
+                   AC_DEFINE(HAVE_VORBIS, 1, have vorbis audio libraries)],
+                  [have_vorbis=no])
 
 
 dnl ==============
@@ -266,6 +262,7 @@ AC_CHECK_HEADER(lame/lame.h, [
         AC_MSG_WARN([LAME libraries not found, no MP3 support])
                              ])
 
+
 dnl Check for socklen_t
 AC_MSG_CHECKING([for unix98 socklen_t])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
@@ -273,6 +270,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
                 int test() { return 1; }]])],[AC_MSG_RESULT(yes)
                HAVE_SOCKLEN_T=yes],[AC_MSG_RESULT(no)
                HAVE_SOCKLEN_T=no])
+
 
 dnl ===================
 dnl assign some defines
@@ -339,28 +337,18 @@ dnl ==============================================================
 dnl shout lib
 dnl ==============================================================
 PKG_CHECK_MODULES([SHOUT], [shout], [:],
-	AC_MSG_ERROR([*** Libshout development files not found!]))
+  AC_MSG_ERROR([*** Libshout development files not found!]))
 
 
 dnl ==============================================================
 dnl samplerate lib
 dnl ==============================================================
 PKG_CHECK_MODULES([SAMPLERATE], [samplerate], [:],
-	AC_MSG_ERROR([*** Libsamplerate development files not found!]))
+  AC_MSG_ERROR([*** Libsamplerate development files not found!]))
 
 
 dnl ==============================================================
-dnl Detect CPU clipping mode (from the secret rabbit code)
-dnl ==============================================================
-AC_C_CLIP_MODE
-AC_DEFINE_UNQUOTED(CPU_CLIPS_POSITIVE, ${ac_cv_c_clip_positive},
-	[Target processor clips on positive float to int conversion.])
-AC_DEFINE_UNQUOTED(CPU_CLIPS_NEGATIVE, ${ac_cv_c_clip_negative},
-	[Target processor clips on negative float to int conversion.])
-
-
-dnl ==============================================================
-dnl Detect possible output devices 
+dnl Detect possible output devices
 dnl ==============================================================
 
 dnl Check for OSS
@@ -371,6 +359,7 @@ AC_CHECK_HEADERS(machine/soundcard.h)
 dnl ==============================================================
 dnl link with memory debugging library dmalloc
 dnl ==============================================================
+dnl godog: this can be replaced by AM_WITH_DMALLOC
 AC_CHECK_HEADERS([dmalloc.h], [have_dmalloc=yes], [have_dmalloc=no])
 AC_ARG_WITH(dmalloc,
   AS_HELP_STRING([--with-dmalloc],[use dmalloc, as in ftp://ftp.letters.com/src/dmalloc/dmalloc.tar.gz]),
@@ -423,16 +412,11 @@ AC_SUBST(DARWIN_CFLAGS)
 
 AC_SUBST(M_LIBS)
 AC_SUBST(LAME_LIBS)
-AC_SUBST(OGG_LIBS)
-AC_SUBST(VORBIS_LIBS)
 
 AC_SUBST(GUI_LIBS)
 AC_SUBST(GUI_DIRS)
 AC_SUBST(GUI_FLAGS)
 AC_SUBST(GUI_DEPS)
-
-AC_SUBST(DMALLOCC)
-AC_SUBST(LUBRIFY_CFLAGS)
 
 CFLAGS="$GLOBAL_CFLAGS $CFLAGS"
 CXXFLAGS="$GLOBAL_CFLAGS $CXXFLAGS"
@@ -464,23 +448,23 @@ if test "$have_darwin" = "yes"; then
 fi
 
 
-if test "$HAVE_OGG" = "yes"; then
+if test "$have_ogg" = "yes"; then
 	echo ":: Linking Ogg libraries: $OGG_LIBS"
 else
 	echo "OGG library is needed, go and install it from xiph.org"
 fi
 
-if test "$HAVE_VORBIS" = "yes"; then
+if test "$have_vorbis" = "yes"; then
 	echo ":: Linking Vorbis libraries: $VORBIS_LIBS"
 else
 	echo "VORBIS library is needed, go and install it from xiph.org"
 fi
 
-if test "${HAVE_SNDFILE}" = "yes"; then
+if test "${have_sndfile}" = "yes"; then
 	echo ":: Linking SndFile libraries for WAV/AIFF/VOC/etc encoding"
 fi
 
-if test "${HAVE_JACK}" = "yes"; then
+if test "${have_jack}" = "yes"; then
 	echo ":: Linking libJack for connecting to the Jack audio daemon"
 fi
 
