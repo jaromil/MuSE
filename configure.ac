@@ -58,8 +58,9 @@ case "$host_os" in
   ;;
 esac
 
+
 #GLOBAL_CFLAGS="-O4 -D_REENTRANT -fomit-frame-pointer -march=${host_cpu} -ffast-math -malign-double -funroll-loops -pipe"
-GLOBAL_CFLAGS="-pipe -D_REENTRANT"
+GLOBAL_CFLAGS="-pipe -D_REENTRANT -Wall"
 
 
 dnl ==============================================================
@@ -386,19 +387,6 @@ if test x$with_dmalloc = xyes; then
 fi
 
 
-dnl ==============================================================
-dnl compile with full warnings and debugging symbols
-dnl ==============================================================
-AC_ARG_ENABLE(debug,
-  AS_HELP_STRING([--enable-debug],[compile with debug symbols (no)]),
-  [enable_debug=$enableval],
-  [enable_debug=no])
-
-if test x$enable_debug = xyes; then
-  GLOBAL_CFLAGS="$GLOBAL_CFLAGS -Wall -g"
-fi
-
-
 dnl ==============================================================================
 dnl CHECK to use profiling flags when compiling, for execution analysis with gprof
 dnl ==============================================================================
@@ -422,12 +410,7 @@ AC_ARG_ENABLE(lubrify,
     [enable_lubrifications=yes])
 
 if test x$enable_lubrifications = xyes; then
-  if test x$enable_profiling = xyes || test x$enable_debug = xyes; then
-    AC_MSG_WARN([cannot lubrify code if debug or profiling are enabled])
-    enable_lubrifications=no
-  else
-    GLOBAL_CFLAGS="$GLOBAL_CFLAGS -O3 -fomit-frame-pointer -ffast-math"
-  fi
+  GLOBAL_CFLAGS="$GLOBAL_CFLAGS -O3 -fomit-frame-pointer -ffast-math"
 fi
 
 
@@ -514,11 +497,6 @@ if test "${want_ncurses_gui}" = "yes"; then
 fi
 if test "$external_portaudio" = "yes"; then
 	echo ":: Embedding external portaudio from $PORTAUDIO_LIBS"
-fi
-if test "$enable_debug" = "yes"; then
-	echo ":: DEBUG informations ON (-Wall -g compile flags)"
-else
-	echo ":: DEBUG informations OFF"
 fi
 
 if test "$enable_profiling" = "yes"; then
