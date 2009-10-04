@@ -47,7 +47,6 @@ muse_LDADD = \
 	-lpthread \
 	@SAMPLERATE_LIBS@ \
 	@M_LIBS@ \
-	@LAME_LIBS@ \
 	@OGG_LIBS@ \
 	@VORBIS_LIBS@ \
 	@GUI_LIBS@ \
