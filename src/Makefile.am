@@ -14,7 +14,8 @@ EXTRA_DIST = vumeter.c xmlprofile.cpp profile.cpp
 noinst_HEADERS = audioproc.h dec_jack.h dec_mp3.h decoder.h dec_ogg.h dec_snd.h \
   dev_sound.h generic.h gui.h httpstream.h inchannels.h jmixer.h jutils.h \
   linklist.h outchannels.h out_lame.h out_vorbis.h pipe.h playlist.h profile.h \
-  radiosched.h resarr160to441.h resarr320to441.h shouter.h xmlprofile.h
+  radiosched.h resarr160to441.h resarr320to441.h shouter.h xmlprofile.h \
+  lame_wrap.h
 
 bin_PROGRAMS = muse
 
@@ -39,7 +40,8 @@ muse_SOURCES =  \
     radiosched.cpp      \
     httpstream.cpp  	\
     gui.cpp 		\
-    dev_sound.cpp
+    dev_sound.cpp \
+    lame_wrap.cpp
 
 muse_LDADD = \
 	-lpthread \
