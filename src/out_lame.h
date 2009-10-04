@@ -25,7 +25,6 @@
 #include <outchannels.h>
 #include <lame_wrap.h>
 #include <config.h>
-#ifdef HAVE_LAME
 
 class OutLame : public OutChannel {
   
@@ -45,5 +44,4 @@ class OutLame : public OutChannel {
 };
 
 
-#endif
 #endif

@@ -248,21 +248,6 @@ PKG_CHECK_MODULES(VORBIS, vorbis vorbisenc vorbisfile,
                   [have_vorbis=no])
 
 
-dnl ==============
-dnl CHECK LAME LIB
-dnl ==============
-AC_CHECK_HEADER(lame/lame.h, [
-        have_lame=yes;
-        AC_MSG_NOTICE([MP3 encoder found and successfully linked])
-	AC_DEFINE(HAVE_LAME, 1, [Building with LAME support])
-	LAME_LIBS="-lmp3lame"
-	AC_SUBST(LAME_LIBS)
-                             ], [
-        have_lame=no;
-        AC_MSG_WARN([LAME libraries not found, no MP3 support])
-                             ])
-
-
 dnl Check for socklen_t
 AC_MSG_CHECKING([for unix98 socklen_t])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>

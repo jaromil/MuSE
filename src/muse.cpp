@@ -316,12 +316,10 @@ bool take_args(int argc, char **argv) {
       }
 #endif
       
-#ifdef HAVE_LAME
       if (strncasecmp("mp3",optarg,3) == 0) {
 	encid = mix->create_enc(MP3);
 	notice("CLI: created Mp3 encoder");
       }
-#endif
 
       if(encid>0) outch = mix->get_enc(encid);
       if(outch) break;
@@ -331,9 +329,7 @@ bool take_args(int argc, char **argv) {
 #ifdef HAVE_VORBIS
       act("  OGG - Ogg/Vorbis codec");
 #endif
-#ifdef HAVE_LAME
       act("  MP3 - Lame MP3 codec");
-#endif
       exit(0);
 
     case 'b':

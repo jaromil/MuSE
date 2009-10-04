@@ -39,9 +39,7 @@
 #include <jutils.h>
 #include <config.h>
 
-#ifdef HAVE_LAME
 #include <out_lame.h>
-#endif
 
 #ifdef HAVE_VORBIS
 #include <out_vorbis.h>

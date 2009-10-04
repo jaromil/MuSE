@@ -52,9 +52,7 @@
 #include <out_vorbis.h>
 #endif
 
-#ifdef HAVE_LAME
 #include <out_lame.h>
-#endif
 
 #include <glib.h> 
 

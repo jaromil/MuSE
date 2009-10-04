@@ -21,7 +21,6 @@
 
 #include <math.h>
 #include <out_lame.h>
-#ifdef HAVE_LAME
 
 #include <lame_wrap.h>
 #include <jutils.h>
@@ -195,4 +194,3 @@ OutLame::~OutLame() {
   if(enc_flags) LameWrap::close(enc_flags);
 }
 
-#endif

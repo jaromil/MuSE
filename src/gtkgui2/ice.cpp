@@ -62,12 +62,10 @@ void ice_window(GtkWidget *w)
 	gtk_box_pack_start(GTK_BOX(tmpbox), menubar, FALSE, FALSE, 0);
 
 	menuroot = gtk_menu_new();
-#ifdef HAVE_LAME
 	menuitem = gtk_menu_item_new_with_label(_("Lame"));
 	g_signal_connect(G_OBJECT(menuitem), "activate",
 			G_CALLBACK(ice_new_from_menu), NULL);
 	gtk_menu_append(GTK_MENU(menuroot), menuitem);
-#endif
 
 #ifdef HAVE_VORBIS
 	menuitem = gtk_menu_item_new_with_label(_("Ogg/Vorbis"));
@@ -83,7 +81,6 @@ void ice_window(GtkWidget *w)
 	
 	nbook = gtk_notebook_new();
 	gtk_box_pack_start(GTK_BOX(tmpbox), nbook, FALSE, FALSE, 0);
-#ifdef HAVE_LAME
 	/* Create Lame Streaming tab */
 	tmpbox = gtk_vbox_new(FALSE, 5);
 	tmplabel = gtk_label_new(_("Lame Streaming (MP3)"));
@@ -109,7 +106,6 @@ void ice_window(GtkWidget *w)
 
 	ice_new(MP3);
 	
-#endif
 	
 #ifdef HAVE_VORBIS
 	/* Create Ogg/Vorbis Streaming tab */
@@ -138,9 +134,7 @@ void ice_window(GtkWidget *w)
 	
 #endif
 	gtk_widget_show_all(winil);
-#ifdef HAVE_LAME
 	gtk_widget_hide_all(tmpmp3->tabbola);
-#endif
 
 #ifdef HAVE_VORBIS
 	gtk_widget_hide_all(tmpogg->tabbola);

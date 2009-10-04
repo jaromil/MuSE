@@ -50,9 +50,7 @@
 #include <out_vorbis.h>
 #endif
 
-#ifdef HAVE_LAME
 #include <out_lame.h>
-#endif
 
 #ifndef CODENAME
 #define CODENAME "STREAMTIME"
@@ -857,7 +855,6 @@ int Stream_mixer::create_enc(enum codec enc) {
     break;
 #endif
 
-#ifdef HAVE_LAME
   case MP3:
     outch= new OutLame;
     if( ! ((OutLame*)outch)->init() ) {
@@ -867,7 +864,6 @@ int Stream_mixer::create_enc(enum codec enc) {
 
     }
     break;
-#endif
 
   default: break; /* placeholder */
 
