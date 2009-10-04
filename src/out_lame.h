@@ -23,17 +23,14 @@
 #define __OUT_LAME_H__
 
 #include <outchannels.h>
+#include <lame_wrap.h>
 #include <config.h>
 #ifdef HAVE_LAME
-
-extern "C" {
-#include <lame/lame.h>
-}
 
 class OutLame : public OutChannel {
   
  private:
-  lame_global_flags *enc_flags;
+  lame_t enc_flags;
   int16_t pcm[OUT_CHUNK<<5];
 
 

@@ -23,6 +23,7 @@
 #include <out_lame.h>
 #ifdef HAVE_LAME
 
+#include <lame_wrap.h>
 #include <jutils.h>
 #include <generic.h>
 #include <config.h>
@@ -40,8 +41,10 @@ OutLame::OutLame()
   : OutChannel("lame") {
   func("OutLame::OutLame()");
   
+  // TODO(shammash): library load needs better checking
+  LameWrap::load();
   sprintf(name,"Lame MP3 encoder");
-  sprintf(version,"version %s",get_lame_version());
+  sprintf(version,"version %s",LameWrap::get_version());
 
   tipo = MP3;
   enc_flags = NULL;
@@ -66,7 +69,7 @@ int OutLame::encode() {
   }
 
   encoded = 
-    lame_encode_buffer_interleaved
+    LameWrap::encode_buffer_interleaved
     (enc_flags, pcm, smp, (unsigned char *)buffer, 0); //ENCBUFFER_SIZE);
   
   if(encoded<0)
@@ -97,7 +100,7 @@ void OutLame::flush() {
     return;
   }
   lock();
-  encoded = lame_encode_flush_nogap
+  encoded = LameWrap::encode_flush_nogap
     (enc_flags,(unsigned char*)buffer,ENCBUFFER_SIZE);
   shout();
   unlock();
@@ -108,7 +111,7 @@ bool OutLame::init() {
 
   if(!apply_profile()) {
     error("problems in setting up codec parameters");
-    lame_close(enc_flags);
+    LameWrap::close(enc_flags);
     enc_flags = NULL;
     return false;
   }
@@ -120,24 +123,24 @@ bool OutLame::init() {
 bool OutLame::apply_profile() {
 
 
-  if(enc_flags) lame_close(enc_flags);
-  enc_flags = lame_init();
+  if(enc_flags) LameWrap::close(enc_flags);
+  enc_flags = LameWrap::init();
 
-  lame_set_errorf(enc_flags,(void (*)(const char*, va_list))error);
-  lame_set_debugf(enc_flags,(void (*)(const char*, va_list))func);
-  lame_set_msgf(enc_flags,(void (*)(const char*, va_list))act);
+  LameWrap::set_errorf(enc_flags,(void (*)(const char*, va_list))error);
+  LameWrap::set_debugf(enc_flags,(void (*)(const char*, va_list))func);
+  LameWrap::set_msgf(enc_flags,(void (*)(const char*, va_list))act);
   
-  lame_set_num_samples(enc_flags,OUT_CHUNK);
-  lame_set_num_channels(enc_flags,2); // the mixed input stream is stereo
-  lame_set_in_samplerate(enc_flags,SAMPLE_RATE); // the mixed input stream is 44khz
-  lame_set_error_protection(enc_flags,1); // 2 bytes per frame for a CRC checksum
-  lame_set_compression_ratio(enc_flags,0);
-  lame_set_quality(enc_flags,2); // 1..9 1=best 9=worst (suggested: 2, 5, 7)
+  LameWrap::set_num_samples(enc_flags,OUT_CHUNK);
+  LameWrap::set_num_channels(enc_flags,2); // the mixed input stream is stereo
+  LameWrap::set_in_samplerate(enc_flags,SAMPLE_RATE); // the mixed input stream is 44khz
+  LameWrap::set_error_protection(enc_flags,1); // 2 bytes per frame for a CRC checksum
+  LameWrap::set_compression_ratio(enc_flags,0);
+  LameWrap::set_quality(enc_flags,2); // 1..9 1=best 9=worst (suggested: 2, 5, 7)
   //  lame_set_VBR(enc_flags,vbr_abr);
 
 
   /* BITRATE */
-  lame_set_brate(enc_flags,bps());
+  LameWrap::set_brate(enc_flags,bps());
 
   Shouter *ice = (Shouter*)icelist.begin();
   while(ice) {
@@ -150,18 +153,18 @@ bool OutLame::apply_profile() {
     ice = (Shouter*)ice->next;
   }
 
-  lame_set_out_samplerate(enc_flags,freq());
+  LameWrap::set_out_samplerate(enc_flags,freq());
 
   /* CHANNELS
      mode 2 (double channel) is unsupported */
-  int mode;
+  MpegMode mode;
   switch( channels() ) {
     /* 0,1,2,3 stereo,jstereo,dual channel,mono */
-  case 1: mode = 3; break;
-  case 2: mode = 1; break;
-  default: mode = 3; break;
+  case 1: mode = MONO; break;
+  case 2: mode = JOINT_STEREO; break;
+  default: mode = MONO; break;
   }
-  lame_set_mode(enc_flags,(MPEG_mode_e)mode);
+  LameWrap::set_mode(enc_flags,mode);
 
 
   /* in case of VBR 
@@ -171,13 +174,13 @@ bool OutLame::apply_profile() {
   */
 
   /* lame chooses for us frequency filtering when values are 0 */
-  lame_set_lowpassfreq(enc_flags,lowpass());
-  lame_set_highpassfreq(enc_flags,highpass());  
+  LameWrap::set_lowpassfreq(enc_flags,lowpass());
+  LameWrap::set_highpassfreq(enc_flags,highpass());
   
-  int res = lame_init_params(enc_flags);
+  int res = LameWrap::init_params(enc_flags);
   if(res<0) {
     error("lame_init_params failed");
-    lame_close(enc_flags);
+    LameWrap::close(enc_flags);
     enc_flags = NULL;
   }
 
@@ -189,7 +192,7 @@ OutLame::~OutLame() {
   func("OutLame::~OutLame() %p",this);
   act("closing lame encoder");
   //  if(running) flush();
-  if(enc_flags) lame_close(enc_flags);
+  if(enc_flags) LameWrap::close(enc_flags);
 }
 
 #endif
