@@ -3,11 +3,10 @@ EXTRA_DIST = muse.doxygen.in
 installdest = $(DESTDIR)$(docdir)/
 htmlbuild = html
 
-doxygen-stamp: muse.doxygen
+$(htmlbuild)/index.html: muse.doxygen
 	$(DOXYGEN) muse.doxygen
-	touch doxygen-stamp
 
-noinst_DATA = doxygen-stamp
+noinst_DATA = $(htmlbuild)/index.html
 
 install-data-local:
 	$(INSTALL) -d $(installdest)
@@ -18,5 +17,4 @@ uninstall-local:
 	rm -rf $(installdest)/$(htmlbuild)/
 
 clean-local:
-	rm -rf doxygen-stamp
 	rm -rf html latex rtf man

@@ -21,3 +21,5 @@ missing
 src/muse
 stamp-h1
 INSTALL
+
+doc/muse.doxygen
