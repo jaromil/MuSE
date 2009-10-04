@@ -416,28 +416,19 @@ dnl ==============================================================
 dnl CHECK to use processor specific optimizations to compile
 dnl ==============================================================
 AC_ARG_ENABLE(lubrify,
-[  --enable-lubrify        compile using processor lubrifications (yes)],
-[ if test ! x$enableval = xyes; then
-    have_lubrifications=no
+    AS_HELP_STRING([--enable-lubrify],
+                   [compile using processor lubrifications (yes)]),
+    [enable_lubrifications=$enableval],
+    [enable_lubrifications=yes])
+
+if test x$enable_lubrifications = xyes; then
+  if test x$enable_profiling = xyes || test x$enable_debug = xyes; then
+    AC_MSG_WARN([cannot lubrify code if debug or profiling are enabled])
+    enable_lubrifications=no
   else
-    have_lubrifications=yes;
-  fi ],[ have_lubrifications=yes ])
-if test x$have_lubrifications = xyes; then
-#  LUBRIFY_CFLAGS="-O4 -fomit-frame-pointer -march=${host_cpu} -finline-functions -ffast-math -funroll-loops"
-   if test x$enable_profiling = xyes -o x$enable_debug = xyes; then
-     AC_MSG_WARN([cannot lubrify code if debug or profiling are enabled])
-     GLOBAL_CFLAGS="$GLOBAL_CFLAGS -ggdb"
-   else
-     GLOBAL_CFLAGS="$GLOBAL_CFLAGS -O3 -fomit-frame-pointer -ffast-math"
-     if test x$have_darwin = xyes; then
-       GLOBAL_CFLAGS="$GLOBAL_CFLAGS -mabi=altivec -maltivec"
-     fi
-   fi
-else
-   GLOBAL_CFLAGS="$GLOBAL_CFLAGS -O2 -ffast-math"
+    GLOBAL_CFLAGS="$GLOBAL_CFLAGS -O3 -fomit-frame-pointer -ffast-math"
+  fi
 fi
-
-
 
 
 dnl ===============================
