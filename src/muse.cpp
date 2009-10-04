@@ -393,7 +393,7 @@ bool take_args(int argc, char **argv) {
       }
       
       channels = atoi(optarg);
-      if(channels>2 | channels<1) {
+      if(channels>2 || channels<1) {
 	error("audio channels can be only 1 (mono) or 2 (stereo)");
 	act("falling back to default: 1 (mono)");
 	channels = 1;
@@ -654,14 +654,15 @@ bool take_args(int argc, char **argv) {
 
     case 1:
       act("CLI: queue %s on channel %i",optarg,number);
-      if(!mix->chan[number])
-	if(!mix->create_channel(number)) {
-	  error("CLI: can't create channel %i",number);
-	  break;
-	} else {
-	  notice("CLI: created channel %i",number);
-	  mix->set_playmode(number,playmode);
-	}
+      if(!mix->chan[number]) {
+        if(!mix->create_channel(number)) {
+          error("CLI: can't create channel %i",number);
+          break;
+        } else {
+          notice("CLI: created channel %i",number);
+          mix->set_playmode(number,playmode);
+        }
+      }
       if(!mix->add_to_playlist(number,optarg))
 	error("CLI: can't add %s to channel %1",optarg,number);
       break;
@@ -683,7 +684,7 @@ bool check_config() {
   return(true);
 }
 
-void *mainLoop(void *) {
+void mainLoop(void *) {
   while(!mix->quit)
     mix->cafudda();
    /* simple isn't it? */
@@ -837,19 +838,19 @@ int main(int argc, char **argv) {
   }
 
   if(thegui==CLI) { /* CLI interface logics ======================= */
-  
     int c;
     for(c=0;c<MAX_CHANNELS;c++)
-      if(mix->chan[c])
-	if(!mix->set_channel(c,1))
-	  error("CLI: error in set_channel(%i,1)",c);	  
-	else
-	  if(!mix->play_channel(c))
-	    error("CLI: error in play_channel(%i)",c);
-	  else {
-	    has_playlist = true;
-	    func("ok channel %u has playlist",c);
-	  }
+      if(mix->chan[c]) {
+        if(!mix->set_channel(c,1))
+          error("CLI: error in set_channel(%i,1)",c);
+        else
+          if(!mix->play_channel(c))
+            error("CLI: error in play_channel(%i)",c);
+          else {
+            has_playlist = true;
+            func("ok channel %u has playlist",c);
+          }
+      }
   } /* === END CLI === */
 
   if((!has_playlist && !micrec) && (thegui==CLI)) {
