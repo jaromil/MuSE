@@ -347,6 +347,11 @@ PKG_CHECK_MODULES([SAMPLERATE], [samplerate], [:],
   AC_MSG_ERROR([*** Libsamplerate development files not found!]))
 
 
+dnl documentation
+AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen])
+AM_CONDITIONAL(BUILD_DOC, [test -n "$DOXYGEN"])
+
+
 dnl ==============================================================
 dnl Detect possible output devices
 dnl ==============================================================
@@ -431,6 +436,8 @@ src/Makefile
 src/gtkgui2/Makefile
 src/ncursesgui/Makefile
 src/ncursesgui/libcdk/Makefile
+doc/Makefile
+doc/muse.doxygen
 ])
 AC_OUTPUT
 
