@@ -399,19 +399,16 @@ if test x$enable_debug = xyes; then
 fi
 
 
-
-
 dnl ==============================================================================
 dnl CHECK to use profiling flags when compiling, for execution analysis with gprof
 dnl ==============================================================================
 AC_ARG_ENABLE(profiling,
-[  --enable-profiling      compile using gprof flags for execution analysis (no)],
-[ if test ! x$enableval = xyes; then
-    have_profiling=no
-  else
-      have_profiling=yes;
-  fi ],[ have_profiling=no ])
-if test x$have_profiling = xyes; then
+  AS_HELP_STRING([--enable-profiling],
+                 [compile using gprof flags for execution analysis (no)]),
+  [enable_profiling=$enableval],
+  [enable_profiling=no])
+
+if test x$enable_profiling = xyes; then
   GLOBAL_CFLAGS="$GLOBAL_CFLAGS -pg"
 fi
 
@@ -427,7 +424,7 @@ AC_ARG_ENABLE(lubrify,
   fi ],[ have_lubrifications=yes ])
 if test x$have_lubrifications = xyes; then
 #  LUBRIFY_CFLAGS="-O4 -fomit-frame-pointer -march=${host_cpu} -finline-functions -ffast-math -funroll-loops"
-   if test x$have_profiling = xyes -o x$enable_debug = xyes; then
+   if test x$enable_profiling = xyes -o x$enable_debug = xyes; then
      AC_MSG_WARN([cannot lubrify code if debug or profiling are enabled])
      GLOBAL_CFLAGS="$GLOBAL_CFLAGS -ggdb"
    else
@@ -533,7 +530,7 @@ else
 	echo ":: DEBUG informations OFF"
 fi
 
-if test "$have_profiling" = "yes"; then
+if test "$enable_profiling" = "yes"; then
         echo ":: PROFILING informations ON (to use with gprof)"
 else
         echo ":: PROFILING informations OFF (see man gprof)"
