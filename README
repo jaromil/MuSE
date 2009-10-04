@@ -1,10 +1,10 @@
- 
+
 
       dyne.org autoproduzioni & the FreakNet Medialab
 
                        proudly present:
 
-           __  __       ____  _____    ___   ___   _ 
+           __  __       ____  _____    ___   ___   _
           |  \/  |_   _/ ___|| ____|  / _ \ / _ \ / |
           | |\/| | | | \___ \|  _|   | | | | (_) || |
           | |  | | |_| |___) | |___  | |_| |\__, || |
@@ -18,7 +18,7 @@
 
 This application is being developed in the hope to provide the Free
 Software community a user friendly tool for network audio streaming,
-making life easier for indypendent free speech radios wanting to
+making life easier for independent free speech radios wanting to
 stream via http on icecast servers.
 
 MuSE is an application for mixing, encoding, and network streaming of
@@ -41,8 +41,8 @@ broadcast server, which means that for doing an online radio you still
 need to setup yours, or find one that let you stream.
 
 Such servers can be seen like antennas which amplify your signal and
-redistribute it to listeners. there are free software implementations
-of such technology! the ones supported by MuSE are:
+redistribute it to listeners. There are free software implementations
+of such technology! The ones supported by MuSE are:
 
 - Icecast2 - http://icecast.org - can stream OGG & MP3
 - Litestream - http://litestream.org - can stream MP3
@@ -65,8 +65,8 @@ computer and operating system, using one or more of the following:
 - winamp - http://www.winamp.com - on all Win platforms
 - MuSE itself! ;)
 
-and even more players: something should be also allready available for
-handeld devices and embedded systems as well.
+and even more players: something should be also already available for
+handheld devices and embedded systems as well.
 
 
 ***** Internals:
@@ -88,11 +88,11 @@ mutex locking and avoid well race conditions.
 
 All the functionalities of MuSE are quite well exposed thru a reusable
 API, which in fact was the one used to build the GUIs on top.
-Documentation for it is available on http://muse.dyne.org/codedoc 
+Documentation for it is available on http://muse.dyne.org/codedoc
 
 If you are interested, you are very welcome to build new MuSE
 interfaces, there are still a lot of unexplored possibilities and this
-engine can be a realiable backend for radio automation interfaces and
+engine can be a reliable backend for radio automation interfaces and
 more. Get in touch with developers! join the mailinglist on
 http://lists.dyne.org/muse or peek into irc.freenode.net channel #dyne
 
@@ -134,18 +134,20 @@ http://lists.dyne.org/muse or peek into irc.freenode.net channel #dyne
 - install libogg and libvorbis:
   http://www.xiph.org/ogg/vorbis/index.html
 
-if you don't install any of the above, MuSE will be a simple player.
+If you don't install any of the above, MuSE will be a simple player.
 
 - compile: cd MuSE-x.x.x ; ./configure (or try ./configure --help to
   have listed some compile options) ; make ; make install
+  if you wish to install smaller binaries without debugging information type
+  make install-strip instead of make install
 
-*** for Debian users is much simplier:
+*** for Debian users is much simpler:
 make a debian package and debian aided compilation from this source
 with a simple command:
 $ fakeroot debian/rules binary
 this command will build debian packages for you, ready to install!
 
-to KNOW MORE go to the website on http://muse.dyne.org
+To KNOW MORE go to the website on http://muse.dyne.org
 
 
 ***** Report bugs
@@ -170,13 +172,13 @@ MuSE's NCURSES GUI is copyleft (c) 2002-2004 by Luca "rubik" Profico
 
 MuSE's first GUI is copyleft (c) 2000-2001 by August Black
 
-included resampling algos are copyleft (c) 2002 by Matteo "MoP" Nastasi
+Included resampling algos are copyleft (c) 2002 by Matteo "MoP" Nastasi
 
-part of the redistributed code is copyright by the respective authors,
+Part of the redistributed code is copyright by the respective authors,
 please refer to the AUTHORS file and to the supplied sourcecode for
 further information and to COPYING for the full license.
 
-the following organizations gave great help and support to developers:
+The following organizations gave great help and support to developers:
 PUBLIC VOICE Lab ........ [ http://www.pvl.at ]
 SERVUS.AT ............... [ http://www.servus.at ]
 
@@ -199,12 +201,12 @@ survive with a small donation also via paypal.com jaromil@dyne.org
 or by sometimes visiting the google ads on his software pages...
 (see how's hard to put a dime in the hat from far!)
 
-The MuSE development team is also avaliable to run formation courses
+The MuSE development team is also available to run formation courses
 about usage, customization and reuse/abuse of free and open source
 software - it offers as well support and warranty, development of
 software solutions and consulting.
 
-There were a number of workshops allready done around Europe on free
+There were a number of workshops already done around Europe on free
 and opensource network radio streaming by the hackers @ dyne.org
 if you want to organize one you're very welcome to contact us!
 this way you can also help us develop more free software.
@@ -218,7 +220,7 @@ THANKS, a thousand flowers will blossom!
 == DISCLAIMER
 
 This source code is free software; you can redistribute it and/or
-modify it under the terms of the GNU Public License as published 
+modify it under the terms of the GNU Public License as published
 by the Free Software Foundation; either version 2 of the License,
 or (at your option) any later version.
 
@@ -230,5 +232,3 @@ Please refer to the GNU Public License for more details.
 You should have received a copy of the GNU Public License along with
 this source code; if not, write to:
 Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-
