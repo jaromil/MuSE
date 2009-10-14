@@ -68,6 +68,7 @@ bool LameWrap::_setsymbolpointer(const char *symbol, void** pointer) {
 bool LameWrap::load(const char* path){
   if (LameWrap::_libhandle) {
     act("%s: library already loaded", __PRETTY_FUNCTION__);
+    return true;
   }
 
   LameWrap::_libhandle = dlopen(path,RTLD_LAZY);
