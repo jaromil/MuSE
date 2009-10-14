@@ -32,7 +32,7 @@
 #include <config.h>
 
 /* mpeg lib (splay) */
-#include <mpegsound.h>
+//#include <mpegsound.h>
 
 /**
    Instances of the Mp3 codec (splay implementation) are created

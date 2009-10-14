@@ -14,8 +14,10 @@
 #include <pipe.h>
 
 typedef struct {
-  PaDeviceID id;
-  PortAudioStream *stream;
+  PaDeviceIndex id;
+  PaStream *stream;
+  PaStreamParameters input_params;
+  PaStreamParameters output_params;  
   PaDeviceInfo *info;
   Pipe *pipe;
 } PaDevInfo;

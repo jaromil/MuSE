@@ -685,7 +685,7 @@ bool check_config() {
   return(true);
 }
 
-void mainLoop(void *) {
+void *mainLoop(void *) {
   while(!mix->quit)
     mix->cafudda();
    /* simple isn't it? */
