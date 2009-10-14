@@ -316,9 +316,13 @@ bool take_args(int argc, char **argv) {
       }
 #endif
       
-      if (strncasecmp("mp3",optarg,3) == 0) {
-	encid = mix->create_enc(MP3);
-	notice("CLI: created Mp3 encoder");
+      if (mix->is_lame_available()) {
+        if (strncasecmp("mp3",optarg,3) == 0) {
+          encid = mix->create_enc(MP3);
+          notice("CLI: created Mp3 encoder");
+        }
+      } else {
+        error("Asking for Mp3 encoder but LAME is not available.");
       }
 
       if(encid>0) outch = mix->get_enc(encid);
@@ -329,7 +333,8 @@ bool take_args(int argc, char **argv) {
 #ifdef HAVE_VORBIS
       act("  OGG - Ogg/Vorbis codec");
 #endif
-      act("  MP3 - Lame MP3 codec");
+      if (mix->is_lame_available())
+        act("  MP3 - Lame MP3 codec");
       exit(0);
 
     case 'b':

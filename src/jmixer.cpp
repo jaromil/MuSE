@@ -863,12 +863,16 @@ int Stream_mixer::create_enc(enum codec enc) {
 #endif
 
   case MP3:
-    outch= new OutLame;
-    if( ! ((OutLame*)outch)->init() ) {
-      error("error initializing %s",outch->name);
-      delete (OutLame*)outch;
+    if (lame_loaded) {
+      outch= new OutLame;
+      if( ! ((OutLame*)outch)->init() ) {
+        error("error initializing %s",outch->name);
+        delete (OutLame*)outch;
+        return -1;
+      }
+    } else {
+      error("Cannot create MP3 enc: lame is not loaded");
       return -1;
-
     }
     break;
 
