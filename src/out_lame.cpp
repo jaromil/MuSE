@@ -40,8 +40,6 @@ OutLame::OutLame()
   : OutChannel("lame") {
   func("OutLame::OutLame()");
   
-  // TODO(shammash): library load needs better checking
-  LameWrap::load();
   sprintf(name,"Lame MP3 encoder");
   sprintf(version,"version %s",LameWrap::get_version());
 

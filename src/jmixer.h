@@ -325,7 +325,11 @@ class Stream_mixer {
   bool fileout; ///< is there a file dumping? (redundant!)
   bool quit; ///< should we keep on running?
 
-
+  /**
+     @brief check if lame can be used
+     @return true if lame has been dynamically loaded
+  */
+  bool is_lame_available() {return lame_loaded; };
 
 
 
@@ -369,6 +373,8 @@ class Stream_mixer {
   Basic_scheduler *rsched;
   public:  void register_sched(Basic_scheduler *s) {rsched=s;};
 #endif
+
+  bool lame_loaded; ///< has liblame been loaded?
 };
 
 #endif

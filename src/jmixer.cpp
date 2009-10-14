@@ -106,6 +106,13 @@ Stream_mixer::Stream_mixer() {
     fullduplex = true;
   }
 
+  // check if we can use lame
+  lame_loaded = LameWrap::load();
+  if (lame_loaded) {
+    act("Lame library loaded");
+  } else {
+    act("Lame library NOT loaded");
+  }
   /* this is the base seed for new encoders id */
   idseed = 0; //abs(time(NULL) & getpid()) >> 2;
 
