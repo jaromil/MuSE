@@ -62,10 +62,12 @@ void ice_window(GtkWidget *w)
 	gtk_box_pack_start(GTK_BOX(tmpbox), menubar, FALSE, FALSE, 0);
 
 	menuroot = gtk_menu_new();
-	menuitem = gtk_menu_item_new_with_label(_("Lame"));
-	g_signal_connect(G_OBJECT(menuitem), "activate",
-			G_CALLBACK(ice_new_from_menu), NULL);
-	gtk_menu_append(GTK_MENU(menuroot), menuitem);
+  if (mixer->is_lame_available()) {
+    menuitem = gtk_menu_item_new_with_label(_("Lame"));
+    g_signal_connect(G_OBJECT(menuitem), "activate",
+        G_CALLBACK(ice_new_from_menu), NULL);
+    gtk_menu_append(GTK_MENU(menuroot), menuitem);
+  }
 
 #ifdef HAVE_VORBIS
 	menuitem = gtk_menu_item_new_with_label(_("Ogg/Vorbis"));
@@ -81,31 +83,32 @@ void ice_window(GtkWidget *w)
 	
 	nbook = gtk_notebook_new();
 	gtk_box_pack_start(GTK_BOX(tmpbox), nbook, FALSE, FALSE, 0);
-	/* Create Lame Streaming tab */
-	tmpbox = gtk_vbox_new(FALSE, 5);
-	tmplabel = gtk_label_new(_("Lame Streaming (MP3)"));
-	gtk_notebook_append_page(GTK_NOTEBOOK(nbook), tmpbox, tmplabel);
-	
-	tmpwid = gtk_hbox_new(FALSE, 10);
-	gtk_box_pack_start(GTK_BOX(tmpbox), tmpwid, FALSE, FALSE, 0);
-	tmpmp3 = enc_new(_("Lame"));
-	gtk_box_pack_start(GTK_BOX(tmpwid), tmpmp3->verbox, TRUE, FALSE, 0);
+  if (mixer->is_lame_available()) {
+    /* Create Lame Streaming tab */
+    tmpbox = gtk_vbox_new(FALSE, 5);
+    tmplabel = gtk_label_new(_("Lame Streaming (MP3)"));
+    gtk_notebook_append_page(GTK_NOTEBOOK(nbook), tmpbox, tmplabel);
 
-	tmpwid = gtk_hbox_new(FALSE, 10);
-	gtk_box_pack_start(GTK_BOX(tmpbox), tmpwid, FALSE, FALSE, 0);
-	tmplabel = filedump_new(_("Lame"), tmpmp3);
-	gtk_box_pack_start(GTK_BOX(tmpwid), tmplabel, TRUE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(tmpwid), tmpmp3->tasti, TRUE, FALSE, 0);
-	
-	tmpwid = gtk_hseparator_new();
-	gtk_box_pack_start(GTK_BOX(tmpbox), tmpwid, TRUE, TRUE, 0);
+    tmpwid = gtk_hbox_new(FALSE, 10);
+    gtk_box_pack_start(GTK_BOX(tmpbox), tmpwid, FALSE, FALSE, 0);
+    tmpmp3 = enc_new(_("Lame"));
+    gtk_box_pack_start(GTK_BOX(tmpwid), tmpmp3->verbox, TRUE, FALSE, 0);
 
-	
-	createtab(&lametab);
-	gtk_box_pack_start(GTK_BOX(tmpbox), lametab, FALSE, FALSE, 0);
+    tmpwid = gtk_hbox_new(FALSE, 10);
+    gtk_box_pack_start(GTK_BOX(tmpbox), tmpwid, FALSE, FALSE, 0);
+    tmplabel = filedump_new(_("Lame"), tmpmp3);
+    gtk_box_pack_start(GTK_BOX(tmpwid), tmplabel, TRUE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(tmpwid), tmpmp3->tasti, TRUE, FALSE, 0);
 
-	ice_new(MP3);
-	
+    tmpwid = gtk_hseparator_new();
+    gtk_box_pack_start(GTK_BOX(tmpbox), tmpwid, TRUE, TRUE, 0);
+
+
+    createtab(&lametab);
+    gtk_box_pack_start(GTK_BOX(tmpbox), lametab, FALSE, FALSE, 0);
+
+    ice_new(MP3);
+  }
 	
 #ifdef HAVE_VORBIS
 	/* Create Ogg/Vorbis Streaming tab */
@@ -134,7 +137,9 @@ void ice_window(GtkWidget *w)
 	
 #endif
 	gtk_widget_show_all(winil);
-	gtk_widget_hide_all(tmpmp3->tabbola);
+  if (mixer->is_lame_available()) {
+    gtk_widget_hide_all(tmpmp3->tabbola);
+  }
 
 #ifdef HAVE_VORBIS
 	gtk_widget_hide_all(tmpogg->tabbola);
