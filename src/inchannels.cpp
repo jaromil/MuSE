@@ -49,7 +49,7 @@
 #ifdef HAVE_JACK
 #include <dec_jack.h>
 #endif
-//#include <dec_mp3.h>
+#include <dec_mp3.h>
 
 #include "httpstream.h"
 
@@ -283,12 +283,10 @@ int Channel::load(char *file) {
     
     
     switch(cod) { // various stream types
-#if 0
     case HS_MP3:
       func("creating Mp3 decoder");
       ndec = new MuseDecMp3();
       break;
-#endif
     case HS_OGG:
 #ifdef HAVE_VORBIS
       func("creating Ogg decoder");
@@ -310,12 +308,10 @@ int Channel::load(char *file) {
 #else
     error(_("Can't open OggVorbis (support not compiled)"));
 #endif
-#if 0
   } else if(strncasecmp(file+strlen(file)-4,".mp3",4)==0) {
 
     func("creating Mp3 decoder");
     ndec = new MuseDecMp3();
-#endif
   } else if(strncasecmp(file+strlen(file)-4,".wav",4)==0
 
   // pallotron: aggiungo lo string compare per i formati sndfile

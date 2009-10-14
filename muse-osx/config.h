@@ -164,4 +164,8 @@
 #endif /* WITH_DMALLOC */
 /* ========================= */
 
+#define BUILD_NUMBER 8
+
+#define OSX_VERSION 0.9.3
+
 #endif

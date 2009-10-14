@@ -10,6 +10,21 @@
 		8D0C4E8D0486CD37000505A6 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0867D6AAFE840B52C02AAC07 /* InfoPlist.strings */; };
 		8D0C4E8E0486CD37000505A6 /* main.nib in Resources */ = {isa = PBXBuildFile; fileRef = 02345980000FD03B11CA0E72 /* main.nib */; };
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
+		AA0A08B4108683F8002CE46E /* dec_mp3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA0A08B2108683F8002CE46E /* dec_mp3.cpp */; };
+		AA0A08CB10868405002CE46E /* bitwindow.cc in Sources */ = {isa = PBXBuildFile; fileRef = AA0A08B710868405002CE46E /* bitwindow.cc */; };
+		AA0A08CD10868405002CE46E /* fileinput.cc in Sources */ = {isa = PBXBuildFile; fileRef = AA0A08B910868405002CE46E /* fileinput.cc */; };
+		AA0A08CE10868405002CE46E /* fileplayer.cc in Sources */ = {isa = PBXBuildFile; fileRef = AA0A08BA10868405002CE46E /* fileplayer.cc */; };
+		AA0A08CF10868405002CE46E /* filter.cc in Sources */ = {isa = PBXBuildFile; fileRef = AA0A08BB10868405002CE46E /* filter.cc */; };
+		AA0A08D010868405002CE46E /* filter_2.cc in Sources */ = {isa = PBXBuildFile; fileRef = AA0A08BC10868405002CE46E /* filter_2.cc */; };
+		AA0A08D110868405002CE46E /* httpinput.cc in Sources */ = {isa = PBXBuildFile; fileRef = AA0A08BD10868405002CE46E /* httpinput.cc */; };
+		AA0A08D210868405002CE46E /* huffmantable.cc in Sources */ = {isa = PBXBuildFile; fileRef = AA0A08BE10868405002CE46E /* huffmantable.cc */; };
+		AA0A08D410868405002CE46E /* mpeglayer1.cc in Sources */ = {isa = PBXBuildFile; fileRef = AA0A08C010868405002CE46E /* mpeglayer1.cc */; };
+		AA0A08D510868405002CE46E /* mpeglayer2.cc in Sources */ = {isa = PBXBuildFile; fileRef = AA0A08C110868405002CE46E /* mpeglayer2.cc */; };
+		AA0A08D610868405002CE46E /* mpeglayer3.cc in Sources */ = {isa = PBXBuildFile; fileRef = AA0A08C210868405002CE46E /* mpeglayer3.cc */; };
+		AA0A08D710868405002CE46E /* mpegtable.cc in Sources */ = {isa = PBXBuildFile; fileRef = AA0A08C510868405002CE46E /* mpegtable.cc */; };
+		AA0A08D810868405002CE46E /* mpegtoraw.cc in Sources */ = {isa = PBXBuildFile; fileRef = AA0A08C610868405002CE46E /* mpegtoraw.cc */; };
+		AA0A08DA10868405002CE46E /* soundinputstream.cc in Sources */ = {isa = PBXBuildFile; fileRef = AA0A08C810868405002CE46E /* soundinputstream.cc */; };
+		AA0A08DB10868405002CE46E /* soundplayer.cc in Sources */ = {isa = PBXBuildFile; fileRef = AA0A08C910868405002CE46E /* soundplayer.cc */; };
 		AA15AF5F0839586700530BBD /* playlist_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA15AF5E0839586700530BBD /* playlist_manager.cpp */; };
 		AA28B6DD10866A9F00541BE0 /* lame_wrap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA28B6DB10866A9F00541BE0 /* lame_wrap.cpp */; };
 		AA3FCC3E07FCDD370061F816 /* carbon_gui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA3FCC3C07FCDD370061F816 /* carbon_gui.cpp */; };
@@ -66,6 +81,24 @@
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		AA0A08B2108683F8002CE46E /* dec_mp3.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dec_mp3.cpp; sourceTree = "<group>"; };
+		AA0A08B3108683F8002CE46E /* dec_mp3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dec_mp3.h; sourceTree = "<group>"; };
+		AA0A08B710868405002CE46E /* bitwindow.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bitwindow.cc; sourceTree = "<group>"; };
+		AA0A08B910868405002CE46E /* fileinput.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fileinput.cc; sourceTree = "<group>"; };
+		AA0A08BA10868405002CE46E /* fileplayer.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fileplayer.cc; sourceTree = "<group>"; };
+		AA0A08BB10868405002CE46E /* filter.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = filter.cc; sourceTree = "<group>"; };
+		AA0A08BC10868405002CE46E /* filter_2.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = filter_2.cc; sourceTree = "<group>"; };
+		AA0A08BD10868405002CE46E /* httpinput.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = httpinput.cc; sourceTree = "<group>"; };
+		AA0A08BE10868405002CE46E /* huffmantable.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = huffmantable.cc; sourceTree = "<group>"; };
+		AA0A08C010868405002CE46E /* mpeglayer1.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mpeglayer1.cc; sourceTree = "<group>"; };
+		AA0A08C110868405002CE46E /* mpeglayer2.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mpeglayer2.cc; sourceTree = "<group>"; };
+		AA0A08C210868405002CE46E /* mpeglayer3.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mpeglayer3.cc; sourceTree = "<group>"; };
+		AA0A08C310868405002CE46E /* mpegsound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mpegsound.h; sourceTree = "<group>"; };
+		AA0A08C410868405002CE46E /* mpegsound_locals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mpegsound_locals.h; sourceTree = "<group>"; };
+		AA0A08C510868405002CE46E /* mpegtable.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mpegtable.cc; sourceTree = "<group>"; };
+		AA0A08C610868405002CE46E /* mpegtoraw.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mpegtoraw.cc; sourceTree = "<group>"; };
+		AA0A08C810868405002CE46E /* soundinputstream.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = soundinputstream.cc; sourceTree = "<group>"; };
+		AA0A08C910868405002CE46E /* soundplayer.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = soundplayer.cc; sourceTree = "<group>"; };
 		AA15AF5D0839586700530BBD /* playlist_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = playlist_manager.h; sourceTree = "<group>"; };
 		AA15AF5E0839586700530BBD /* playlist_manager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = playlist_manager.cpp; sourceTree = "<group>"; };
 		AA28B6DB10866A9F00541BE0 /* lame_wrap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = lame_wrap.cpp; sourceTree = "<group>"; };
@@ -259,9 +292,36 @@
 			path = ../src;
 			sourceTree = SOURCE_ROOT;
 		};
+		AA0A08B510868405002CE46E /* libmpeg */ = {
+			isa = PBXGroup;
+			children = (
+				AA0A08B710868405002CE46E /* bitwindow.cc */,
+				AA0A08B910868405002CE46E /* fileinput.cc */,
+				AA0A08BA10868405002CE46E /* fileplayer.cc */,
+				AA0A08BB10868405002CE46E /* filter.cc */,
+				AA0A08BC10868405002CE46E /* filter_2.cc */,
+				AA0A08BD10868405002CE46E /* httpinput.cc */,
+				AA0A08BE10868405002CE46E /* huffmantable.cc */,
+				AA0A08C010868405002CE46E /* mpeglayer1.cc */,
+				AA0A08C110868405002CE46E /* mpeglayer2.cc */,
+				AA0A08C210868405002CE46E /* mpeglayer3.cc */,
+				AA0A08C310868405002CE46E /* mpegsound.h */,
+				AA0A08C410868405002CE46E /* mpegsound_locals.h */,
+				AA0A08C510868405002CE46E /* mpegtable.cc */,
+				AA0A08C610868405002CE46E /* mpegtoraw.cc */,
+				AA0A08C810868405002CE46E /* soundinputstream.cc */,
+				AA0A08C910868405002CE46E /* soundplayer.cc */,
+			);
+			name = libmpeg;
+			path = ../lib/libmpeg;
+			sourceTree = SOURCE_ROOT;
+		};
 		AA3FD4C307FCE13C0061F816 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				AA0A08B510868405002CE46E /* libmpeg */,
+				AA0A08B2108683F8002CE46E /* dec_mp3.cpp */,
+				AA0A08B3108683F8002CE46E /* dec_mp3.h */,
 				AA28B6DB10866A9F00541BE0 /* lame_wrap.cpp */,
 				AA28B6DC10866A9F00541BE0 /* lame_wrap.h */,
 				AAC26995081955F000C45B1E /* xmlprofile.cpp */,
@@ -321,10 +381,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B324DACD088B084E00AEDB06 /* Build configuration list for PBXNativeTarget "muse-osx" */;
 			buildPhases = (
+				AA0A088010867CC7002CE46E /* PreBuildScript */,
 				8D0C4E8C0486CD37000505A6 /* Resources */,
 				8D0C4E8F0486CD37000505A6 /* Sources */,
 				8D0C4E910486CD37000505A6 /* Frameworks */,
 				AA3FCC1A07FCD7FE0061F816 /* Rez */,
+				AA0A07E410867A87002CE46E /* PostBuildScript */,
 			);
 			buildRules = (
 			);
@@ -378,6 +440,37 @@
 		};
 /* End PBXRezBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		AA0A07E410867A87002CE46E /* PostBuildScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = PostBuildScript;
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export INSTALLED=\"\"\nexport LIBS_PATH=\"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks\"\nmkdir -p $LIBS_PATH\nexport TARGET=\"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/$PRODUCT_NAME\"\n\nfollow_dependencies () {\n\tlibname=$1\n\tcd \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks\"\n\tdependencies=`otool -L \"$libname\"  | egrep '\\/(opt|usr)\\/local\\/lib' | awk '{print $1}'`\n\tfor l in $dependencies; do\n\t\tdepname=`basename $l`\n\t\tdeppath=`dirname $l`\n\t\tif [ ! -f \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/$depname\" ]; then\n\t\t\tdeploy_lib $depname \"$deppath\"\n\t\tfi\n\tdone\n}\n\nupdate_links () {\n\tlibname=$1\n\tlibpath=$2\n\tfor n in `ls $LIBS_PATH/*`; do\n\t\tinstall_name_tool \\\n\t\t\t-change \"$libpath/$libname\" \\\n\t\t\t@executable_path/../Frameworks/$libname \\\n\t\t\t\"$n\"\n\tdone\n}\n\ndeploy_lib () {\n\tlibname=$1\n\tlibpath=$2\n\tcheck=`echo $INSTALLED | grep $libname`\n\tif [ \"X$check\" = \"X\" ]; then\n\t\tif [ ! -f \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/$libname\" ]; then\n\t\t\tcp -f \"$libpath/$libname\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/$libname\"\n\t\t\tinstall_name_tool \\\n\t\t\t\t-id @executable_path/../Frameworks/$libname \\\n\t\t\t\t\"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/$libname\"\n\t\t\tfollow_dependencies $libname\n\t\tfi\n\t\texport INSTALLED=\"$INSTALLED $libname\"\n\tfi\n\tupdate_links $libname $libpath\n}\n\nupdate_executable() {\n\tLIBS=`otool -L \"$TARGET\" | egrep '\\/(opt|usr)\\/local\\/lib' | awk '{print $1}'`\n\tfor l in $LIBS; do\n\t\tlibname=`basename $l`\n\t\tlibpath=`dirname $l`\n\t\tdeploy_lib $libname $libpath\n\t\techo \"install_name_tool -change $libpath/$libname @executable_path/../Frameworks/$libname \\\"$TARGET\\\"\"\n\t\tinstall_name_tool \\\n\t\t\t-change $libpath/$libname \\\n\t\t\t@executable_path/../Frameworks/$libname \\\n\t\t\t\"$TARGET\"\n\tdone\n}\n\nupdate_executable\ncd $LIBS_PATH && MORELIBS=`otool -L * | egrep '\\/(opt|usr)\\/local\\/lib' | awk '{print $1}'` && cd -\nwhile [ \"X$MORELIBS\" != \"X\" ]; do\n\tfor l in $MORELIBS; do\n\t\tlibname=`basename $l`\n\t\tlibpath=`dirname $l`\n\t\tdeploy_lib \"$libname\" \"$libpath\"\n\tdone\n\tcd $LIBS_PATH && MORELIBS=`otool -L * | egrep '\\/(opt|usr)\\/local\\/lib' | awk '{print $1}'` && cd -\ndone\nupdate_executable\n\n# Update the Info.plist file with correct version and build numbers\nBUILD_NUMBER=`grep BUILD_NUMBER $TARGET_BUILD_DIR/../../config.h | awk '{print $3}'`\nOSX_VERSION=`grep OSX_VERSION $TARGET_BUILD_DIR/../../config.h | awk '{print $3}'`\nsed -i .bck -e \"s#%BUILD_NUMBER%#$BUILD_NUMBER#g\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Info.plist\"\nsed -i .bck -e \"s#%OSX_VERSION%#$OSX_VERSION#g\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Info.plist\"\nrm \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Info.plist.bck\"";
+		};
+		AA0A088010867CC7002CE46E /* PreBuildScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = PreBuildScript;
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"X$CONFIGURATION\" = \"XRelease\" ]; then\n\texport BUILD_NUMBER=`grep BUILD_NUMBER $TARGET_BUILD_DIR/../../config.h | awk '{print $3}'`\n\tOLD_BUILD_NUMBER=$BUILD_NUMBER\n\t((BUILD_NUMBER++))\n\tsed -i .bck -e \"s#BUILD_NUMBER $OLD_BUILD_NUMBER#BUILD_NUMBER $BUILD_NUMBER#\" $TARGET_BUILD_DIR/../../config.h\n\trm $TARGET_BUILD_DIR/../../config.h.bck\nfi";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		8D0C4E8F0486CD37000505A6 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -416,6 +509,21 @@
 				AA852D9309BF0AF000CAAAA6 /* buffer_inspector.cpp in Sources */,
 				AA7504BF0AF967A2001B68BB /* open_dialog.c in Sources */,
 				AA28B6DD10866A9F00541BE0 /* lame_wrap.cpp in Sources */,
+				AA0A08B4108683F8002CE46E /* dec_mp3.cpp in Sources */,
+				AA0A08CB10868405002CE46E /* bitwindow.cc in Sources */,
+				AA0A08CD10868405002CE46E /* fileinput.cc in Sources */,
+				AA0A08CE10868405002CE46E /* fileplayer.cc in Sources */,
+				AA0A08CF10868405002CE46E /* filter.cc in Sources */,
+				AA0A08D010868405002CE46E /* filter_2.cc in Sources */,
+				AA0A08D110868405002CE46E /* httpinput.cc in Sources */,
+				AA0A08D210868405002CE46E /* huffmantable.cc in Sources */,
+				AA0A08D410868405002CE46E /* mpeglayer1.cc in Sources */,
+				AA0A08D510868405002CE46E /* mpeglayer2.cc in Sources */,
+				AA0A08D610868405002CE46E /* mpeglayer3.cc in Sources */,
+				AA0A08D710868405002CE46E /* mpegtable.cc in Sources */,
+				AA0A08D810868405002CE46E /* mpegtoraw.cc in Sources */,
+				AA0A08DA10868405002CE46E /* soundinputstream.cc in Sources */,
+				AA0A08DB10868405002CE46E /* soundplayer.cc in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
