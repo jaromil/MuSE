@@ -5,7 +5,7 @@ endif
 SUBDIRS = lib src $(DOCSDIR)
 
 dist_docs_DATA = README COPYING AUTHORS NEWS KNOWN-BUGS ChangeLog TODO USAGE
-docsdir = ${prefix}/doc/MuSE
+docsdir = ${prefix}/share/doc/${PACKAGE}
 
 dist_man_MANS = muse.1
 
