@@ -150,7 +150,7 @@ dnl CHECK FOR LIBSNDFILE
 dnl ====================
 PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.0,
                   [have_sndfile="yes"
-                   AC_DEFINE(have_sndfile, 1, have working SNDFILE)],
+                   AC_DEFINE(HAVE_SNDFILE, 1, have working SNDFILE)],
                   [have_sndfile="no"])
 
 
