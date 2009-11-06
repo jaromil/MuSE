@@ -18,15 +18,29 @@ MuSE - Multiple Streaming Engine
 .B ] ]
 
 .SH DESCRIPTION
-\fBMuSE\fP is a user friendly application and at the same time a slick commandline tool for mixing, encoding, and network streaming of sound. MuSE can simultaniously mix up to 6 encoded audio inputs from microphone, files or network ogg and mp3 streams. The resulting mixed audio can be played locally on the sound card, saved in a file and/or encoded as an ogg or mp3 stream sent to a broadcast server. MuSE offers two intuitive interfaces (graphical gtk2 and console ncurses) to be operated realtime, while can also run in commandline mode.
+\fBMuSE\fP is a user friendly application and at the same time a slick
+commandline tool for mixing, encoding, and network streaming of sound. MuSE can
+simultaniously mix up to 6 encoded audio inputs from microphone, files or
+network ogg and mp3 streams. The resulting mixed audio can be played locally on
+the sound card, saved in a file and/or encoded as an ogg or mp3 stream sent to a
+broadcast server. MuSE offers two intuitive interfaces (graphical gtk2 and
+console ncurses) to be operated realtime, while can also run in commandline
+mode.
 
-In this manual you get explained the latter mentioned commandline mode, usually appealing to unix ascii freaks.
+In this manual you get explained the latter mentioned commandline mode, usually
+appealing to unix ascii freaks.
 
-\fBMuSE\fP is being developed in the hope to provide the Free Software Community with a useful and user friendly tool for network audio streaming, making life easier for indypendent free speech radios.
+\fBMuSE\fP is being developed in the hope to provide the Free Software Community
+with a useful and user friendly tool for network audio streaming, making life
+easier for indypendent free speech radios.
 
 
 .SH COMMAND LINE USAGE
-Command line options in MuSE are position sensitive: all the encoder options affect the last encoder specified, all the servers are relative to the last encoding specified, all the server options affect the last server specified. In that way you can specify as much encoded streams you want and as much servers you need for each of them.
+Command line options in MuSE are position sensitive: all the encoder options
+affect the last encoder specified, all the servers are relative to the last
+encoding specified, all the server options affect the last server specified. In
+that way you can specify as much encoded streams you want and as much servers
+you need for each of them.
 
 In fact MuSE can stream at multiple bitrates and to multiple servers.
 
@@ -37,11 +51,12 @@ show help
 .IP "-v --version"
 show version information
 .IP "-D --debug [\fI num \fP]"
-set debug verbosity level to \fInum\fP between 1 and 3, useful to figure out where is the problem and to file good bug reports, default is 1
+set debug verbosity level to \fInum\fP between 1 and 3, useful to figure out
+where is the problem and to file good bug reports, default is 1
 .IP "-o --dspout"
 disable souncard output
 .IP "-C --cli"
-command line input. cli GUI is selected (same as -g cli) 
+command line input. cli GUI is selected (same as -g cli)
 .IP "-g --gui \fIname\fP"
 specify GUI \fIname\fP to use. Use \fIlist\fP to get a list of available GUIs
 
@@ -156,19 +171,18 @@ flag at the very beginning of the commandline.
 .SH SCHEDULER
 
 Depending on the version,
-.B MuSE 
-might sport a scheduler allowing you to stream 
+.B MuSE
+might sport a scheduler allowing you to stream
 files, URLs, playlists or
-.B MuSE 
-channels at specified days & hours. The 
-scheduler can be operated through the GTK interface (other interfaces do not 
-have it yet) or by directly editing the 
-.B $HOME/.muse/schedule.xml 
+.B MuSE
+channels at specified days & hours. The scheduler can be operated through the
+GTK interface (other interfaces do not have it yet) or by directly editing the
+.B $HOME/.muse/schedule.xml
 file.
 
 The aforementionned file contains comments explaining all tags, attributes
 and wildcards supported - use it also as help for editing the schedule
-through the GUI. 
+through the GUI.
 
 .SH BUGS
 

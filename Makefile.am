@@ -4,7 +4,7 @@ SUBDIRS = lib/libmpeg src/ncursesgui
 dist_docs_DATA = README COPYING AUTHORS NEWS KNOWN-BUGS ChangeLog TODO USAGE
 docsdir = ${prefix}/share/doc/${PACKAGE}
 
-dist_man_MANS = muse.1
+dist_man_MANS = doc/muse.1
 
 ACLOCAL_AMFLAGS = -I m4
 
