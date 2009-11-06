@@ -51,7 +51,6 @@ MuSE redistributes, linked statically, the following libraries:
  = libshout by Jack Moffit, Chad Armstrong, Scott Manley and OddSock
  = libcdk by Mike Glover
  = the secret rabbit code (libresample) by Eric de Castro Lopo
- = portaudio by Ross Bencina and Phil Burk
 
 MuSE can link itself dinamically to the following libraries:
  = libogg, libvorbis, libvorbisfile - www.xiph.org

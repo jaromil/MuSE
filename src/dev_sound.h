@@ -7,9 +7,7 @@
 #include <jack/jack.h>
 #endif
 
-//#ifdef HAVE_PORTAUDIO
 #include <portaudio.h>
-//#endif
 
 #include <pipe.h>
 

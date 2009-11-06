@@ -27,9 +27,6 @@ AC_MSG_CHECKING(for which platform we are compiling)
 case "$host_os" in
   *linux*)
     AC_MSG_RESULT([Linux])
-    # HAVE_LINUX/UNIX are needed by portaudio only
-    AC_DEFINE(HAVE_LINUX,1,[define if compiling for Linux])
-    AC_DEFINE(HAVE_UNIX,1,[define if compiling for UNIX])
     have_linux=yes
   ;;
 
@@ -44,7 +41,6 @@ case "$host_os" in
   *bsd*)
     AC_MSG_RESULT(${host})
     AC_DEFINE(HAVE_BSD,1,[define if compiling for BSD])
-    AC_DEFINE(HAVE_UNIX,1,[define if compiling for UNIX])
     have_bsd=yes
   ;;
 
@@ -293,27 +289,8 @@ AC_SUBST(GUI_CFLAGS)
 dnl ==============================================================
 dnl Choose external portaudio library
 dnl =========================================
-AC_MSG_CHECKING(if external portaudio library is requested)
-PORTAUDIO_LIBS="\$(top_builddir)/lib/portaudio/libportaudio.a"
-PORTAUDIO_CFLAGS="-I\$(top_srcdir)/lib/portaudio"
-PORTAUDIO_DIRS="portaudio"
-# add -lossaudio library needed for BSD systems
-if test x$have_bsd = xyes; then
-	PORTAUDIO_LIBS="$PORTAUDIO_LIBS -lossaudio"
-fi
-AC_ARG_WITH(portaudio,
-[  --with-portaudio=/sw portaudio lib prefix],
-[if test -n "$withval" && test -d "$withval" ; then
-	 external_portaudio=yes
-     PORTAUDIO_LIBS="$withval/lib/libportaudio.a -I$withval/pa_common "
-	 PORTAUDIO_CFLAGS="-I$withval/include -I$withval/pa_common "
-	 PORTAUDIO_DIRS=""
-	 AC_MSG_RESULT(yes)
- fi],[AC_MSG_RESULT(no)])
-AC_SUBST(PORTAUDIO_LIBS)
-AC_SUBST(PORTAUDIO_CFLAGS)
-AC_SUBST(PORTAUDIO_DIRS)
-
+PKG_CHECK_MODULES(PORTAUDIO, portaudio-2.0, [:],
+                  AC_MSG_ERROR([*** portaudio 19 not found!]))
 
 
 dnl ==============================================================
@@ -409,7 +386,6 @@ AC_CONFIG_FILES([
 Makefile
 lib/Makefile
 lib/libmpeg/Makefile
-lib/portaudio/Makefile
 src/ncursesgui/libcdk/Makefile
 doc/muse.doxygen
 ])
@@ -459,9 +435,6 @@ fi
 
 if test "${want_ncurses_gui}" = "yes"; then
 	echo ":: Building the NCURSES user interface"
-fi
-if test "$external_portaudio" = "yes"; then
-	echo ":: Embedding external portaudio from $PORTAUDIO_LIBS"
 fi
 
 if test "$enable_profiling" = "yes"; then
