@@ -45,6 +45,7 @@ muse_SOURCES =  \
 
 muse_LDADD = \
 	-lpthread \
+	-ldl \
 	@SAMPLERATE_LIBS@ \
 	@M_LIBS@ \
 	@OGG_LIBS@ \
