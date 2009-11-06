@@ -4,6 +4,7 @@
 *.[oa]
 Makefile
 Makefile.in
+.dirstamp
 
 config.h
 config.h.in
