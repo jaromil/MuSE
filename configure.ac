@@ -419,7 +419,6 @@ lib/libmpeg/Makefile
 lib/portaudio/Makefile
 src/ncursesgui/Makefile
 src/ncursesgui/libcdk/Makefile
-doc/Makefile
 doc/muse.doxygen
 ])
 AC_OUTPUT

@@ -1,8 +1,5 @@
-if BUILD_DOC
-DOCSDIR = doc
-endif
 
-SUBDIRS = lib/libmpeg src/ncursesgui $(DOCSDIR)
+SUBDIRS = lib/libmpeg src/ncursesgui
 
 dist_docs_DATA = README COPYING AUTHORS NEWS KNOWN-BUGS ChangeLog TODO USAGE
 docsdir = ${prefix}/share/doc/${PACKAGE}
@@ -145,3 +142,26 @@ noinst_HEADERS += \
   src/gtkgui2/xmlprofile.h
 
 EXTRA_DIST += src/gtkgui2/xpm2
+
+
+## doc/
+EXTRA_DIST += doc/muse.doxygen.in
+if BUILD_DOC
+installdest = $(DESTDIR)$(docdir)/
+
+doc/html/index.html: doc/muse.doxygen
+	$(DOXYGEN) doc/muse.doxygen
+
+noinst_DATA = doc/html/index.html
+
+install-data-local:
+	$(INSTALL) -d $(installdest)
+	(cd doc && for d in `find html -type d`; do $(INSTALL) -m755 -d $(installdest)/$$d; done)
+	(cd doc && for f in `find html -type f`; do $(INSTALL) -m644 $$f $(installdest)/$$f; done)
+
+uninstall-local:
+	rm -rf $(installdest)/html
+
+clean-local:
+	rm -rf doc/html doc/latex doc/rtf doc/man
+endif
