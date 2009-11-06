@@ -1,2 +1,0 @@
-SUBDIRS = libmpeg @PORTAUDIO_DIRS@
-

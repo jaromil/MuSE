@@ -14,7 +14,7 @@ dnl ==============================================================
 dnl Setup for automake
 dnl ==============================================================
 
-AM_INIT_AUTOMAKE([dist-bzip2])
+AM_INIT_AUTOMAKE([dist-bzip2 subdir-objects])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 # never run autotools and configure automatically
@@ -265,13 +265,13 @@ GUI_LIBS=""
 GUI_DIRS=""
 GUI_FLAGS=""
 if test "$want_ncurses_gui" = "yes"; then
-   GUI_LIBS="$GUI_LIBS ncursesgui/librubik.a ncursesgui/libcdk/libcdk.a"
+   GUI_LIBS="$GUI_LIBS \$(top_builddir)/src/ncursesgui/librubik.a \$(top_builddir)/src/ncursesgui/libcdk/libcdk.a"
    GUI_DIRS="$GUI_DIRS ncursesgui"
    GUI_FLAGS="$GUI_FLAGS -I\$(top_srcdir)/src/ncursesgui"
 fi
 
 if test "${want_gtk2_gui}" = "yes"; then
-   GUI_LIBS="$GUI_LIBS $GTK2_LIBS gtkgui2/libnightolo2.a"
+   GUI_LIBS="$GUI_LIBS $GTK2_LIBS \$(top_builddir)/src/gtkgui2/libnightolo2.a"
    GUI_DIRS="$GUI_DIRS gtkgui2"
    GUI_FLAGS="$GUI_FLAGS $GTK2_CFLAGS"
 
@@ -417,8 +417,6 @@ Makefile
 lib/Makefile
 lib/libmpeg/Makefile
 lib/portaudio/Makefile
-src/Makefile
-src/gtkgui2/Makefile
 src/ncursesgui/Makefile
 src/ncursesgui/libcdk/Makefile
 doc/Makefile
