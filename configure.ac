@@ -417,7 +417,6 @@ Makefile
 lib/Makefile
 lib/libmpeg/Makefile
 lib/portaudio/Makefile
-src/ncursesgui/Makefile
 src/ncursesgui/libcdk/Makefile
 doc/muse.doxygen
 ])

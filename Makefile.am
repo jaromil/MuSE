@@ -1,5 +1,5 @@
 
-SUBDIRS = lib/libmpeg src/ncursesgui
+SUBDIRS = lib/libmpeg src/ncursesgui/libcdk
 
 dist_docs_DATA = README COPYING AUTHORS NEWS KNOWN-BUGS ChangeLog TODO USAGE
 docsdir = ${prefix}/share/doc/${PACKAGE}
@@ -142,6 +142,57 @@ noinst_HEADERS += \
   src/gtkgui2/xmlprofile.h
 
 EXTRA_DIST += src/gtkgui2/xpm2
+
+
+## src/ncursesgui
+noinst_LIBRARIES += src/ncursesgui/librubik.a
+src_ncursesgui_librubik_a_SOURCES = \
+  src/ncursesgui/entry.cpp \
+  src/ncursesgui/fselect.cpp \
+  src/ncursesgui/label.cpp \
+  src/ncursesgui/muse_tui.cpp \
+  src/ncursesgui/play_infobox.cpp \
+  src/ncursesgui/screen.cpp \
+  src/ncursesgui/scroll.cpp \
+  src/ncursesgui/single_channel.cpp \
+  src/ncursesgui/slider.cpp \
+  src/ncursesgui/about.cpp \
+  src/ncursesgui/connectbox.cpp \
+  src/ncursesgui/encsetbox.cpp \
+  src/ncursesgui/streamsetbox.cpp \
+  src/ncursesgui/itemlist.cpp \
+  src/ncursesgui/menu.cpp \
+  src/ncursesgui/ncurses_gui.cpp
+
+src_ncursesgui_librubik_a_CXXFLAGS = \
+  -I$(top_srcdir)/src \
+  -I$(top_srcdir)/src/ncursesgui
+
+noinst_HEADERS += \
+  src/ncursesgui/about.h \
+  src/ncursesgui/connectbox.h \
+  src/ncursesgui/debug.h \
+  src/ncursesgui/encdata.h \
+  src/ncursesgui/encsetbox.h \
+  src/ncursesgui/entry.h \
+  src/ncursesgui/fselect.h \
+  src/ncursesgui/itemlist.h \
+  src/ncursesgui/label.h \
+  src/ncursesgui/menu.h \
+  src/ncursesgui/muse_console.h \
+  src/ncursesgui/muse_tui.h \
+  src/ncursesgui/ncurses_gui.h \
+  src/ncursesgui/play_infobox.h \
+  src/ncursesgui/screen.h \
+  src/ncursesgui/scroll.h \
+  src/ncursesgui/single_channel.h \
+  src/ncursesgui/slider.h \
+  src/ncursesgui/streamsetbox.h
+
+EXTRA_DIST += \
+  src/ncursesgui/coltable.c \
+  src/ncursesgui/muse_console.cpp \
+  src/ncursesgui/testgui.sh
 
 
 ## doc/
