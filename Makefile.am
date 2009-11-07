@@ -1,4 +1,8 @@
-SUBDIRS = lib/libmpeg src/ncursesgui/libcdk
+if NCURSES_GUI
+LIBCDKDIR = src/ncursesgui/libcdk
+endif
+
+SUBDIRS = lib/libmpeg $(LIBCDKDIR)
 
 dist_docs_DATA = README COPYING AUTHORS NEWS KNOWN-BUGS ChangeLog TODO USAGE
 docsdir = ${prefix}/share/doc/${PACKAGE}
@@ -103,6 +107,7 @@ EXTRA_DIST += src/vumeter.c src/xmlprofile.cpp src/profile.cpp
 
 
 ## src/gtkgui2
+if GTK2_GUI
 noinst_LIBRARIES += src/gtkgui2/libnightolo2.a
 src_gtkgui2_libnightolo2_a_SOURCES = \
   src/gtkgui2/about.cpp \
@@ -147,9 +152,11 @@ noinst_HEADERS += \
   src/gtkgui2/xmlprofile.h
 
 EXTRA_DIST += src/gtkgui2/xpm2
+endif
 
 
 ## src/ncursesgui
+if NCURSES_GUI
 noinst_LIBRARIES += src/ncursesgui/librubik.a
 src_ncursesgui_librubik_a_SOURCES = \
   src/ncursesgui/entry.cpp \
@@ -198,6 +205,7 @@ EXTRA_DIST += \
   src/ncursesgui/coltable.c \
   src/ncursesgui/muse_console.cpp \
   src/ncursesgui/testgui.sh
+endif
 
 
 ## doc/

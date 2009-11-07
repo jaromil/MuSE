@@ -196,10 +196,11 @@ if test x$want_ncurses_gui = xyes; then
 
   AC_CHECK_FUNC(XCursesExit, AC_DEFINE(HAVE_XCURSES, 1, [Build with xcurses]))
 
-  if test x$have_ncurses_h = xyes && test x$want_ncurses != xno; then
+  if test x$have_ncurses_h = xyes; then
     AC_DEFINE([GUI_RUBIK], 1, [Have ncurses GUI])
   fi
 fi
+AM_CONDITIONAL(NCURSES_GUI, [test x$want_ncurses_gui = xyes])
 
 
 dnl ==================
@@ -232,6 +233,7 @@ if test x$want_gtk2_gui = xyes || test x$want_gtk2_gui = xauto; then
     want_gtk2_gui=no
   fi
 fi
+AM_CONDITIONAL(GTK2_GUI, [test x$want_gtk2_gui = xyes])
 
 
 dnl ===============
