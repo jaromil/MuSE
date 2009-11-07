@@ -1,4 +1,3 @@
-
 SUBDIRS = lib/libmpeg src/ncursesgui/libcdk
 
 dist_docs_DATA = README COPYING AUTHORS NEWS KNOWN-BUGS ChangeLog TODO USAGE
@@ -8,8 +7,14 @@ dist_man_MANS = doc/muse.1
 
 ACLOCAL_AMFLAGS = -I m4
 
+# initialize some vars, append later
+noinst_HEADERS =
+noinst_LIBRARIES =
+noinst_DATA =
+EXTRA_DIST =
+
 # FIXME po should be properly gettexited
-EXTRA_DIST = autogen.sh po utils
+EXTRA_DIST += autogen.sh po utils
 
 ### src/
 bin_PROGRAMS = src/muse
@@ -66,7 +71,7 @@ src_muse_LDADD = \
   $(SNDFILE_LIBS) \
   $(VORBIS_LIBS)
 
-noinst_HEADERS = \
+noinst_HEADERS += \
   src/audioproc.h \
   src/dec_jack.h \
   src/dec_mp3.h \
@@ -98,7 +103,7 @@ EXTRA_DIST += src/vumeter.c src/xmlprofile.cpp src/profile.cpp
 
 
 ## src/gtkgui2
-noinst_LIBRARIES = src/gtkgui2/libnightolo2.a
+noinst_LIBRARIES += src/gtkgui2/libnightolo2.a
 src_gtkgui2_libnightolo2_a_SOURCES = \
   src/gtkgui2/about.cpp \
   src/gtkgui2/docking.cpp \
@@ -196,14 +201,13 @@ EXTRA_DIST += \
 
 
 ## doc/
-EXTRA_DIST += doc/muse.doxygen.in
 if BUILD_DOC
 installdest = $(DESTDIR)$(docdir)/
 
 doc/html/index.html: doc/muse.doxygen
 	$(DOXYGEN) doc/muse.doxygen
 
-noinst_DATA = doc/html/index.html
+noinst_DATA += doc/html/index.html
 
 install-data-local:
 	$(INSTALL) -d $(installdest)
@@ -215,4 +219,6 @@ uninstall-local:
 
 clean-local:
 	rm -rf doc/html doc/latex doc/rtf doc/man
+
+EXTRA_DIST += doc/muse.doxygen.in
 endif
