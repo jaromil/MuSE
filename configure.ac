@@ -264,18 +264,18 @@ dnl assign some defines
 dnl ===================
 
 GUI_LIBS=""
-GUI_FLAGS=""
+GUI_CFLAGS=""
 GUI_OBJECTS=""
 if test "$want_ncurses_gui" = "yes"; then
    GUI_OBJECTS="$GUI_OBJECTS \$(top_builddir)/src/ncursesgui/librubik.a \
                              \$(top_builddir)/src/ncursesgui/libcdk/libcdk.a"
-   GUI_FLAGS="$GUI_FLAGS -I\$(top_srcdir)/src/ncursesgui"
+   GUI_CFLAGS="$GUI_CFLAGS -I\$(top_srcdir)/src/ncursesgui"
 fi
 
 if test "${want_gtk2_gui}" = "yes"; then
    GUI_OBJECTS="$GUI_OBJECTS \$(top_builddir)/src/gtkgui2/libnightolo2.a"
    GUI_LIBS="$GUI_LIBS $GTK2_LIBS"
-   GUI_FLAGS="$GUI_FLAGS $GTK2_CFLAGS"
+   GUI_CFLAGS="$GUI_CFLAGS $GTK2_CFLAGS"
 
    dnl =========
    dnl Scheduler
@@ -287,7 +287,7 @@ dnl    AC_DEFINE(HAVE_SCHEDULER)
 fi
 AC_SUBST(GUI_OBJECTS)
 AC_SUBST(GUI_LIBS)
-AC_SUBST(GUI_FLAGS)
+AC_SUBST(GUI_CFLAGS)
 
 
 dnl ==============================================================

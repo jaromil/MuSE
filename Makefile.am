@@ -51,7 +51,7 @@ src_muse_CXXFLAGS = \
   -I$(top_srcdir)/lib/libmpeg \
   $(DARWIN_CFLAGS) \
   $(GLIB2_CFLAGS) \
-  $(GUI_FLAGS) \
+  $(GUI_CFLAGS) \
   $(JACK_CFLAGS) \
   $(OGG_CFLAGS) \
   $(PORTAUDIO_CFLAGS) \
