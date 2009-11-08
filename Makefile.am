@@ -48,11 +48,11 @@ src_muse_SOURCES = \
 
 src_muse_CXXFLAGS = \
   -I$(top_srcdir)/src \
+  -I$(top_srcdir)/lib/libmpeg \
   $(DARWIN_CFLAGS) \
   $(GLIB2_CFLAGS) \
   $(GUI_FLAGS) \
   $(JACK_CFLAGS) \
-  $(LIBMPEG_CFLAGS) \
   $(OGG_CFLAGS) \
   $(PORTAUDIO_CFLAGS) \
   $(SAMPLERATE_CFLAGS) \
@@ -60,13 +60,13 @@ src_muse_CXXFLAGS = \
   $(VORBIS_CFLAGS)
 
 src_muse_LDADD = \
+  $(top_builddir)/lib/libmpeg/libmpeg.a \
   -lpthread \
   -ldl \
   $(DARWIN_LIBS) \
   $(GLIB2_LIBS) \
   $(GUI_LIBS) \
   $(JACK_LIBS) \
-  $(LIBMPEG_LIBS) \
   $(M_LIBS) \
   $(OGG_LIBS) \
   $(PORTAUDIO_LIBS) \

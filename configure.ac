@@ -311,14 +311,6 @@ AC_SUBST(PORTAUDIO_CFLAGS)
 AC_SUBST(PORTAUDIO_DIRS)
 
 
-dnl ==============================================================
-dnl mpeg lib
-dnl ==============================================================
-LIBMPEG_LIBS="\$(top_builddir)/lib/libmpeg/libmpeg.a"
-LIBMPEG_CFLAGS="-I\$(top_srcdir)/lib/libmpeg"
-AC_SUBST(LIBMPEG_LIBS)
-AC_SUBST(LIBMPEG_CFLAGS)
-
 
 dnl ==============================================================
 dnl shout lib
