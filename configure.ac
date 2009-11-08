@@ -264,27 +264,31 @@ dnl assign some defines
 dnl ===================
 
 GUI_LIBS=""
-GUI_DIRS=""
 GUI_FLAGS=""
+GUI_OBJECTS=""
 if test "$want_ncurses_gui" = "yes"; then
-   GUI_LIBS="$GUI_LIBS \$(top_builddir)/src/ncursesgui/librubik.a \$(top_builddir)/src/ncursesgui/libcdk/libcdk.a"
-   GUI_DIRS="$GUI_DIRS ncursesgui"
+   GUI_OBJECTS="$GUI_OBJECTS \$(top_builddir)/src/ncursesgui/librubik.a \
+                             \$(top_builddir)/src/ncursesgui/libcdk/libcdk.a"
    GUI_FLAGS="$GUI_FLAGS -I\$(top_srcdir)/src/ncursesgui"
 fi
 
 if test "${want_gtk2_gui}" = "yes"; then
-   GUI_LIBS="$GUI_LIBS $GTK2_LIBS \$(top_builddir)/src/gtkgui2/libnightolo2.a"
-   GUI_DIRS="$GUI_DIRS gtkgui2"
+   GUI_OBJECTS="$GUI_OBJECTS \$(top_builddir)/src/gtkgui2/libnightolo2.a"
+   GUI_LIBS="$GUI_LIBS $GTK2_LIBS"
    GUI_FLAGS="$GUI_FLAGS $GTK2_CFLAGS"
 
    dnl =========
-   dnl Scheduler 
+   dnl Scheduler
    dnl =========
 
 dnl    scheduler is deactivated for now
 dnl    AC_DEFINE(HAVE_SCHEDULER)
 
 fi
+AC_SUBST(GUI_OBJECTS)
+AC_SUBST(GUI_LIBS)
+AC_SUBST(GUI_FLAGS)
+
 
 dnl ==============================================================
 dnl Choose external portaudio library
@@ -396,11 +400,6 @@ AC_SUBST(DARWIN_CFLAGS)
 
 AC_SUBST(M_LIBS)
 AC_SUBST(LAME_LIBS)
-
-AC_SUBST(GUI_LIBS)
-AC_SUBST(GUI_DIRS)
-AC_SUBST(GUI_FLAGS)
-AC_SUBST(GUI_DEPS)
 
 CFLAGS="$GLOBAL_CFLAGS $CFLAGS"
 CXXFLAGS="$GLOBAL_CFLAGS $CXXFLAGS"

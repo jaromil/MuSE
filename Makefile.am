@@ -66,6 +66,7 @@ src_muse_LDADD = \
   $(DARWIN_LIBS) \
   $(GLIB2_LIBS) \
   $(GUI_LIBS) \
+  $(GUI_OBJECTS) \
   $(JACK_LIBS) \
   $(M_LIBS) \
   $(OGG_LIBS) \
@@ -74,6 +75,10 @@ src_muse_LDADD = \
   $(SHOUT_LIBS) \
   $(SNDFILE_LIBS) \
   $(VORBIS_LIBS)
+
+src_muse_DEPENDENCIES = \
+  $(top_builddir)/lib/libmpeg/libmpeg.a \
+  $(GUI_OBJECTS)
 
 noinst_HEADERS += \
   src/audioproc.h \
