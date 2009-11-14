@@ -41,7 +41,7 @@ class SoundDevice {
      Tries to open the sound device for read and/or write
      if full-duplex is requested but not supported, it returns error
      and must be called again to fallback on half-duplex mode
-     
+
      @param read true if device is opened for reading audio
      @param write true if device is opened for writing audio
      @return true in case of success, false otherwise
@@ -53,9 +53,9 @@ class SoundDevice {
   bool output(bool state); ///< activate sound output
 
   void close(); ///< close the sound device
-  
+
   int read(void *buf, int len); ///< reads audio data from the device in a buffer, len is samples
-  
+
   int write(void *buf, int len); ///< writes audio data from a buffer to the device, len is samples
   void flush_input();
   void flush_output();
@@ -64,6 +64,28 @@ class SoundDevice {
   bool jack;
   bool jack_in;
   bool jack_out;
+
+  jack_default_audio_sample_t *get_jack_in_buf() { return jack_in_buf; };
+  void set_jack_in_buf(jack_default_audio_sample_t *arg) { jack_in_buf = arg; };
+
+  jack_default_audio_sample_t *get_jack_out_buf() { return jack_out_buf; };
+  void set_jack_out_buf(jack_default_audio_sample_t *arg) { jack_out_buf = arg; };
+
+  jack_port_t *get_jack_in_port() { return jack_in_port; };
+  void set_jack_in_port(jack_port_t *arg) { jack_in_port = arg; };
+
+  jack_port_t *get_jack_out_port() { return jack_out_port; };
+  void set_jack_out_port(jack_port_t *arg) { jack_out_port = arg; };
+
+  Pipe *get_jack_out_pipe() { return jack_out_pipe; };
+  void set_jack_out_pipe(Pipe *arg) { jack_out_pipe = arg; };
+
+  Pipe *get_jack_in_pipe() { return jack_in_pipe; };
+  void set_jack_in_pipe(Pipe *arg) { jack_in_pipe = arg; };
+
+  jack_client_t *get_jack_client() { return jack_client; };
+  void set_jack_client(jack_client_t *arg) { jack_client = arg; };
+
 #endif
 
 #ifdef HAVE_PORTAUDIO

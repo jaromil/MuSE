@@ -41,16 +41,16 @@ int dev_jack_process(jack_nframes_t nframes, void *arg) {
   if(!dev->jack) return 0; // just return
   
   // take output from pipe and send it to jack
-  dev->jack_out_buf = (jack_default_audio_sample_t*)
-    jack_port_get_buffer(dev->jack_out_port,nframes);
-  opframes = dev->jack_out_pipe->read
-    (nframes * sizeof(float) * 2 , dev->jack_out_buf);
+  dev->set_jack_out_buf((jack_default_audio_sample_t*)
+    jack_port_get_buffer(dev->get_jack_out_port(),nframes));
+  opframes = dev->get_jack_out_pipe()->read
+    (nframes * sizeof(float) * 2 , dev->get_jack_out_buf());
   
   // take input from jack and send it in pipe
-  dev->jack_in_buf = (jack_default_audio_sample_t*)
-    jack_port_get_buffer(dev->jack_in_port,nframes);
-  dev->jack_in_pipe->write // does the float2int conversion in one pass
-    (nframes * sizeof(float) * 2 , dev->jack_in_buf);
+  dev->set_jack_in_buf((jack_default_audio_sample_t*)
+    jack_port_get_buffer(dev->get_jack_in_port(),nframes));
+  dev->get_jack_in_pipe()->write // does the float2int conversion in one pass
+    (nframes * sizeof(float) * 2 , dev->get_jack_in_buf());
   
   return 0;
 }
@@ -59,11 +59,11 @@ void dev_jack_shutdown(void *arg) {
   SoundDevice *dev = (SoundDevice*)arg;
   // close the jack channels
   dev->jack = false;
-  jack_port_unregister(dev->jack_client, dev->jack_in_port);
-  jack_port_unregister(dev->jack_client, dev->jack_out_port);
-  jack_deactivate(dev->jack_client);
-  delete dev->jack_in_pipe;
-  delete dev->jack_out_pipe;
+  jack_port_unregister(dev->get_jack_client(), dev->get_jack_in_port());
+  jack_port_unregister(dev->get_jack_client(), dev->get_jack_out_port());
+  jack_deactivate(dev->get_jack_client());
+  delete dev->get_jack_in_pipe();
+  delete dev->get_jack_out_pipe();
 }
 #endif
 
