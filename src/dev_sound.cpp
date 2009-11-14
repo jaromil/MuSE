@@ -93,8 +93,8 @@ close();
 }
 
 #ifdef HAVE_PORTAUDIO
-static int pa_process( const void *inputBuffer, void *outputBuffer, 
-	long unsigned int framesPerBuffer, const PaStreamCallbackTimeInfo *outTime, 
+static int pa_process( const void *inputBuffer, void *outputBuffer,
+    unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo *outTime,
     PaStreamCallbackFlags flags, void *userData )
 {
 int i,n;
@@ -118,8 +118,8 @@ long len = framesPerBuffer * (PA_SAMPLES_PER_FRAME*sizeof(PA_SAMPLE_TYPE));
         readBytes = dev->input->pipe->write(len,rBuf);
         free(rBuf);
       }
-	  if(readBytes <= 0) memset((void *)inputBuffer,0,len);
-	}
+      if(readBytes <= 0) memset((void *)inputBuffer,0,framesPerBuffer);
+    }
   }
   if(outputBuffer != NULL) { /* handle output to soundcard */
 	if(dev->output->info) {
@@ -137,10 +137,10 @@ long len = framesPerBuffer * (PA_SAMPLES_PER_FRAME*sizeof(PA_SAMPLE_TYPE));
          }
 		 free(rBuf);
 	  }
-	  if(readBytes <= 0) memset(outputBuffer,0,len);
+	  if(readBytes <= 0) memset(outputBuffer,0,framesPerBuffer);
     }
   }
-  return 0;
+  return paContinue;
 }
 #endif
 
@@ -158,20 +158,24 @@ bool SoundDevice::input(bool state) {
 
 #ifdef HAVE_PORTAUDIO
 PaError SoundDevice::pa_real_open(int mode) {
-    PaStream *stream;
-    input_device.input_params.device = input_device.id;
-    input_device.input_params.channelCount = input_device.info->maxInputChannels>1 ? 2 : 1;
-    input_device.input_params.sampleFormat = PA_SAMPLE_TYPE;
-    input_device.input_params.suggestedLatency = 0;
-    
-    output_device.output_params.device = output_device.id;
-    output_device.output_params.channelCount = output_device.info->maxOutputChannels>1 ? 2 : 1;
-    output_device.output_params.sampleFormat = PA_SAMPLE_TYPE;
-    output_device.output_params.suggestedLatency = 0;
-    
-  return Pa_OpenStream( &stream, 
-    ((mode & PaInput) == PaInput)?&input_device.input_params:NULL,
-    ((mode & PaOutput) == PaOutput)?&output_device.output_params:NULL,
+    if((mode & PaInput) == PaInput) {
+        input_device.input_params.device = input_device.id;
+        input_device.input_params.channelCount = input_device.info->maxInputChannels>1 ? 2 : 1;
+        input_device.input_params.sampleFormat = PA_SAMPLE_TYPE;
+        input_device.input_params.suggestedLatency = 0;
+    }
+    if((mode & PaOutput) == PaOutput) {
+        output_device.output_params.device = output_device.id;
+        output_device.output_params.channelCount = output_device.info->maxOutputChannels>1 ? 2 : 1;
+        output_device.output_params.sampleFormat = PA_SAMPLE_TYPE;
+        output_device.output_params.suggestedLatency = 0;
+    }
+
+  return Pa_OpenStream(
+    // XXX what if mode = painput | paoutput ?
+    ((mode & PaInput) == PaInput) ? &input_device.stream : &output_device.stream,
+    ((mode & PaInput) == PaInput) ? &input_device.input_params : NULL,
+    ((mode & PaOutput) == PaOutput) ? &output_device.output_params : NULL,
     SAMPLE_RATE,
     FRAMES_PER_BUFFER,
     0, // paClipOff,     /* we won't output out of range samples so don't bother clipping them */
@@ -208,6 +212,7 @@ bool SoundDevice::pa_open(bool state,int mode) {
     strcpy(dir,"output");
     dev->id = Pa_GetDefaultOutputDevice();
   }
+
   if(state && ((pa_mode & creq) != creq)) {
     dev->info = (PaDeviceInfo*)Pa_GetDeviceInfo( dev->id );
     if(dev->info) notice("Opening %s device: %s",dir,dev->info->name);
@@ -315,6 +320,11 @@ bool SoundDevice::open(bool read, bool write) {
       return true;
     }
 #endif
+
+#ifdef HAVE_PORTAUDIO
+  if( Pa_Initialize() != paNoError ) return false;
+#endif
+
   if( ! output(write) ) return false;
   
   //if( ! input(read) ) return false;
@@ -351,6 +361,8 @@ void SoundDevice::close() {
       pa_mode = PaInput;
     else pa_mode = PaNull;
   }
+
+  if( Pa_Terminate() != paNoError ) notice("Failed to call Pa_Terminate");
   //delete output_device.pipe;
 #endif
 }
