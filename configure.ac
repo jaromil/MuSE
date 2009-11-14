@@ -289,9 +289,27 @@ AC_SUBST(GUI_CFLAGS)
 dnl ==============================================================
 dnl Choose external portaudio library
 dnl =========================================
-PKG_CHECK_MODULES(PORTAUDIO, portaudio-2.0, [:],
-                  AC_MSG_ERROR([*** portaudio 19 not found!]))
+AC_ARG_ENABLE(portaudio,
+  AS_HELP_STRING([--enable-portaudio],
+                 [compile with portaudio support (yes)]),
+  [enable_portaudio=$enableval],
+  [enable_portaudio=yes])
 
+if test x$enable_portaudio = xyes; then
+  PKG_CHECK_MODULES(PORTAUDIO, portaudio-2.0, [have_portaudio=yes],
+                    [have_portaudio=no])
+  if test x$have_portaudio = xyes; then
+    AC_DEFINE(HAVE_PORTAUDIO, 1, [Have portaudio library])
+  fi
+fi
+
+if test x$have_portaudio = xno && test x$have_jack = xno; then
+  AC_MSG_ERROR([*** portaudio nor jack found!])
+fi
+
+if test x$have_portaudio = xyes && test x$have_jack = xyes; then
+  AC_MSG_ERROR([*** both portaudio and jack are enabled, disable one])
+fi
 
 dnl ==============================================================
 dnl shout lib
@@ -423,6 +441,10 @@ fi
 
 if test "${have_jack}" = "yes"; then
 	echo ":: Linking libJack for connecting to the Jack audio daemon"
+fi
+
+if test "${have_portaudio}" = "yes"; then
+	echo ":: Linking portaudio for soundcard output"
 fi
 
 if test "$have_lame" = "yes"; then
