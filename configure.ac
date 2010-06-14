@@ -18,7 +18,7 @@ AM_INIT_AUTOMAKE([dist-bzip2 subdir-objects])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 # never run autotools and configure automatically
-AM_MAINTAINER_MODE
+# AM_MAINTAINER_MODE
 
 dnl ==============================================================
 dnl Get the operating system and version number...
@@ -402,9 +402,6 @@ LIBS="$LIBS"
 
 AC_CONFIG_FILES([
 Makefile
-lib/Makefile
-lib/libmpeg/Makefile
-src/ncursesgui/libcdk/Makefile
 doc/muse.doxygen
 ])
 AC_OUTPUT

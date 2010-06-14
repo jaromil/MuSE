@@ -2,7 +2,7 @@ if NCURSES_GUI
 LIBCDKDIR = src/ncursesgui/libcdk
 endif
 
-SUBDIRS = lib/libmpeg $(LIBCDKDIR)
+SUBDIRS = $(LIBCDKDIR)
 
 dist_docs_DATA = README COPYING AUTHORS NEWS KNOWN-BUGS ChangeLog TODO USAGE
 docsdir = ${prefix}/share/doc/${PACKAGE}
@@ -28,7 +28,6 @@ src_muse_SOURCES = \
   src/audioproc.cpp \
   src/inchannels.cpp \
   src/decoder.cpp \
-  src/dec_mp3.cpp \
   src/dec_ogg.cpp \
   src/dec_snd.cpp \
   src/dec_jack.cpp \
@@ -48,7 +47,6 @@ src_muse_SOURCES = \
 
 src_muse_CXXFLAGS = \
   -I$(top_srcdir)/src \
-  -I$(top_srcdir)/lib/libmpeg \
   $(DARWIN_CFLAGS) \
   $(GLIB2_CFLAGS) \
   $(GUI_CFLAGS) \
@@ -60,7 +58,6 @@ src_muse_CXXFLAGS = \
   $(VORBIS_CFLAGS)
 
 src_muse_LDADD = \
-  $(top_builddir)/lib/libmpeg/libmpeg.a \
   -lpthread \
   -ldl \
   $(DARWIN_LIBS) \
@@ -77,13 +74,11 @@ src_muse_LDADD = \
   $(VORBIS_LIBS)
 
 src_muse_DEPENDENCIES = \
-  $(top_builddir)/lib/libmpeg/libmpeg.a \
   $(GUI_OBJECTS)
 
 noinst_HEADERS += \
   src/audioproc.h \
   src/dec_jack.h \
-  src/dec_mp3.h \
   src/decoder.h \
   src/dec_ogg.h \
   src/dec_snd.h \
